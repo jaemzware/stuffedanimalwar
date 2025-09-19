@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Stuffed Animal War</title>
+        <link rel="Stylesheet" href="stylebase.css" />
+<!--        FOR MOBILE-->
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+        <script type="text/javascript" src="htmlwriter.js"></script>
+        <script src="jquery-3.7.1.min.js"></script>
+        <script src="/socket.io/socket.io.js"></script>
+    </head>
+<body>
+<!--define media objects for animals (images), songs, videos, and auto-responses-->
+<script type="text/javascript">
+    /**
+     * 1. DEFINE CUSTOM ANIMALS, MUSIC, VIDEO, AND RESPONSES **STRONGLY ENCOURAGED**
+     */
+    let stuffedAnimalMediaObject = {{STUFFED_ANIMAL_MEDIA_OBJECT}};
+    let mediaObject = {{MEDIA_OBJECT}};
+    let responsesObject = {{RESPONSES_OBJECT}};
+    //write the web page
+    writeStuffedAnimalWar(stuffedAnimalMediaObject);
+    writeChatForm(responsesObject);
+    writeChatFormFileUpload();
+    writeChatFormVideoUpload();
+    writeAudioFromJson(mediaObject);
+    writePhotosFromJson(mediaObject);
+    writeVideoFromJson(mediaObject);
+</script>
+<script type="text/javascript" src="stuffedanimalwarmechanics.js"></script>
+<!--DOMContentLoaded audio and video programmatic behavior on next song/video, etc and a random color generator-->
+<script type="text/javascript" src="utilities.js"></script>
+<!--emitting and receiving socket events and objects-->
+<script type="text/javascript" src="sockethandler.js"></script>
+<!--sockethandler initialization vars-->
+<script type="text/javascript">
+    /**
+     * 2. SET UNIQUE ENDPOINT NAME **REQUIRED**
+     */
+    endpoint = "{{ENDPOINT}}"; //MUST BE IN INDEX.JS endpoints ARRAY
+    /**
+     * 3. SET MASTER ALIAS FOR AUDIO DJ AND CLEARBOARD FOR ALL PRIVILEGES **OPTIONAL**
+     */
+    masterAlias = "{{MASTER_ALIAS}}";
+    /**
+     * 4. SET UNSPECIFIED ALIAS FOR EMPTY ALIAS CHATTERS **OPTIONAL**
+     */
+    unspecifiedAlias="{{UNSPECIFIED_ALIAS}}";
+    chatSocketEvent = endpoint + 'chatmessage';
+    tapSocketEvent = endpoint + 'tapmessage';
+    pathSocketEvent = endpoint + 'pathmessage';
+    chatImageSocketEvent = endpoint + 'uploadchatimage';
+    chatVideoSocketEvent = endpoint + 'uploadchatvideo';
+    connectSocketEvent = endpoint + 'connect';
+    disconnectSocketEvent = endpoint + 'disconnect';
+    socket = io({
+        query: {
+            endpoint: endpoint
+        }
+    });
+    initializeSocketHandlers();
+</script>
+<!--COLOR PICKER-->
+<script src="modal-color-picker.js"></script>
+</body>
+</html> 

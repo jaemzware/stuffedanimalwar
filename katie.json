@@ -1,0 +1,239 @@
+{
+    "endpoint": "katie",
+    "masterAlias": "KATIE",
+    "unspecifiedAlias": "anonymous",
+    "stuffedAnimalMediaObject" : {
+        "backgroundimage":"https://seattlerules.com/media/stuffedanimalwar/katie/katiebackground.jpg",
+        "animals": [
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/badger.png",
+                "title": "Badger"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/bat.png",
+                "title": "Bat"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/bear.png",
+                "title": "Bear"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/birds.png",
+                "title": "Birds"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/bison.png",
+                "title": "Bison"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/boar.png",
+                "title": "Boar"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/deer.png",
+                "title": "Buck"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/cats.png",
+                "title": "Cats"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/cheetah.png",
+                "title": "Cheetah"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/chickens.png",
+                "title": "Chickens"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/crocodiles.png",
+                "title": "Crocodiles"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/crow.png",
+                "title": "Crow"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/darthvader.png",
+                "title": "Darth Vader"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/dogs.png",
+                "title": "Dog"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/duck.png",
+                "title": "Duck"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/eagle.png",
+                "title": "Eagle"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/frog.png",
+                "title": "Frog"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/giraffe.png",
+                "title": "Giraffe"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/goldfish.png",
+                "title": "Goldfish"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/gorilla.png",
+                "title": "Gorilla"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/thechosenone.png",
+                "title": "Jedi"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/lamblambs.png",
+                "title": "Lamb"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/lions.png",
+                "title": "Lion"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/monkey.png",
+                "title": "Monkey"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/moose.png",
+                "title": "Moose"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/rainier.png",
+                "title": "Mt Rainier"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/whale.png",
+                "title": "Orca"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/queen.png",
+                "title": "Queen"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/r2d2.png",
+                "title": "R2D2"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/seagull.png",
+                "title": "Seagull"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/stormtrooper.png",
+                "title": "Storm Trooper"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/yoda.png",
+                "title": "Yoda"
+            }
+        ]
+    },
+    "mediaObject" : {
+        "songspath": "https://analogarchive.com/live/",
+        "videospath": "https://seattlerules.com/media/trump/videos/",
+        "photospath": "https://seattlerules.com/media/stuffedanimalwar/katie/",
+        "videos": [
+            {"file":"005crockett.mp4","title":"Crockett","poster":"https://seattlerules.com/media/trump/videos/crockett.jpg"},
+            {"file":"https://seattlerules.com/media/trump/videos/aoc/aocdogemedical.mp4","title":"AOC","poster":"https://seattlerules.com/media/trump/videos/aoc/aocdogemedical.jpg"}
+        ],
+        "photos": [
+            {"file":"08CBD254-5A09-4BDA-8792-C06F431B260D.jpeg","title":"Kassie Dior"},
+            {"file":"0DCA71BD-CE69-4AED-BDAA-A93085213716.jpeg","title":"Kassie Dior"},
+            {"file":"256B6C2E-19B4-4A55-913E-1113B86F19E8.jpeg","title":"Kassie Dior"},
+            {"file":"2A6E53F5-B87B-40C0-BE73-FDF9FC177A53.jpeg","title":"Kassie Dior"},
+            {"file":"355788E8-BC12-407C-A2E8-459E40EB2E47.jpeg","title":"Kassie Dior"},
+            {"file":"4C6007C0-AFD1-4B97-934B-7AFE459D7CB2.jpeg","title":"Kassie Dior"},
+            {"file":"517624FC-6805-4449-BA41-A50B306C93C9.jpeg","title":"Kassie Dior"},
+            {"file":"5D468C6E-97DD-4BC1-BE16-4D7A411C5B1C.jpeg","title":"Kassie Dior"},
+            {"file":"7DF859F8-5902-4A26-835F-1FEF0C213DB8.jpeg","title":"Kassie Dior"},
+            {"file":"8DC3A4A8-E69F-46D2-B128-5671D9BDA28C.jpeg","title":"Kassie Dior"},
+            {"file":"9B91B479-8E0B-433A-B5A5-75544F1A6ADC.jpeg","title":"Kassie Dior"},
+            {"file":"9F0DCC26-37B8-4CF6-BEA1-BB0FF129BF64.jpeg","title":"Kassie Dior"},
+            {"file":"A255694A-B44B-4436-AC66-28DD262F9370.jpeg","title":"Kassie Dior"},
+            {"file":"CC6D2462-8D5C-41B7-A3BD-D810807DB7CD.jpeg","title":"Kassie Dior"},
+            {"file":"DE1F1CBF-74EA-44C5-A512-5318A289737D.jpeg","title":"Kassie Dior"},
+            {"file":"IMG_1888.jpeg","title":"Kassie Dior"},
+            {"file":"IMG_1889.jpeg","title":"Kassie Dior"},
+            {"file":"IMG_1893.jpeg","title":"Kassie Dior"},
+            {"file":"IMG_1897.jpeg","title":"Kassie Dior"},
+            {"file":"IMG_1898.jpeg","title":"Kassie Dior"},
+            {"file":"IMG_1902.jpeg","title":"Kassie Dior"},
+            {"file":"IMG_1904.jpeg","title":"Kassie Dior"},
+            {"file":"IMG_1906.jpeg","title":"Kassie Dior"},
+            {"file":"IMG_1908.jpeg","title":"Kassie Dior"},
+            {"file":"IMG_1910.jpeg","title":"Kassie Dior"},
+            {"file":"IMG_1914.jpeg","title":"Kassie Dior"},
+            {"file":"IMG_2992.jpeg","title":"Kassie Dior"},
+            {"file":"IMG_3001.jpeg","title":"Kassie Dior"},
+            {"file":"IMG_3009.jpeg","title":"Kassie Dior"},
+            {"file":"IMG_3027.jpeg","title":"Kassie Dior"},
+            {"file":"IMG_3029.jpeg","title":"Kassie Dior"}
+        ],
+        "songs": [
+            {"file":"builttospillshowbox01.mp3","title":"builttospill showbox01.mp3"},
+            {"file":"builttospillshowbox02.mp3","title":"builttospill showbox02.mp3"},
+            {"file":"builttospillshowbox03.mp3","title":"builttospill showbox03.mp3"},
+            {"file":"builttospillshowbox04.mp3","title":"builttospill showbox04.mp3"},
+            {"file":"builttospillshowbox05.mp3","title":"builttospill showbox05.mp3"}
+        ]
+    },
+    "responsesObject" : {
+        "responses": [
+            {"response" : "check out this spot"},
+            {"response" : "claimer"},
+            {"response" : "did you google that comeback?"},
+            {"response" : "do it frontside"},
+            {"response" : "do it switch"},
+            {"response" : "get some"},
+            {"response" : "hold my beer, watch this"},
+            {"response" : "i dont know"},
+            {"response" : "i know right"},
+            {"response" : "i like you"},
+            {"response" : "i love you"},
+            {"response" : "i think youre attractive"},
+            {"response" : "id rather play with my cat"},
+            {"response" : "it\"s a bust"},
+            {"response" : "LOL"},
+            {"response" : "look it up"},
+            {"response" : "nice"},
+            {"response" : "Nuh UH!"},
+            {"response" : "ok"},
+            {"response" : "OMG"},
+            {"response" : "Penis in the butt"},
+            {"response" : "pics or it didnt happen"},
+            {"response" : "sarcastic clap"},
+            {"response" : "silence for effect"},
+            {"response" : "skate or die"},
+            {"response" : "STFU"},
+            {"response" : "that link is busted"},
+            {"response" : "that link is rad"},
+            {"response" : "that site is too slow"},
+            {"response" : "that sounds made up"},
+            {"response" : "that sucks"},
+            {"response" : "thats cool"},
+            {"response" : "thats what she said"},
+            {"response" : "this is not a political forum"},
+            {"response" : "this is not a religious forum"},
+            {"response" : "three to claim it"},
+            {"response" : "vague hipster comment"},
+            {"response" : "whatever"},
+            {"response" : "witty comeback"},
+            {"response" : "you inspire me"},
+            {"response" : "you look very nice today"},
+            {"response" : "you rock"},
+            {"response" : "you suck"},
+            {"response" : "your opinion is wrong"},
+            {"response" : "youre a real UP person"},
+            {"response" : "youre my best friend"},
+            {"response" : "youre working that outfit girl"},
+            {"response" : "youre wrong"}
+        ]
+    }
+}

@@ -1,0 +1,234 @@
+{
+    "endpoint": "jacob",
+    "masterAlias": "JACOB",
+    "unspecifiedAlias": "anonymous",
+    "stuffedAnimalMediaObject" : {
+        "backgroundimage":"https://seattlerules.com/media/stuffedanimalwar/stuffedanimalwarfinal.jpg",
+        "animals": [
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/badger.png",
+                "title": "Badger"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/bat.png",
+                "title": "Bat"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/bear.png",
+                "title": "Bear"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/birds.png",
+                "title": "Birds"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/bison.png",
+                "title": "Bison"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/boar.png",
+                "title": "Boar"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/deer.png",
+                "title": "Buck"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/cats.png",
+                "title": "Cats"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/cheetah.png",
+                "title": "Cheetah"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/chickens.png",
+                "title": "Chickens"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/crocodiles.png",
+                "title": "Crocodiles"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/crow.png",
+                "title": "Crow"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/darthvader.png",
+                "title": "Darth Vader"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/dogs.png",
+                "title": "Dog"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/duck.png",
+                "title": "Duck"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/eagle.png",
+                "title": "Eagle"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/frog.png",
+                "title": "Frog"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/giraffe.png",
+                "title": "Giraffe"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/goldfish.png",
+                "title": "Goldfish"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/gorilla.png",
+                "title": "Gorilla"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/thechosenone.png",
+                "title": "Jedi"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/lamblambs.png",
+                "title": "Lamb"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/lions.png",
+                "title": "Lion"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/monkey.png",
+                "title": "Monkey"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/moose.png",
+                "title": "Moose"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/rainier.png",
+                "title": "Mt Rainier"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/whale.png",
+                "title": "Orca"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/queen.png",
+                "title": "Queen"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/r2d2.png",
+                "title": "R2D2"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/seagull.png",
+                "title": "Seagull"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/stormtrooper.png",
+                "title": "Storm Trooper"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/yoda.png",
+                "title": "Yoda"
+            }
+        ]
+    },
+    "mediaObject" : {
+        "songspath": "https://analogarchive.com/live/",
+        "videospath": "https://seattlerules.com/media/trump/videos/",
+        "photospath": "https://seattlerules.com/media/buttholesurferselectriclarryland/",
+        "videos": [
+            {"file":"005crockett.mp4","title":"Crockett","poster":"https://seattlerules.com/media/trump/videos/crockett.jpg"},
+            {"file":"https://seattlerules.com/media/trump/videos/aoc/aocdogemedical.mp4","title":"AOC","poster":"https://seattlerules.com/media/trump/videos/aoc/aocdogemedical.jpg"}
+        ],
+        "photos": [
+            {"file":"IMG_8604.JPG", "title":"butthole surfers cover 1"},
+            {"file":"IMG_8605.JPG", "title":"butthole surfers cover 2"},
+            {"file":"IMG_8606.JPG", "title":"butthole surfers cover 3"},
+            {"file":"IMG_8607.JPG", "title":"butthole surfers cover 4"},
+            {"file":"IMG_8608.JPG", "title":"butthole surfers cover 5"},
+            {"file":"IMG_8609.JPG", "title":"butthole surfers cover 6"},
+            {"file":"https://seattlerules.com/media/soundgardensuperunknown/IMG_8626.JPG", "title":"soundgarden superunknown"},
+            {"file":"https://seattlerules.com/media/soundgardensuperunknown/IMG_8627.JPG", "title":"soundgarden superunknown"},
+            {"file":"https://seattlerules.com/media/soundgardensuperunknown/IMG_8628.JPG", "title":"soundgarden superunknown"},
+            {"file":"https://seattlerules.com/media/soundgardensuperunknown/IMG_8629.JPG", "title":"soundgarden superunknown"},
+            {"file":"https://seattlerules.com/media/soundgardensuperunknown/IMG_8630.JPG", "title":"soundgarden superunknown"},
+            {"file":"https://seattlerules.com/media/soundgardensuperunknown/IMG_8631.JPG", "title":"soundgarden superunknown"},
+            {"file":"https://seattlerules.com/media/soundgardensuperunknown/IMG_8632.JPG", "title":"soundgarden superunknown"},
+            {"file":"https://seattlerules.com/media/soundgardensuperunknown/IMG_8633.JPG", "title":"soundgarden superunknown"},
+            {"file":"https://seattlerules.com/media/soundgardensuperunknown/IMG_8634.JPG", "title":"soundgarden superunknown"}
+        ],
+        "songs": [
+            {"file":"Owl n Thistle - 20130213ZOOM0001.mp3","title":"skerik trio Owl n Thistle - 20130213ZOOM0001.mp3"},
+            {"file":"Owl n Thistle - 20130213ZOOM0002.mp3","title":"skerik trio Owl n Thistle - 20130213ZOOM0002.mp3"},
+            {"file":"Owl n Thistle - 20130213ZOOM0003.mp3","title":"skerik trio Owl n Thistle - 20130213ZOOM0003.mp3"},
+            {"file":"Owl n Thistle - 20130213ZOOM0004.mp3","title":"skerik trio Owl n Thistle - 20130213ZOOM0004.mp3"},
+            {"file":"Owl n Thistle - 20130213ZOOM0005.mp3","title":"skerik trio Owl n Thistle - 20130213ZOOM0005.mp3"},
+            {"file":"Owl n Thistle - 20130213ZOOM0006.mp3","title":"skerik trio Owl n Thistle - 20130213ZOOM0006.mp3"},
+            {"file":"Owl n Thistle - 20130213ZOOM0007.mp3","title":"skerik trio Owl n Thistle - 20130213ZOOM0007.mp3"},
+            {"file":"Owl n Thistle - 20130213ZOOM0008.mp3","title":"skerik trio Owl n Thistle - 20130213ZOOM0008.mp3"},
+            {"file":"Owl n Thistle - 20130213ZOOM0009.mp3","title":"skerik trio Owl n Thistle - 20130213ZOOM0009.mp3"},
+            {"file":"Owl n Thistle - 20130213ZOOM0010.mp3","title":"skerik trio Owl n Thistle - 20130213ZOOM0010.mp3"},
+            {"file":"Owl n Thistle - 20130213ZOOM0011.mp3","title":"skerik trio Owl n Thistle - 20130213ZOOM0011.mp3"},
+            {"file":"Owl n Thistle - 20130213ZOOM0012.mp3","title":"skerik trio Owl n Thistle - 20130213ZOOM0012.mp3"},
+            {"file":"Owl n Thistle - 20130213ZOOM0013.mp3","title":"skerik trio Owl n Thistle - 20130213ZOOM0013.mp3"},
+            {"file":"Owl n Thistle - 20130213ZOOM0014.mp3","title":"skerik trio Owl n Thistle - 20130213ZOOM0014.mp3"},
+            {"file":"Owl n Thistle - 20130213ZOOM0015.mp3","title":"skerik trio Owl n Thistle - 20130213ZOOM0015.mp3"},
+            {"file":"Owl n Thistle - 20130213ZOOM0016.mp3","title":"skerik trio Owl n Thistle - 20130213ZOOM0016.mp3"},
+            {"file":"Owl n Thistle - 20130213ZOOM0017.mp3","title":"skerik trio Owl n Thistle - 20130213ZOOM0017.mp3"}
+        ]
+    },
+    "responsesObject" : {
+        "responses": [
+            {"response" : "check out this spot"},
+            {"response" : "claimer"},
+            {"response" : "did you google that comeback?"},
+            {"response" : "do it frontside"},
+            {"response" : "do it switch"},
+            {"response" : "get some"},
+            {"response" : "hold my beer, watch this"},
+            {"response" : "i dont know"},
+            {"response" : "i know right"},
+            {"response" : "i like you"},
+            {"response" : "i love you"},
+            {"response" : "i think youre attractive"},
+            {"response" : "id rather play with my cat"},
+            {"response" : "it\"s a bust"},
+            {"response" : "LOL"},
+            {"response" : "look it up"},
+            {"response" : "nice"},
+            {"response" : "Nuh UH!"},
+            {"response" : "ok"},
+            {"response" : "OMG"},
+            {"response" : "pics or it didnt happen"},
+            {"response" : "sarcastic clap"},
+            {"response" : "silence for effect"},
+            {"response" : "skate or die"},
+            {"response" : "STFU"},
+            {"response" : "that link is busted"},
+            {"response" : "that link is rad"},
+            {"response" : "that site is too slow"},
+            {"response" : "that sounds made up"},
+            {"response" : "that sucks"},
+            {"response" : "thats cool"},
+            {"response" : "thats what she said"},
+            {"response" : "this is not a political forum"},
+            {"response" : "this is not a religious forum"},
+            {"response" : "three to claim it"},
+            {"response" : "vague hipster comment"},
+            {"response" : "whatever"},
+            {"response" : "witty comeback"},
+            {"response" : "you inspire me"},
+            {"response" : "you look very nice today"},
+            {"response" : "you rock"},
+            {"response" : "you suck"},
+            {"response" : "your opinion is wrong"},
+            {"response" : "youre a real UP person"},
+            {"response" : "youre my best friend"},
+            {"response" : "youre working that outfit girl"},
+            {"response" : "youre wrong"}
+        ]
+    }
+}

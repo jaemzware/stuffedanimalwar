@@ -1,0 +1,542 @@
+/*STUFFED ANIMAL WAR - jaemzware.org - 20150611 */
+/*STUFFED ANIMAL WAR - jaemzwarellc - 20250331 */
+
+/*UNIVERSAL//////////////////////////////////////////////CHAT//////////////////////////////////////////////////CHAT*/
+*, *::before, *::after {
+    box-sizing: inherit;
+}
+
+html {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+    box-sizing: border-box;
+}
+
+body {
+   background-color:black;
+   color:white;
+   font-weight:normal;
+   font-family:sans-serif;
+   margin: 0px;
+   background-repeat:no-repeat;
+   background-position:top left;
+   text-align: left;
+   overflow-x: hidden; /* Prevent horizontal scrolling */
+   width: 100%;
+   max-width: 100%;
+   -webkit-text-size-adjust: 100%;
+   box-sizing: border-box;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+select, input, button {
+    max-width: 100%;
+}
+/*CHAT//////////////////////////////////////////////CHAT//////////////////////////////////////////////////CHAT*/
+#messagesdiv {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    height: 450px; /* Set a fixed height for the messages div */
+    width: 100%;
+    background-color: darkslategray;
+    border-width: thin;
+    border-style: ridge;
+    overflow-x: scroll;
+    overflow-y: scroll;
+    margin: 0%;
+    padding: 0%;
+    text-align: left;
+    vertical-align: top;
+    font-weight: bold;
+    font-family: sans-serif;
+    color: black; /* Changed to black for better visibility */
+}
+
+#chatclientmessagetd{
+    width:80%;
+}
+#chatClientMessage{
+    width:100%;
+    box-sizing: border-box; /* Include padding and border in the width */
+    margin: 2px 0; /* Add some margin to prevent overlap */
+}
+#jaemzwaredynamicaudioplayer{
+    width:100%;
+    /*height:200px;*/
+}
+span.remoteChatClientUser{
+    color:white;
+   /*font-size:xx-large;*/
+}
+/* Updated Photo Container Styles */
+.photo-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden; /* Prevent horizontal scrolling within container */
+    justify-content: center; /* Center items horizontally */
+}
+
+.skatecreteordiephoto {
+    flex: 1 1 150px;
+    text-align: left;
+    vertical-align: top;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 10px;
+    box-sizing: border-box;
+    max-width: 150px; /* Contain the entire component */
+}
+
+.skatecreteordiephoto img.photosformthumbnail {
+    width: 100%;
+    height: auto;
+    display: block; /* Remove potential whitespace */
+    object-fit: cover; /* Maintain aspect ratio while filling the space */
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+}
+
+.skatecreteordiephototitle {
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    text-align: center;
+    padding: 5px;
+    font-size: 12px;
+    box-sizing: border-box;
+    margin-top: -5px; /* Slight overlap with image */
+}
+/* CHAT CONTROLS */
+/* Ensure the form and table are responsive */
+#chatform {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+#chattable {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    table-layout: fixed;
+    margin: 0;
+    padding: 0;
+}
+
+#chattable td {
+    padding: 5px; /* Adjust padding for smaller screens */
+    word-wrap: break-word; /* Allow text to wrap within cells */
+    overflow-wrap: break-word; /* Ensure long words break and wrap */
+}
+
+/* Adjust input and select elements for smaller screens */
+#chatClientUser, #chatClientAutoResponder {
+    width: 100%;
+    box-sizing: border-box; /* Include padding and border in the width */
+    margin: 2px 0; /* Add some margin to prevent overlap */
+}
+
+#clearchatbutton, #sendchatbutton {
+    width: auto; /* Allow the button to size itself */
+    margin: 2px 0; /* Add some margin to prevent overlap */
+}
+/*CHAT MESSAGES FONTS*/
+.right-aligned-container {
+    align-self: flex-end; /* Align the container to the right */
+    display: flex;
+    gap: 8px; /* Add spacing between user and server date */
+    margin-left: auto; /* Push the container to the right */
+}
+
+span.serverdate {
+    color: white;
+    font-size: x-small;
+}
+
+span.remoteChatClientUser {
+    color: white;
+    font-size: x-small;
+}
+
+span.chatclientmessage {
+    align-self: flex-start; /* Ensure the message is aligned to the left */
+    color: ghostwhite;
+    font-size: 16px;
+}
+span.hitclientmessage {
+    align-self: flex-start; /* Ensure the message is aligned to the left */
+    color: white;
+    font-size: xx-small;
+}
+span.disconnectnotification {
+    align-self: flex-start; /* Ensure the message is aligned to the left */
+    color: orangered;
+    font-size: xx-small;
+}
+span.connectnotification {
+    align-self: flex-start; /* Ensure the message is aligned to the left */
+    color: lime;
+    font-size: xx-small;
+}
+/*LINKS ON INDEX.HTM FOR CONCERT BAND LINKS*/
+div.seattlenativelinks{
+    margin-left:10px;
+}
+#progressIndicator, #videoProgressIndicator{
+    font-size: x-small;
+}
+/*VIDEO THUMBNAILS*/
+.video-thumbnail-container {
+    position: relative;
+    display: inline-block;
+    margin: 5px;
+    cursor: pointer;
+}
+
+.video-thumbnail {
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    background-color: #000; /* Add a background color to make it obvious if the video isn't loading */
+    min-width: 120px;
+    min-height: 80px;
+    display: block; /* Ensure it's displayed as a block */
+}
+
+.play-button-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 16px;
+    opacity: 0.8;
+}
+
+.video-thumbnail-container:hover .play-button-overlay {
+    opacity: 1;
+}
+/*STUFFEDANIMALWAR//////////////////////////////////////////////STUFFEDANIMALWAR//////////////////////////////////////////////////STUFFEDANIMALWAR*/
+#stuffedanimalwardiv {
+    margin: 0;
+    padding: 0;
+    top: 0px;
+    bottom: 0px;
+    left: 0px;
+    width: 67%;
+}
+
+#stuffedanimalwarform{
+    background-color:black;
+    width: 33%;
+    box-sizing: border-box; /* Include padding and border in the width */
+    margin: 0;
+    padding: 0;
+}
+
+#stuffedanimalwarsvg{
+    margin:0;
+    padding:0;
+    width:100%;
+    background-size:contain;
+    background-position:center;
+    background-repeat: no-repeat;
+    height:500px;
+    touch-action: none;
+    max-width: 100%;
+}
+#stuffedanimalwarformtable{
+    background-color:black;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box; /* Include padding and border in the width */
+    margin: 0;
+    padding: 0;
+}
+#stuffedanimalwarformtable td{
+    text-align: left;
+    vertical-align:top;
+}
+.photosformthumbnail {
+    max-width: 150px; /* Set the maximum width of the thumbnail */
+    height: auto; /* Maintain aspect ratio */
+    border: 1px solid #ccc; /* Optional: Add a border */
+    cursor: pointer; /* Change cursor to indicate it's clickable */
+}
+#sawflexdiv {
+    display: flex;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    width: 100%;
+    max-width: 100%;
+}
+/*AUDIOVIDEOPHOTOS//////////////////////////////////////////////AUDIOVIDEOPHOTOS//////////////////////////////////////////////////AUDIOVIDEOPHOTOS*/
+/* Ensure #audiotable and its children are responsive */
+#audiotable {
+    width: 100%; /* Make the table take up the full width of its container */
+    max-width: 100%; /* Prevent overflow */
+    table-layout: fixed; /* Ensure table cells respect the width */
+    background-color: slategray;
+    box-sizing: border-box; /* Include padding and border in the width */
+    margin: 0;
+    padding: 0;
+}
+
+#audiotable td {
+    word-wrap: break-word; /* Allow text to wrap within cells */
+    overflow-wrap: break-word; /* Ensure long words break and wrap */
+    padding: 5px; /* Adjust padding for smaller screens */
+}
+
+/* Make audio elements responsive */
+#audiotable audio {
+    width: 100%; /* Make audio elements take up the full width of their container */
+    max-width: 100%; /* Prevent overflow */
+}
+
+/* Ensure #selectsongs fits within its container */
+#selectsongs {
+    width: 100%; /* Make the select take up the full width of its container */
+    max-width: 100%; /* Prevent overflow */
+    box-sizing: border-box; /* Include padding and border in the width */
+    overflow: hidden; /* Hide overflow */
+    white-space: nowrap; /* Prevent text from wrapping */
+    text-overflow: ellipsis; /* Show ellipsis for overflowed text */
+    margin: 0;
+    padding: 5px; /* Adjust padding as needed */
+}
+
+/* MP3 Player Metadata Display Styles - Add to your stylebase.css if not already there */
+.audio-controls-container {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    overflow: hidden;
+}
+
+#album-art-container {
+    margin-left: 10px;
+    width: 30px;
+    height: 30px;
+    background-color: #333;
+    display: inline-block;
+    flex-shrink: 0;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+#album-art-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+#track-metadata {
+    margin-left: 5px;
+    font-size: 12px;
+    color: white;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex-grow: 1;
+}
+
+#track-artist, #track-album, #track-title {
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#imagepathtextbox #clearboardbutton {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box; /* Include padding and border in the width */
+    margin: 0;
+    padding: 5px; /* Adjust padding as needed */
+}
+
+/* Style the options within the select */
+#selectsongs option {
+    white-space: nowrap; /* Prevent text from wrapping */
+    overflow: hidden; /* Hide overflow */
+    text-overflow: ellipsis; /* Show ellipsis for overflowed text */
+}
+
+
+#videotable{
+    background-color:black;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box; /* Include padding and border in the width */
+    padding: 0;
+    margin: 0 auto; /* Center the table */
+    text-align: center; /* Center the content inside */
+}
+#videotable td{
+    vertical-align:top;
+    width:100%;
+    text-align: center; /* Center the content in the cells */
+}
+#videotable video{
+    width:100%;
+}
+
+#jaemzwaredynamicvideoplayer {
+    max-width: 100%;
+    width: 640px; /* Fixed width as originally intended */
+    height: 480px; /* Fixed height as originally intended */
+    margin: 0 auto; /* Center the video */
+    display: block; /* Remove any inline spacing */
+}
+
+/* Video selector styles */
+#selectvideos {
+    max-width: 640px; /* Match the video width */
+    width: 100%;
+    margin: 0 auto 10px auto; /* Center and add some space below */
+    display: block; /* Proper block-level display */
+}
+
+#phototable{
+    background-color:darkgrey;
+    width:100%;
+    max-width: 100%;
+    box-sizing: border-box; /* Include padding and border in the width */
+    margin: 0;
+    padding: 0;
+}
+#phototable td{
+    text-align: left;
+    vertical-align:top;
+    width:100%;
+}
+/*TABSTRIPVIDEO//////////////////////////////////////////////TABSTRIPVIDEO//////////////////////////////////////////////////TABSTRIPVIDEO*/
+img.videolink{
+    height:auto;
+}
+/*JAEMZWARELOGO//////////////////////////////////////////////JAEMZWARELOGO//////////////////////////////////////////////////JAEMZWARELOGO*/
+p.jaemzwarelogo{
+    color: white;
+    width:50%;
+}
+a.jaemzwarelogo:link, .skateparkdetail a:link {
+    color: white;
+    text-decoration:underline;
+}
+a.jaemzwarelogo:visited, .skateparkdetail a:visited {
+    color: white;
+    text-decoration:underline;
+}
+a.jaemzwarelogo:hover, .skateparkdetail a:hover {
+    color: lightblue;
+    text-decoration: underline;
+}
+a.jaemzwarelogo:active, .skateparkdetail a:active {
+    color: white;
+    text-decoration: underline;
+}
+/*////////////MOBILE///////////////*/
+@media only screen and (max-width: 768px) and (orientation: portrait) {
+    table {
+        table-layout: fixed;
+        width: 100%;
+    }
+    select, input, button, #imagepathtextbox, #clearboardbutton {
+        font-size: 16px; /* Prevent iOS zoom on focus */
+        max-width: 100%;
+    }
+    #sawflexdiv{
+        display: block;
+    }
+    #stuffedanimalwardiv{
+        margin: 0;
+        padding: 0;
+        top: 0px;
+        bottom: 0px;
+        left: 0px;
+        width: 100%;
+    }
+    #stuffedanimalwarsvg {
+        height: 300px; /* Shorter height for mobile */
+    }
+    #stuffedanimalwarform{
+        background-color:black;
+        width:100%;
+    }
+    #chattable td {
+        padding: 3px; /* Reduce padding for smaller screens */
+    }
+
+    #chatClientUser, #chatClientAutoResponder, #chatClientMessage {
+        font-size: 14px; /* Adjust font size for better readability */
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box; /* Include padding and border in the width */
+        margin: 0;
+        padding: 5px; /* Adjust padding as needed */
+    }
+
+    /* Ensure #audiotable fits within its container */
+    #audiotable {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    #audiotable td {
+        padding: 3px; /* Reduce padding for smaller screens */
+    }
+
+    /* Make audio elements responsive */
+    #audiotable audio {
+        width: 100%;
+        max-width: 100%;
+    }
+    #selectsongs {
+        width: 100%;
+        max-width: 100%;
+    }
+    #messagesdiv {
+        height: 200px;
+    }
+}
+
+@media only screen and (max-width: 640px) {
+    #jaemzwaredynamicvideoplayer {
+        width: 100%; /* On small screens, use responsive width */
+        height: auto; /* Let the height adjust proportionally */
+    }
+}
+
+
+/* Mobile styles */
+@media only screen and (max-width: 768px) and (orientation: portrait) {
+    .audio-controls-container {
+        flex-wrap: nowrap;
+    }
+
+    #track-metadata {
+        font-size: 10px; /* Smaller font for mobile */
+    }
+
+    #album-art-container {
+        width: 24px;
+        height: 24px;
+    }
+}
+

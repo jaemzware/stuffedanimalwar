@@ -1,0 +1,277 @@
+{
+    "endpoint": "nina",
+    "masterAlias": "NINA",
+    "unspecifiedAlias": "anonymous",
+    "stuffedAnimalMediaObject" : {
+        "backgroundimage": "https://seattlerules.com/media/stuffedanimalwar/secondbeach.JPG",
+        "animals": [
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/badger.png",
+                "title": "Badger"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/bat.png",
+                "title": "Bat"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/bear.png",
+                "title": "Bear"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/birds.png",
+                "title": "Birds"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/bison.png",
+                "title": "Bison"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/boar.png",
+                "title": "Boar"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/deer.png",
+                "title": "Buck"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/cats.png",
+                "title": "Cats"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/cheetah.png",
+                "title": "Cheetah"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/chickens.png",
+                "title": "Chickens"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/crocodiles.png",
+                "title": "Crocodiles"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/crow.png",
+                "title": "Crow"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/darthvader.png",
+                "title": "Darth Vader"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/dogs.png",
+                "title": "Dog"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/duck.png",
+                "title": "Duck"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/eagle.png",
+                "title": "Eagle"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/frog.png",
+                "title": "Frog"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/giraffe.png",
+                "title": "Giraffe"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/goldfish.png",
+                "title": "Goldfish"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/gorilla.png",
+                "title": "Gorilla"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/thechosenone.png",
+                "title": "Jedi"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/lamblambs.png",
+                "title": "Lamb"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/lions.png",
+                "title": "Lion"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/monkey.png",
+                "title": "Monkey"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/moose.png",
+                "title": "Moose"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/rainier.png",
+                "title": "Mt Rainier"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/whale.png",
+                "title": "Orca"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/queen.png",
+                "title": "Queen"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/r2d2.png",
+                "title": "R2D2"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/seagull.png",
+                "title": "Seagull"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/stormtrooper.png",
+                "title": "Storm Trooper"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/yoda.png",
+                "title": "Yoda"
+            }
+        ]
+    },
+    "mediaObject" : {
+        "songspath": "https://analogarchive.com/live/",
+        "videospath": "https://seattlerules.com/media/trump/videos/",
+        "photospath": "https://seattlerules.com/media/stuffedanimalwar/fromkittehwithlove/",
+        "videos": [
+            {"file":"005crockett.mp4","title":"Crockett","poster":"https://seattlerules.com/media/trump/videos/crockett.jpg"},
+            {"file":"https://seattlerules.com/media/trump/videos/aoc/aocdogemedical.mp4","title":"AOC","poster":"https://seattlerules.com/media/trump/videos/aoc/aocdogemedical.jpg"}
+        ],
+        "photos": [
+            {"file":"IMG_0024.JPG","title":"photo by jim"},
+            {"file":"IMG_0168.JPG","title":"photo by jim"},
+            {"file":"IMG_0197.JPG","title":"photo by jim"},
+            {"file":"IMG_0198.JPG","title":"photo by jim"},
+            {"file":"IMG_0199.JPG","title":"photo by jim"},
+            {"file":"IMG_0334.JPG","title":"photo by jim"},
+            {"file":"IMG_0338.JPG","title":"photo by jim"},
+            {"file":"IMG_0396.JPG","title":"photo by jim"},
+            {"file":"IMG_0397.JPG","title":"photo by jim"},
+            {"file":"IMG_0405.JPG","title":"photo by jim"},
+            {"file":"IMG_0406.JPG","title":"photo by jim"},
+            {"file":"IMG_0407.JPG","title":"photo by jim"},
+            {"file":"IMG_0560.JPG","title":"photo by jim"},
+            {"file":"IMG_0630.JPG","title":"photo by jim"},
+            {"file":"IMG_0632.JPG","title":"photo by jim"},
+            {"file":"IMG_0634.JPG","title":"photo by jim"},
+            {"file":"IMG_0805.JPG","title":"photo by jim"},
+            {"file":"IMG_2392.JPG","title":"photo by jim"},
+            {"file":"IMG_2405.JPG","title":"photo by jim"},
+            {"file":"IMG_2500.JPG","title":"photo by jim"},
+            {"file":"IMG_2538.JPG","title":"photo by jim"},
+            {"file":"IMG_2558.JPG","title":"photo by jim"},
+            {"file":"IMG_2559.JPG","title":"photo by jim"},
+            {"file":"IMG_2560.JPG","title":"photo by jim"},
+            {"file":"IMG_2561.JPG","title":"photo by jim"},
+            {"file":"IMG_2562.JPG","title":"photo by jim"},
+            {"file":"IMG_2563.JPG","title":"photo by jim"},
+            {"file":"IMG_2706.JPG","title":"photo by jim"},
+            {"file":"IMG_2708.JPG","title":"photo by jim"},
+            {"file":"IMG_2711.JPG","title":"photo by jim"},
+            {"file":"IMG_2715.JPG","title":"photo by jim"},
+            {"file":"IMG_2716.JPG","title":"photo by jim"},
+            {"file":"IMG_2720.JPG","title":"photo by jim"},
+            {"file":"IMG_2724.JPG","title":"photo by jim"},
+            {"file":"IMG_2731.JPG","title":"photo by jim"},
+            {"file":"IMG_2735.JPG","title":"photo by jim"},
+            {"file":"IMG_2737.JPG","title":"photo by jim"},
+            {"file":"IMG_2741.JPG","title":"photo by jim"},
+            {"file":"IMG_2771.JPG","title":"photo by jim"},
+            {"file":"IMG_8233.JPG","title":"photo by jim"},
+            {"file":"IMG_8303.JPG","title":"photo by jim"},
+            {"file":"IMG_8311.JPG","title":"photo by jim"},
+            {"file":"IMG_8361.JPG","title":"photo by jim"},
+            {"file":"IMG_8741.JPG","title":"photo by jim"},
+            {"file":"IMG_8765.JPG","title":"photo by jim"},
+            {"file":"IMG_8781.JPG","title":"photo by jim"},
+            {"file":"IMG_8784.JPG","title":"photo by jim"},
+            {"file":"IMG_8893.JPG","title":"photo by jim"},
+            {"file":"IMG_9362.JPG","title":"photo by jim"},
+            {"file":"IMG_9363.JPG","title":"photo by jim"},
+            {"file":"IMG_9376.JPG","title":"photo by jim"},
+            {"file":"IMG_9381.JPG","title":"photo by jim"},
+            {"file":"IMG_9383.JPG","title":"photo by jim"},
+            {"file":"IMG_9386.JPG","title":"photo by jim"},
+            {"file":"IMG_9389.JPG","title":"photo by jim"},
+            {"file":"IMG_9394.JPG","title":"photo by jim"},
+            {"file":"IMG_9538.JPG","title":"photo by jim"},
+            {"file":"IMG_9567.JPG","title":"photo by jim"},
+            {"file":"IMG_9784.JPG","title":"photo by jim"}
+        ],
+        "songs": [
+            {"file":"Owl n Thistle - 2013020701 skerik01.mp3","title":"skerik trio Owl n Thistle - 2013020701 skerik01.mp3"},
+            {"file":"Owl n Thistle - 2013020702 skerik02.mp3","title":"skerik trio Owl n Thistle - 2013020702 skerik02.mp3"},
+            {"file":"Owl n Thistle - 2013020703 skerik03.mp3","title":"skerik trio Owl n Thistle - 2013020703 skerik03.mp3"},
+            {"file":"Owl n Thistle - 2013020704 skerik04.mp3","title":"skerik trio Owl n Thistle - 2013020704 skerik04.mp3"},
+            {"file":"Owl n Thistle - 2013020705 skerik05.mp3","title":"skerik trio Owl n Thistle - 2013020705 skerik05.mp3"},
+            {"file":"Owl n Thistle - 2013020706 skerik06.mp3","title":"skerik trio Owl n Thistle - 2013020706 skerik06.mp3"},
+            {"file":"Owl n Thistle - 2013020707 skerik07.mp3","title":"skerik trio Owl n Thistle - 2013020707 skerik07.mp3"},
+            {"file":"Owl n Thistle - 2013020708 skerik08.mp3","title":"skerik trio Owl n Thistle - 2013020708 skerik08.mp3"},
+            {"file":"Owl n Thistle - 2013020709 skerik09.mp3","title":"skerik trio Owl n Thistle - 2013020709 skerik09.mp3"},
+            {"file":"Owl n Thistle - 2013020710 skerik10.mp3","title":"skerik trio Owl n Thistle - 2013020710 skerik10.mp3"},
+            {"file":"Owl n Thistle - 2013020711 skerik11.mp3","title":"skerik trio Owl n Thistle - 2013020711 skerik11.mp3"},
+            {"file":"Owl n Thistle - 2013020712 skerik12.mp3","title":"skerik trio Owl n Thistle - 2013020712 skerik12.mp3"},
+            {"file":"Owl n Thistle - 2013020713 skerik13.mp3","title":"skerik trio Owl n Thistle - 2013020713 skerik13.mp3"},
+            {"file":"Owl n Thistle - 2013020714 skerik14.mp3","title":"skerik trio Owl n Thistle - 2013020714 skerik14.mp3"},
+            {"file":"Owl n Thistle - 2013020715 skerik15.mp3","title":"skerik trio Owl n Thistle - 2013020715 skerik15.mp3"}
+        ]
+    },
+    "responsesObject" : {
+        "responses": [
+        {"response" : "check out this spot"},
+        {"response" : "claimer"},
+        {"response" : "did you google that comeback?"},
+        {"response" : "do it frontside"},
+        {"response" : "do it switch"},
+        {"response" : "get some"},
+        {"response" : "hold my beer, watch this"},
+        {"response" : "i dont know"},
+        {"response" : "i know right"},
+        {"response" : "i like you"},
+        {"response" : "i love you"},
+        {"response" : "i think youre attractive"},
+        {"response" : "id rather play with my cat"},
+        {"response" : "it's a bust"},
+        {"response" : "LOL"},
+        {"response" : "look it up"},
+        {"response" : "nice"},
+        {"response" : "Nuh UH!"},
+        {"response" : "ok"},
+        {"response" : "OMG"},
+        {"response" : "pics or it didnt happen"},
+        {"response" : "sarcastic clap"},
+        {"response" : "silence for effect"},
+        {"response" : "skate or die"},
+        {"response" : "STFU"},
+        {"response" : "that link is busted"},
+        {"response" : "that link is rad"},
+        {"response" : "that site is too slow"},
+        {"response" : "that sounds made up"},
+        {"response" : "that sucks"},
+        {"response" : "thats cool"},
+        {"response" : "these boots were made for walkin"},
+        {"response" : "thats what she said"},
+        {"response" : "this is not a political forum"},
+        {"response" : "this is not a religious forum"},
+        {"response" : "three to claim it"},
+        {"response" : "vague hipster comment"},
+        {"response" : "whatever"},
+        {"response" : "witty comeback"},
+        {"response" : "you inspire me"},
+        {"response" : "you look very nice today"},
+        {"response" : "you rock"},
+        {"response" : "you suck"},
+        {"response" : "your opinion is wrong"},
+        {"response" : "youre a real UP person"},
+        {"response" : "youre my best friend"},
+        {"response" : "youre working that outfit girl"},
+        {"response" : "youre wrong"}
+    ]
+}
+}

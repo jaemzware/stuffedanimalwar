@@ -1,0 +1,13 @@
+{
+  "name": "stuffedanimalwar",
+  "version": "2.0.0",
+  "description": "chat draw jukebox engine",
+  "private": true,
+  "dependencies": {
+    "dotenv": "^17.2.2",
+    "express": "^4.10.5",
+    "multer": "^1.4.5-lts.1",
+    "node-id3": "^0.2.9",
+    "socket.io": "^4.4.0"
+  }
+}

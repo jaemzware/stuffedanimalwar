@@ -1,0 +1,251 @@
+{
+    "endpoint": "mark",
+    "masterAlias": "MARK",
+    "unspecifiedAlias": "anonymous",
+    "stuffedAnimalMediaObject" : {
+        "backgroundimage":"https://seattlerules.com/media/stuffedanimalwar/sea.jpg",
+        "animals": [
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/badger.png",
+                "title": "Badger"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/bat.png",
+                "title": "Bat"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/bear.png",
+                "title": "Bear"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/birds.png",
+                "title": "Birds"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/bison.png",
+                "title": "Bison"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/boar.png",
+                "title": "Boar"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/deer.png",
+                "title": "Buck"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/cats.png",
+                "title": "Cats"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/cheetah.png",
+                "title": "Cheetah"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/chickens.png",
+                "title": "Chickens"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/crocodiles.png",
+                "title": "Crocodiles"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/crow.png",
+                "title": "Crow"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/darthvader.png",
+                "title": "Darth Vader"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/dogs.png",
+                "title": "Dog"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/duck.png",
+                "title": "Duck"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/eagle.png",
+                "title": "Eagle"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/frog.png",
+                "title": "Frog"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/giraffe.png",
+                "title": "Giraffe"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/goldfish.png",
+                "title": "Goldfish"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/gorilla.png",
+                "title": "Gorilla"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/thechosenone.png",
+                "title": "Jedi"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/lamblambs.png",
+                "title": "Lamb"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/lions.png",
+                "title": "Lion"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/monkey.png",
+                "title": "Monkey"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/moose.png",
+                "title": "Moose"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/rainier.png",
+                "title": "Mt Rainier"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/whale.png",
+                "title": "Orca"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/queen.png",
+                "title": "Queen"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/r2d2.png",
+                "title": "R2D2"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/seagull.png",
+                "title": "Seagull"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/stormtrooper.png",
+                "title": "Storm Trooper"
+            },
+            {
+                "file": "https://seattlerules.com/media/stuffedanimalwar/yoda.png",
+                "title": "Yoda"
+            }
+        ]
+    },
+    "mediaObject" : {
+        "songspath": "https://analogarchive.com/live/",
+        "videospath": "https://seattlerules.com/media/trump/videos/",
+        "photospath": "https://seattlerules.com/media/stuffedanimalwar/mark/",
+        "videos": [
+            {"file":"005crockett.mp4","title":"Crockett","poster":"https://seattlerules.com/media/trump/videos/crockett.jpg"},
+            {"file":"https://seattlerules.com/media/trump/videos/aoc/aocdogemedical.mp4","title":"AOC","poster":"https://seattlerules.com/media/trump/videos/aoc/aocdogemedical.jpg"}
+        ],
+        "photos": [
+            {"file":"mark1.jpg","title":"deck"},
+            {"file":"mark2.jpg","title":"ska"},
+            {"file":"mark3.jpg","title":"metal"}
+        ],
+        "songs": [
+            {"file":"01 Intro.mp3","title":"fugazi 01 Intro.mp3"},
+            {"file":"02 Reclamation.mp3","title":"fugazi 02 Reclamation.mp3"},
+            {"file":"02 Steady Diet.mp3","title":"fugazi 02 Steady Diet.mp3"},
+            {"file":"03 Greed.mp3","title":"fugazi 03 Greed.mp3"},
+            {"file":"03 Sieve-Fisted Find.mp3","title":"fugazi 03 Sieve-Fisted Find.mp3"},
+            {"file":"04 Interlude 1.mp3","title":"fugazi 04 Interlude 1.mp3"},
+            {"file":"04 Runaway Return.mp3","title":"fugazi 04 Runaway Return.mp3"},
+            {"file":"05 And The Same.mp3","title":"fugazi 05 And The Same.mp3"},
+            {"file":"05 Reclamation.mp3","title":"fugazi 05 Reclamation.mp3"},
+            {"file":"06 Nice New Outfit.mp3","title":"fugazi 06 Nice New Outfit.mp3"},
+            {"file":"07 And The Same.mp3","title":"fugazi 07 And The Same.mp3"},
+            {"file":"07 Runaway Return.mp3","title":"fugazi 07 Runaway Return.mp3"},
+            {"file":"08 Burning Too.mp3","title":"fugazi 08 Burning Too.mp3"},
+            {"file":"08 Margin Walker.mp3","title":"fugazi 08 Margin Walker.mp3"},
+            {"file":"09 Burning Too.mp3","title":"fugazi 09 Burning Too.mp3"},
+            {"file":"09 Interlude 3.mp3","title":"fugazi 09 Interlude 3.mp3"},
+            {"file":"10 Burning.mp3","title":"fugazi 10 Burning.mp3"},
+            {"file":"10 Lockdown.mp3","title":"fugazi 10 Lockdown.mp3"},
+            {"file":"11 Interlude 1.mp3","title":"fugazi 11 Interlude 1.mp3"},
+            {"file":"11 Song #1.mp3","title":"fugazi 11 Song #1.mp3"},
+            {"file":"12 Interlude 4.mp3","title":"fugazi 12 Interlude 4.mp3"},
+            {"file":"12 Waiting Room.mp3","title":"fugazi 12 Waiting Room.mp3"},
+            {"file":"13 Blueprint.mp3","title":"fugazi 13 Blueprint.mp3"},
+            {"file":"13 Last Chance For a Slow Dance.mp3","title":"fugazi 13 Last Chance For a Slow Dance.mp3"},
+            {"file":"14 Interlude 5.mp3","title":"fugazi 14 Interlude 5.mp3"},
+            {"file":"14 Styrofoam.mp3","title":"fugazi 14 Styrofoam.mp3"},
+            {"file":"15 Interlude 2.mp3","title":"fugazi 15 Interlude 2.mp3"},
+            {"file":"15 Shut the Door.mp3","title":"fugazi 15 Shut the Door.mp3"},
+            {"file":"16 Blueprint.mp3","title":"fugazi 16 Blueprint.mp3"},
+            {"file":"16 Interlude 6.mp3","title":"fugazi 16 Interlude 6.mp3"},
+            {"file":"17 Margin Walker.mp3","title":"fugazi 17 Margin Walker.mp3"},
+            {"file":"17 Repeater.mp3","title":"fugazi 17 Repeater.mp3"},
+            {"file":"18 Encore.mp3","title":"fugazi 18 Encore.mp3"},
+            {"file":"18 Waiting Room.mp3","title":"fugazi 18 Waiting Room.mp3"},
+            {"file":"19 Bad Mouth.mp3","title":"fugazi 19 Bad Mouth.mp3"},
+            {"file":"19 Give Me The Cure.mp3","title":"fugazi 19 Give Me The Cure.mp3"},
+            {"file":"20 Break-In.mp3","title":"fugazi 20 Break-In.mp3"},
+            {"file":"20 Interlude 7.mp3","title":"fugazi 20 Interlude 7.mp3"},
+            {"file":"21 Shut the Door.mp3","title":"fugazi 21 Shut the Door.mp3"},
+            {"file":"21 Two Beats Off.mp3","title":"fugazi 21 Two Beats Off.mp3"},
+            {"file":"22 Outro.mp3","title":"fugazi 22 Outro.mp3"},
+            {"file":"22 Repeater.mp3","title":"fugazi 22 Repeater.mp3"},
+            {"file":"23 Reprovisional.mp3","title":"fugazi 23 Reprovisional.mp3"},
+            {"file":"24 Encore.mp3","title":"fugazi 24 Encore.mp3"},
+            {"file":"25 Suggestion.mp3","title":"fugazi 25 Suggestion.mp3"},
+            {"file":"26 Outro.mp3","title":"fugazi 26 Outro.mp3"}
+        ]
+    },
+    "responsesObject" : {
+        "responses": [
+            {"response" : "check out this spot"},
+            {"response" : "claimer"},
+            {"response" : "did you google that comeback?"},
+            {"response" : "do it frontside"},
+            {"response" : "do it switch"},
+            {"response" : "get some"},
+            {"response" : "hold my beer, watch this"},
+            {"response" : "i dont know"},
+            {"response" : "i know right"},
+            {"response" : "i like you"},
+            {"response" : "i love you"},
+            {"response" : "i think youre attractive"},
+            {"response" : "id rather play with my cat"},
+            {"response" : "it's a bust"},
+            {"response" : "LOL"},
+            {"response" : "look it up"},
+            {"response" : "nice"},
+            {"response" : "Nuh UH!"},
+            {"response" : "ok"},
+            {"response" : "OMG"},
+            {"response" : "pics or it didnt happen"},
+            {"response" : "sarcastic clap"},
+            {"response" : "silence for effect"},
+            {"response" : "skate or die"},
+            {"response" : "STFU"},
+            {"response" : "that link is busted"},
+            {"response" : "that link is rad"},
+            {"response" : "that site is too slow"},
+            {"response" : "that sounds made up"},
+            {"response" : "that sucks"},
+            {"response" : "thats cool"},
+            {"response" : "thats what she said"},
+            {"response" : "this is not a political forum"},
+            {"response" : "this is not a religious forum"},
+            {"response" : "three to claim it"},
+            {"response" : "vague hipster comment"},
+            {"response" : "whatever"},
+            {"response" : "witty comeback"},
+            {"response" : "you inspire me"},
+            {"response" : "you look very nice today"},
+            {"response" : "you rock"},
+            {"response" : "you suck"},
+            {"response" : "your opinion is wrong"},
+            {"response" : "youre a real UP person"},
+            {"response" : "youre my best friend"},
+            {"response" : "youre working that outfit girl"},
+            {"response" : "youre wrong"}
+        ]
+    }
+}
