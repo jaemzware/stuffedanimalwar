@@ -1,16 +1,9 @@
-version: '3.8'
-
 services:
   stuffedanimalwar:
     build: .
     container_name: stuffedanimalwar
     ports:
       - "55556:55556"
-    volumes:
-      # Mount SSL certificates directory (optional for custom certs)
-      - ./sslcert:/app/sslcert
-      # Mount configuration files (your JSON endpoint configs)
-      - ./:/app:ro
     environment:
       # SSL certificate paths (defaults to auto-generated certs in container)
       - SSL_KEY_PATH=${SSL_KEY_PATH:-/app/sslcert/key.pem}
@@ -22,20 +15,3 @@ services:
 networks:
   stuffedanimalwar-network:
     driver: bridge
-
-# Alternative service for production with external certificates
-# Uncomment and modify if using Let's Encrypt or other certificates
-#  stuffedanimalwar-prod:
-#    build: .
-#    container_name: stuffedanimalwar-prod
-#    ports:
-#      - "55556:55556"
-#    volumes:
-#      - /etc/letsencrypt/live/yourdomain.com:/app/ssl:ro
-#      - ./:/app:ro
-#    environment:
-#      - SSL_KEY_PATH=/app/ssl/privkey.pem
-#      - SSL_CERT_PATH=/app/ssl/fullchain.pem
-#    restart: unless-stopped
-#    networks:
-#      - stuffedanimalwar-network
