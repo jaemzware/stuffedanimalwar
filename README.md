@@ -47,16 +47,35 @@ A privacy-focused, real-time chat, game, and media sharing platform built with N
 ### Docker Deployment (Recommended)
 
 The easiest way to run StuffedAnimalWar is with Docker:
+
 ```bash
 git clone https://github.com/jaemzware/stuffedanimalwar.git
 cd stuffedanimalwar
 docker-compose up -d
 ```
 
+**Access the application:**
+- On the host machine: `https://localhost:55556/{endpoint}`
+- Share with friends on same network: `https://YOUR_LOCAL_IP:55556/{endpoint}`
+- Find your local IP: `hostname -I` (Linux/Mac) or `ipconfig` (Windows)
+
+**Custom SSL certificates:**
+Place your certificates in the `./sslcert/` directory or set environment variables in a `.env` file.
+
+**Stopping the service:**
+```bash
+docker-compose down
+```
+
+**Viewing logs:**
+```bash
+docker-compose logs -f
+```
+
 #### Standard Installation
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/stuffedanimalwar.git
+   git clone https://github.com/jaemzware/stuffedanimalwar.git
    cd stuffedanimalwar
    ```
 
@@ -97,7 +116,7 @@ Perfect for creating a **portable, offline social hub** on your local network:
 
 2. **Clone and setup**
    ```bash
-   git clone https://github.com/yourusername/stuffedanimalwar.git
+   git clone https://github.com/jaemzware/stuffedanimalwar.git
    cd stuffedanimalwar
    npm install
    ```
@@ -113,7 +132,7 @@ Perfect for creating a **portable, offline social hub** on your local network:
 
 4. **Access from any device on your network**
    - Find your Pi's IP: `hostname -I`
-   - Connect from phones/laptops: `http://192.168.1.XXX:55556/{endpoint}`
+   - Connect from phones/laptops: `https://192.168.1.XXX:55556/{endpoint}`
    - Works completely offline - no internet required!
 
 ## 📁 Project Structure
@@ -148,54 +167,54 @@ Each `.json` file customizes the endpoint experience with multiple sections:
 
 ```json
 {
-  "endpoint": "maddie",
-  "masterAlias": "MADDIE", 
-  "unspecifiedAlias": "anonymous",
-  "stuffedAnimalMediaObject": {
-    "backgroundimage": "https://example.com/background.jpg",
-    "animals": [
-      {
-        "file": "https://example.com/bear.png",
-        "title": "Bear"
-      },
-      {
-        "file": "https://example.com/cat.png", 
-        "title": "Cat"
-      }
-    ]
-  },
-  "mediaObject": {
-    "songspath": "https://example.com/audio/",
-    "videospath": "https://example.com/videos/",
-    "photospath": "https://example.com/images/",
-    "songs": [
-      {
-        "file": "song1.mp3",
-        "title": "My Favorite Song"
-      }
-    ],
-    "videos": [
-      {
-        "file": "video1.mp4",
-        "title": "Cool Video",
-        "poster": "https://example.com/thumbnail.jpg"
-      }
-    ],
-    "photos": [
-      {
-        "file": "photo1.jpg",
-        "title": "Cool Photo"
-      }
-    ]
-  },
-  "responsesObject": {
-    "responses": [
-      {"response": "nice"},
-      {"response": "that's cool"},
-      {"response": "LOL"},
-      {"response": "i know right"}
-    ]
-  }
+   "endpoint": "maddie",
+   "masterAlias": "MADDIE",
+   "unspecifiedAlias": "anonymous",
+   "stuffedAnimalMediaObject": {
+      "backgroundimage": "https://example.com/background.jpg",
+      "animals": [
+         {
+            "file": "https://example.com/bear.png",
+            "title": "Bear"
+         },
+         {
+            "file": "https://example.com/cat.png",
+            "title": "Cat"
+         }
+      ]
+   },
+   "mediaObject": {
+      "songspath": "https://example.com/audio/",
+      "videospath": "https://example.com/videos/",
+      "photospath": "https://example.com/images/",
+      "songs": [
+         {
+            "file": "song1.mp3",
+            "title": "My Favorite Song"
+         }
+      ],
+      "videos": [
+         {
+            "file": "video1.mp4",
+            "title": "Cool Video",
+            "poster": "https://example.com/thumbnail.jpg"
+         }
+      ],
+      "photos": [
+         {
+            "file": "photo1.jpg",
+            "title": "Cool Photo"
+         }
+      ]
+   },
+   "responsesObject": {
+      "responses": [
+         {"response": "nice"},
+         {"response": "that's cool"},
+         {"response": "LOL"},
+         {"response": "i know right"}
+      ]
+   }
 }
 ```
 
