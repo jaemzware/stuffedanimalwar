@@ -154,7 +154,7 @@ stuffedanimalwar/
 
 1. **Define endpoints** in `index.js`:
    ```javascript
-   const stuffedAnimalWarEndpoints = ['maddie', 'alex', 'sam'];
+   const stuffedAnimalWarEndpoints = ['fromkittehwithlove', 'maddie', 'jacob', 'katie', 'mark', 'nina'];
    ```
 
 2. **Create configuration files** for each endpoint:
