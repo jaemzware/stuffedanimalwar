@@ -44,6 +44,15 @@ A privacy-focused, real-time chat, game, and media sharing platform built with N
 
 ### Installation Options
 
+### Docker Deployment (Recommended)
+
+The easiest way to run StuffedAnimalWar is with Docker:
+```bash
+git clone https://github.com/jaemzware/stuffedanimalwar.git
+cd stuffedanimalwar
+docker-compose up -d
+```
+
 #### Standard Installation
 1. **Clone the repository**
    ```bash
