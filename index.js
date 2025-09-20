@@ -8,8 +8,8 @@ let fs = require('fs');
 //openssl genrsa -out key.pem 4096
 //openssl req -x509 -new -sha256 -nodes -key key.pem -days 1095 -out certificate.pem -subj "/CN=jaemzwarellc/O=stuffedanimalwar/C=US"
 const options = {
-    key: fs.readFileSync(process.env.SSL_KEY_PATH),
-    cert: fs.readFileSync(process.env.SSL_CERT_PATH)
+    key: fs.readFileSync(process.env.SSL_KEY_PATH || './sslcert/key.pem'),
+    cert: fs.readFileSync(process.env.SSL_CERT_PATH || './sslcert/certificate.pem')
 };
 
 //CREATE EXPRESS AND SOCKET.IO SERVERS
