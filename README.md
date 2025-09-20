@@ -313,9 +313,9 @@ Apache License 2.0
 
 ## 🔗 Links
 
-- **Repository**: [GitHub Link]
-- **Issues**: [GitHub Issues Link]
-- **Discussions**: [GitHub Discussions Link]
+- **Repository**: https://github.com/jaemzware/stuffedanimalwar
+- **Issues**: https://github.com/jaemzware/stuffedanimalwar/issues
+- **Discussions**: https://github.com/jaemzware/stuffedanimalwar/discussions
 
 ---
 
