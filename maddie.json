@@ -140,6 +140,7 @@
         "videospath": "https://seattlerules.com/media/trump/videos/",
         "photospath": "https://seattlerules.com/media/stuffedanimalwar/maddie/",
         "videos": [
+            {"file":"https://skatecreteordie.s3.us-east-005.backblazeb2.com/content/del.mp4","title":"Delridge ATV","poster":"https://skatecreteordie.s3.us-east-005.backblazeb2.com/production/skatecreteordiedeck.png"},
             {"file":"005crockett.mp4","title":"Crockett","poster":"https://seattlerules.com/media/trump/videos/crockett.jpg"},
             {"file":"https://seattlerules.com/media/trump/videos/aoc/aocdogemedical.mp4","title":"AOC","poster":"https://seattlerules.com/media/trump/videos/aoc/aocdogemedical.jpg"}
         ],
