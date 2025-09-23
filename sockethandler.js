@@ -26,6 +26,7 @@ let chatImageSocketEvent = null;
 let chatVideoSocketEvent = null;
 let tapSocketEvent = null;
 let pathSocketEvent = null;
+let presentImageSocketEvent = null;
 let connectSocketEvent = null;
 let disconnectSocketEvent = null;
 let socket = null;
@@ -170,6 +171,10 @@ function initializeSocketHandlers(){
 
         // Prepend the video container to the #messagesdiv
         videoContainer.prependTo("#messagesdiv");
+    });
+    socket.on(presentImageSocketEvent, function(presentImageMsgObject){
+        console.log("PRESENTER IMAGE UPDATE:" + JSON.stringify(presentImageMsgObject));
+        $('#stuffedanimalwarsvg').css('background-image', 'url(' + presentImageMsgObject.CHATCLIENTIMAGE + ')');
     });
     socket.on(connectSocketEvent, function(connectMsgObject){
         var span = $("<span/>").text(formatChatServerUserIp(connectMsgObject.CHATSERVERUSER) + " CONNECT - "+ connectMsgObject.CHATSERVERPORT + "/" + connectMsgObject.CHATSERVERENDPOINT +" - Total:" + connectMsgObject.CHATUSERCOUNT);
@@ -563,6 +568,12 @@ $('.photosformthumbnail').on("click", function() {
     // Set the background image of stuffedanimalwarsvg
     SVG.css('background-image', 'url(' + imageSrc + ')');
 
+    // Set the background image for everyone
+    let chatClientUser = $("#chatClientUser").val();
+    if(chatClientUser===masterAlias){
+        emitPresentImage(imageSrc);
+    }
+
     // Scroll to the SVG element
     $('html, body').animate({
         scrollTop: SVG.offset().top
@@ -653,6 +664,15 @@ function emitPathMessage() {
 
     // Emit the path to the server
     socket.emit(pathSocketEvent, pathMsgObject);
+}
+
+function emitPresentImage(imageSrc) {
+    let chatClientUser = $('#chatClientUser').val();
+    let presentImageObject = {
+        CHATCLIENTIMAGE:imageSrc,
+        CHATCLIENTUSER:chatClientUser
+    };
+    socket.emit(presentImageSocketEvent, presentImageObject);
 }
 
 function formatChatServerUserIp(chatServerUser) {
