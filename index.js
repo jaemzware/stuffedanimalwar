@@ -58,6 +58,7 @@ const stuffedAnimalWarEndpoints = ['fromkittehwithlove', 'maddie', 'jacob', 'kat
 const stuffedAnimalWarChatSocketEvent = 'chatmessage';
 const stuffedAnimalWarTapSocketEvent = 'tapmessage';
 const stuffedAnimalWarPathSocketEvent = 'pathmessage';
+const stuffedAnimalWarPresentImageSocketEvent = 'presentimage';
 const stuffedAnimalWarChatImageSocketEvent = 'uploadchatimage';
 const stuffedAnimalWarChatVideoSocketEvent = 'uploadchatvideo';
 const stuffedAnimalWarConnectSocketEvent = 'connect';
@@ -370,6 +371,10 @@ io.on('connection', function(socket){
             //emit to everyone else
             sendPathMessage(endpoint + stuffedAnimalWarPathSocketEvent,pathMsgObject);
         });
+        socket.on(endpoint + stuffedAnimalWarPresentImageSocketEvent, (presentImageMsgObject) => {
+            //emit to everyone else
+            sendPresentImageMessage(endpoint + stuffedAnimalWarPresentImageSocketEvent,presentImageMsgObject);
+        });
     });
 
     //GENERIC CHATMESSAGE SENDER, FOR MULTIPLE, INDEPENDENT CHAT CHANNELS   
@@ -429,6 +434,23 @@ io.on('connection', function(socket){
         //broadcast TAP message (client page needs to have  a socket.on handler for this)
         io.emit(pathSocketEvent,pathMsgObject);
     }
+    //GENERIC PRESENTATION IMAGE SENDER, FOR MULTIPLE, INDEPENDENT CHAT CHANNELS
+    function sendPresentImageMessage(presentImageSocketEvent,presentImageMsgObject){
+        let presentImageClientAddress = socket.handshake.address;
+        let presentImageServerDate = new Date();
+        let presentImagePstString = presentImageServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
+
+        presentImageMsgObject.CHATSERVERUSER = presentImageClientAddress;
+        presentImageMsgObject.CHATSERVERDATE = presentImagePstString;
+        presentImageMsgObject.CHATUSERCOUNT = stuffedAnimalWarPageCounters[endpoint];
+        presentImageMsgObject.CHATSERVERENDPOINT = endpoint;
+        presentImageMsgObject.CHATSERVERPORT = listenPort;
+
+        console.log(JSON.stringify(presentImageMsgObject));
+
+        io.emit(presentImageSocketEvent,presentImageMsgObject);
+    }
+
 });
 
 
