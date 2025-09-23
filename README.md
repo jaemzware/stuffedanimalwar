@@ -345,6 +345,11 @@ Apache License 2.0
 - **Issues**: https://github.com/jaemzware/stuffedanimalwar/issues
 - **Discussions**: https://github.com/jaemzware/stuffedanimalwar/discussions
 
+## Support Development
+This project is developed by Jaemzware LLC alongside other open source projects.
+Your support helps maintain and improve all of our tools:
+[Support our work](https://skatecreteordie.com/?page=donate#)
+
 ---
 
 **Built with privacy in mind. No data stored, no tracking, no compromises.**
