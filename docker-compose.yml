@@ -9,9 +9,3 @@ services:
       - SSL_KEY_PATH=${SSL_KEY_PATH:-/app/sslcert/key.pem}
       - SSL_CERT_PATH=${SSL_CERT_PATH:-/app/sslcert/certificate.pem}
     restart: unless-stopped
-    networks:
-      - stuffedanimalwar-network
-
-networks:
-  stuffedanimalwar-network:
-    driver: bridge
