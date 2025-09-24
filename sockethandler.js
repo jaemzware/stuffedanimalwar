@@ -387,9 +387,14 @@ SVG.on("touchend", function (e) {
     e.preventDefault(); //PREVENT SVG FROM SCROLLING WHEN TOUCHED
     if (!isDrawing) return;
     isDrawing = false;
-    let colorPickerButton = $("#colorPickerButton");
+
+    // Check if all points are identical (indicates a tap, not a drag)
+    const isActualTap = points.length > 1 && points.every(point =>
+        point[0] === points[0][0] && point[1] === points[0][1]
+    );
+
     // If only one point exists, duplicate it to avoid the SVG path error
-    if (points.length === 1) {
+    if (points.length === 1 || isActualTap) {
         // Remove the temporary path
         if (currentPath) {
             currentPath.remove();
