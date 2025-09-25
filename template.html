@@ -24,8 +24,8 @@
     writeChatFormFileUpload();
     writeChatFormVideoUpload();
     writeAudioFromJson(mediaObject);
-    writePhotosFromJson(mediaObject);
     writeVideoFromJson(mediaObject);
+    writePhotosFromJson(mediaObject);
 </script>
 <script type="text/javascript" src="stuffedanimalwarmechanics.js"></script>
 <!--DOMContentLoaded audio and video programmatic behavior on next song/video, etc and a random color generator-->
@@ -58,6 +58,12 @@
         query: {
             endpoint: endpoint
         }
+    });
+    // Populate the endpoint info after the DOM is ready
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('endpointDisplay').textContent = endpoint || 'none';
+        document.getElementById('masterAliasDisplay').textContent = masterAlias || 'none';
+        document.getElementById('unspecifiedAliasDisplay').textContent = unspecifiedAlias || 'none';
     });
     initializeSocketHandlers();
 </script>

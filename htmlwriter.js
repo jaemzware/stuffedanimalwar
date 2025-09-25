@@ -279,6 +279,14 @@ function writePhotosFromJson(mediaObject){
 function writeChatForm(responsesObject) {
     document.write("<form id='chatform'>");
     document.write("<div id='chatformdiv'>");
+
+    // Add endpoint info display above the chat form
+    document.write("<div id='endpointInfo' style='color: white; font-weight: bold; font-size: 12px; margin-bottom: 5px; text-align: left;'>");
+    document.write("Endpoint: <span id='endpointDisplay'></span> | ");
+    document.write("Master: <span id='masterAliasDisplay'></span> | ");
+    document.write("Default: <span id='unspecifiedAliasDisplay'></span>");
+    document.write("</div>");
+
     document.write("<table id='chattable'>");
     document.write("<tr>");
     document.write("<td id=\"chatclientusertd\">");
