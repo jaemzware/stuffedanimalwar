@@ -551,8 +551,11 @@ $('#selectvideos').change(function(){
     let videoOption = $('#selectvideos option:selected');
     let videoToPlay = videoOption.attr("value");
     let poster = videoOption.attr("poster");
-    let chatClientUser = $("#chatClientUser").val();
     changeMp4(videoToPlay,poster);
+    let chatClientUser = $("#chatClientUser").val();
+    if(chatClientUser===masterAlias){
+        emitChatMessage(videoToPlay);
+    }
 });
 chatTextBox.keypress(function (event) {
     if (event.which === 13) {
@@ -586,7 +589,10 @@ $('.photosformthumbnail').on("click", function() {
 });
 $('#clearboardbutton').on("click", function() {
     clearGameBoard();
-    emitChatMessage("#CLEARBOARD;");
+    let chatClientUser = $("#chatClientUser").val();
+    if(chatClientUser===masterAlias) {
+        emitChatMessage("#CLEARBOARD;");
+    }
 });
 $('#animals').on('change', function() {
     if ($(this).val() === "custom") {
@@ -602,7 +608,10 @@ $('#animals').on('change', function() {
 });
 $('#clearchatbutton').on("click", function() {
     clearChat();
-    emitChatMessage("#CLEARCHAT;");
+    let chatClientUser = $("#chatClientUser").val();
+    if(chatClientUser===masterAlias) {
+        emitChatMessage("#CLEARCHAT;");
+    }
 });
 
 function clearChat(){
