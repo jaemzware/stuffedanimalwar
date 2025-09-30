@@ -52,9 +52,9 @@ server.listen(listenPort, () => {
 });
 
 /**
- * ENDPOINTS & EVENTS[NOTE: BY CONVENTION THERE SHOULD BE AN HTML FILE OF THE SAME NAME FOR EACH ENTRY, CLONED FROM FROMKITTEHWITHLOVE.HTML WITH ITS OWN UNIQUE "endpoint" NAME]
+ * ENDPOINTS: Each endpoint uses the custom .json of the same name. if there is not a custom .json of the same name, the fallback is jim.json]
  */
-const stuffedAnimalWarEndpoints = ['fromkittehwithlove', 'maddie', 'jacob', 'katie', 'mark', 'nina'];
+const stuffedAnimalWarEndpoints = ['jim', 'maddie', 'jacob', 'katie', 'mark', 'nina', 'frank', 'bill', 'ted'];
 const stuffedAnimalWarChatSocketEvent = 'chatmessage';
 const stuffedAnimalWarTapSocketEvent = 'tapmessage';
 const stuffedAnimalWarPathSocketEvent = 'pathmessage';
@@ -74,19 +74,53 @@ let templateHtml = fs.readFileSync(path.join(__dirname, 'template.html'), 'utf8'
 //SERVE INDEX FOR NO ENDPOINT AFTER PORT ADDRESS
 app.get('/', function(req, res){
     console.log(req);
-        //send a file back as the response
-        res.sendFile(__dirname + '/index.html');
+    // Generate dynamic HTML with links from stuffedAnimalWarEndpoints
+    const linksHtml = stuffedAnimalWarEndpoints.map(endpoint =>
+        `            <h2><a class="jaemzwarelogo" href="${endpoint}">${endpoint}</a></h2>`
+    ).join('\n');
+
+    const html = `<!--STUFFED ANIMAL WAR - jaemzware.org - 20150611 -->
+<!--STUFFED ANIMAL WAR - stuffedanimalwar.com - 20211128 -->
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>stuffedanimalwar.com</title>
+        <link rel="Stylesheet" href="stylebase.css" />
+    </head>
+    <body>
+        <div class='seattlenativelinks'>
+${linksHtml}
+        </div>
+    </body>
+</html>
+`;
+
+    res.send(html);
 });
 /**
- * 1 - define endpoints to serve custom stuffedanimalwar pages (e.g. fromkittehwithlove.json)
+ * 1 - define endpoints to serve custom stuffedanimalwar pages (e.g. jim.json)
  */
 stuffedAnimalWarEndpoints.forEach(endpoint => {
     //SERVE THE HTML PAGE ENDPOINT
     app.get('/' + endpoint, function(req, res){
         try {
-            // Read the endpoint-specific JSON configuration
+            // Try to read the endpoint-specific JSON configuration
             const configPath = path.join(__dirname, endpoint + '.json');
-            const configData = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+            let configData;
+
+            try {
+                configData = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+            } catch (fileError) {
+                // If the endpoint-specific JSON doesn't exist, fall back to jim.json
+                console.log(`No custom JSON found for endpoint ${endpoint}, falling back to jim.json`);
+                const jimConfigPath = path.join(__dirname, 'jim.json');
+                configData = JSON.parse(fs.readFileSync(jimConfigPath, 'utf8'));
+
+                // Override endpoint and masterAlias for the fallback
+                configData.endpoint = endpoint;
+                configData.masterAlias = endpoint.toUpperCase();
+            }
 
             // Generate HTML by replacing placeholders in the template
             let html = templateHtml;
@@ -192,7 +226,7 @@ stuffedAnimalWarEndpoints.forEach(endpoint => {
             " RAW VIDEO UPLOAD " + sizeInBytes + " BYTES ");
 
         /**
-         * 3 - broadcast the right event for you your custom stuffedanimalwar page. the name must match chatImageSocketEvent in your custom stuffedanimalwar page (e.g. fromkittehwithlove.json)
+         * 3 - broadcast the right event for you your custom stuffedanimalwar page. the name must match chatImageSocketEvent in your custom stuffedanimalwar page (e.g. jim.json)
          */
         // Broadcast the image data to all connected Socket.IO clients
         io.emit(endpoint + stuffedAnimalWarChatVideoSocketEvent, chatVideoMsgObject);
