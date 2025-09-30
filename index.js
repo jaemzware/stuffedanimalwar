@@ -211,8 +211,6 @@ app.get('/mp3-metadata', async (req, res) => {
             return res.status(400).json({ error: 'URL parameter is required' });
         }
 
-        console.log('Fetching metadata for:', url);
-
         if (url.startsWith('http')) {
             // Remote URL - fetch the file
             const response = await fetch(url);
@@ -375,45 +373,51 @@ io.on('connection', function(socket){
         });
     });
 
-    //GENERIC CHATMESSAGE SENDER, FOR MULTIPLE, INDEPENDENT CHAT CHANNELS   
+    //GENERIC CHATMESSAGE SENDER, FOR MULTIPLE, INDEPENDENT CHAT CHANNELS
     function sendChatMessage(chatSocketEvent,chatMsgObject){
         //GET THE ADDRESS AND DATE
         let chatClientAddress = socket.handshake.address;
         let chatServerDate = new Date();
         let chatPstString = chatServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
 
-        //update the emitted json object with server information
-        chatMsgObject.CHATSERVERENDPOINT = endpoint;
-        chatMsgObject.CHATSERVERPORT = listenPort;
-        chatMsgObject.CHATSERVERUSER = chatClientAddress;
-        chatMsgObject.CHATSERVERDATE = chatPstString;
-        chatMsgObject.CHATUSERCOUNT = stuffedAnimalWarPageCounters[endpoint];
+        //create reordered object with server fields first
+        const reorderedChatMsgObject = {
+            CHATSERVERENDPOINT: endpoint,
+            CHATSERVERPORT: listenPort,
+            CHATSERVERUSER: chatClientAddress,
+            CHATSERVERDATE: chatPstString,
+            CHATUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
+            ...chatMsgObject
+        };
 
-        console.log(JSON.stringify(chatMsgObject));
+        console.log(JSON.stringify(reorderedChatMsgObject));
 
         //broadcast
-        io.emit(chatSocketEvent,chatMsgObject);
+        io.emit(chatSocketEvent, reorderedChatMsgObject);
     }
     //GENERIC TAPMESSAGE SENDER, FOR MULTIPLE, INDEPENDENT CHAT CHANNELS
     function sendTapMessage(tapSocketEvent,tapMsgObject){
-        
+
         //GET THE ADDRESS AND DATE
         let tapClientAddress = socket.handshake.address;
         let tapServerDate = new Date();
         let tapPstString = tapServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
-        
-        //update the emitted json object with server information
-        tapMsgObject.CHATSERVERENDPOINT = endpoint;
-        tapMsgObject.CHATSERVERPORT = listenPort;
-        tapMsgObject.CHATSERVERUSER = tapClientAddress;
-        tapMsgObject.CHATSERVERDATE = tapPstString;
-        tapMsgObject.CHATUSERCOUNT = stuffedAnimalWarPageCounters[endpoint];
-         
-        console.log(JSON.stringify(tapMsgObject));
-        
+
+        //create reordered object with server fields first
+        const reorderedTapMsgObject = {
+            CHATSERVERENDPOINT: endpoint,
+            CHATSERVERPORT: listenPort,
+            CHATSERVERUSER: tapClientAddress,
+            CHATSERVERDATE: tapPstString,
+            CHATUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
+            ...tapMsgObject
+        };
+
+        console.log(JSON.stringify(reorderedTapMsgObject));
+
         //broadcast TAP message (client page needs to have  a socket.on handler for this)
-        io.emit(tapSocketEvent,tapMsgObject);
-        
+        io.emit(tapSocketEvent, reorderedTapMsgObject);
+
     }
     //GENERIC PATHMESSAGE SENDER, FOR MULTIPLE, INDEPENDENT CHAT CHANNELS
     function sendPathMessage(pathSocketEvent,pathMsgObject){
@@ -421,16 +425,20 @@ io.on('connection', function(socket){
         let pathServerDate = new Date();
         let pathPstString = pathServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
 
-        pathMsgObject.CHATSERVERENDPOINT = endpoint;
-        pathMsgObject.CHATSERVERPORT = listenPort;
-        pathMsgObject.CHATSERVERUSER = pathClientAddress;
-        pathMsgObject.CHATSERVERDATE = pathPstString;
-        pathMsgObject.CHATUSERCOUNT = stuffedAnimalWarPageCounters[endpoint];
+        //create reordered object with server fields first
+        const reorderedPathMsgObject = {
+            CHATSERVERENDPOINT: endpoint,
+            CHATSERVERPORT: listenPort,
+            CHATSERVERUSER: pathClientAddress,
+            CHATSERVERDATE: pathPstString,
+            CHATUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
+            ...pathMsgObject
+        };
 
-        console.log(JSON.stringify(pathMsgObject));
+        console.log(JSON.stringify(reorderedPathMsgObject));
 
         //broadcast TAP message (client page needs to have  a socket.on handler for this)
-        io.emit(pathSocketEvent,pathMsgObject);
+        io.emit(pathSocketEvent, reorderedPathMsgObject);
     }
     //GENERIC PRESENTATION IMAGE SENDER, FOR MULTIPLE, INDEPENDENT CHAT CHANNELS
     function sendPresentImageMessage(presentImageSocketEvent,presentImageMsgObject){
@@ -438,15 +446,19 @@ io.on('connection', function(socket){
         let presentImageServerDate = new Date();
         let presentImagePstString = presentImageServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
 
-        presentImageMsgObject.CHATSERVERENDPOINT = endpoint;
-        presentImageMsgObject.CHATSERVERPORT = listenPort;
-        presentImageMsgObject.CHATSERVERUSER = presentImageClientAddress;
-        presentImageMsgObject.CHATSERVERDATE = presentImagePstString;
-        presentImageMsgObject.CHATUSERCOUNT = stuffedAnimalWarPageCounters[endpoint];
+        //create reordered object with server fields first
+        const reorderedPresentImageMsgObject = {
+            CHATSERVERENDPOINT: endpoint,
+            CHATSERVERPORT: listenPort,
+            CHATSERVERUSER: presentImageClientAddress,
+            CHATSERVERDATE: presentImagePstString,
+            CHATUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
+            ...presentImageMsgObject
+        };
 
-        console.log(JSON.stringify(presentImageMsgObject));
+        console.log(JSON.stringify(reorderedPresentImageMsgObject));
 
-        io.emit(presentImageSocketEvent,presentImageMsgObject);
+        io.emit(presentImageSocketEvent, reorderedPresentImageMsgObject);
     }
 
 });
