@@ -138,13 +138,12 @@ stuffedAnimalWarEndpoints.forEach(endpoint => {
 
         // Step 3: Calculate the size in bytes
         const sizeInBytes = binaryData.length;
-        console.log("RAW IMAGE UPLOAD " +
-            sizeInBytes +
-            " BYTES CHATSERVERUSER:" + chatImageMsgObject.CHATSERVERUSER +
-            " CHATSERVERDATE: " + chatImageMsgObject.CHATSERVERDATE +
-            " CHATUSERCOUNT: " +chatImageMsgObject.CHATUSERCOUNT +
-            " CHATSERVERENDPOINT: " + chatImageMsgObject.CHATSERVERENDPOINT +
-            " CHATSERVERPORT: " + chatImageMsgObject.CHATSERVERPORT);
+        console.log("CHATSERVERENDPOINT:" + chatImageMsgObject.CHATSERVERENDPOINT +
+            " CHATSERVERPORT: " + chatImageMsgObject.CHATSERVERPORT +
+            " CHATSERVERUSER: " + chatImageMsgObject.CHATSERVERUSER +
+            " CHATSERVERDATE: " +chatImageMsgObject.CHATSERVERDATE +
+            " CHATUSERCOUNT: " + chatImageMsgObject.CHATUSERCOUNT +
+            " RAW IMAGE UPLOAD " + sizeInBytes + " BYTES ");
 
         // Broadcast the image data to all connected Socket.IO clients
         io.emit(endpoint + stuffedAnimalWarChatImageSocketEvent, chatImageMsgObject);
@@ -185,13 +184,12 @@ stuffedAnimalWarEndpoints.forEach(endpoint => {
 
 // Step 3: Calculate the size in bytes
         const sizeInBytes = binaryData.length;
-        console.log("RAW VIDEO UPLOAD " +
-            sizeInBytes +
-            " BYTES CHATSERVERUSER:" + chatVideoMsgObject.CHATSERVERUSER +
+        console.log("CHATSERVERENDPOINT:" + chatVideoMsgObject.CHATSERVERENDPOINT +
+            " CHATSERVERPORT: " + chatVideoMsgObject.CHATSERVERPORT +
+            " CHATSERVERUSER: " +chatVideoMsgObject.CHATSERVERUSER +
             " CHATSERVERDATE: " + chatVideoMsgObject.CHATSERVERDATE +
-            " CHATUSERCOUNT: " +chatVideoMsgObject.CHATUSERCOUNT +
-            " CHATSERVERENDPOINT: " + chatVideoMsgObject.CHATSERVERENDPOINT +
-            " CHATSERVERPORT: " + chatVideoMsgObject.CHATSERVERPORT);
+            " CHATUSERCOUNT: " + chatVideoMsgObject.CHATUSERCOUNT +
+            " RAW VIDEO UPLOAD " + sizeInBytes + " BYTES ");
 
         /**
          * 3 - broadcast the right event for you your custom stuffedanimalwar page. the name must match chatImageSocketEvent in your custom stuffedanimalwar page (e.g. fromkittehwithlove.json)
@@ -212,8 +210,6 @@ app.get('/mp3-metadata', async (req, res) => {
         if (!url) {
             return res.status(400).json({ error: 'URL parameter is required' });
         }
-
-        console.log('Fetching metadata for:', url);
 
         if (url.startsWith('http')) {
             // Remote URL - fetch the file
@@ -311,13 +307,13 @@ io.on('connection', function(socket){
     let connectChatPstString = chatServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
     stuffedAnimalWarPageCounters[endpoint]++;
     let connectMsgObject = {
-                CHATCLIENTMESSAGE:'CONNECT',
-                  CHATCLIENTUSER: '',
-                  CHATSERVERUSER:chatClientAddress,
-                  CHATSERVERDATE:connectChatPstString,
-                  CHATUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
-                  CHATSERVERENDPOINT: endpoint,
-                  CHATSERVERPORT: listenPort
+                CHATSERVERENDPOINT: endpoint,
+                CHATSERVERPORT: listenPort,
+                CHATSERVERUSER: chatClientAddress,
+                CHATSERVERDATE: connectChatPstString,
+                CHATUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
+                CHATCLIENTMESSAGE: 'CONNECT',
+                CHATCLIENTUSER: ''
      }; 
     console.log(JSON.stringify(connectMsgObject));
     io.emit(endpoint + stuffedAnimalWarConnectSocketEvent,connectMsgObject);
@@ -329,13 +325,13 @@ io.on('connection', function(socket){
         let chatPstString = chatServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
         stuffedAnimalWarPageCounters[endpoint]--;
         let disconnectMsgObject = {
-                CHATCLIENTMESSAGE:'DISCONNECT',
-                CHATCLIENTUSER: '',
+                CHATSERVERENDPOINT: endpoint,
+                CHATSERVERPORT: listenPort,
                 CHATSERVERUSER:chatClientAddress,
                 CHATSERVERDATE:chatPstString,
                 CHATUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
-                CHATSERVERENDPOINT: endpoint,
-                CHATSERVERPORT: listenPort
+                CHATCLIENTMESSAGE:'DISCONNECT',
+                CHATCLIENTUSER: ''
          }; 
         console.log(JSON.stringify(disconnectMsgObject));
         io.emit(endpoint + stuffedAnimalWarDisconnectSocketEvent,disconnectMsgObject);
@@ -345,14 +341,14 @@ io.on('connection', function(socket){
     socket.on('error', function(errorMsgObject){
         let chatClientAddress = socket.handshake.address;
         let chatPstString = chatServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
-        errorMsgObject.CHATCLIENTMESSAGE = 'ERROR';
-        errorMsgObject.CHATCLIENTUSER = '';
+        errorMsgObject.CHATSERVERENDPOINT = endpoint;
+        errorMsgObject.CHATSERVERPORT = listenPort;
         errorMsgObject.CHATSERVERUSER = chatClientAddress;
         errorMsgObject.CHATSERVERDATE = chatPstString;
         errorMsgObject.CHATUSERCOUNT = stuffedAnimalWarPageCounters[endpoint];
-        errorMsgObject.CHATSERVERENDPOINT = endpoint;
-        errorMsgObject.CHATSERVERPORT = listenPort;
-        console.log('ERROR: ' + errorMsgObject  );
+        errorMsgObject.CHATCLIENTMESSAGE = 'ERROR';
+        errorMsgObject.CHATCLIENTUSER = '';
+        console.log(JSON.stringify(errorMsgObject));
     });
 
     /**
@@ -377,45 +373,51 @@ io.on('connection', function(socket){
         });
     });
 
-    //GENERIC CHATMESSAGE SENDER, FOR MULTIPLE, INDEPENDENT CHAT CHANNELS   
+    //GENERIC CHATMESSAGE SENDER, FOR MULTIPLE, INDEPENDENT CHAT CHANNELS
     function sendChatMessage(chatSocketEvent,chatMsgObject){
         //GET THE ADDRESS AND DATE
         let chatClientAddress = socket.handshake.address;
         let chatServerDate = new Date();
         let chatPstString = chatServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
 
-        //update the emitted json object with server information
-        chatMsgObject.CHATSERVERUSER = chatClientAddress;
-        chatMsgObject.CHATSERVERDATE = chatPstString;
-        chatMsgObject.CHATUSERCOUNT = stuffedAnimalWarPageCounters[endpoint];
-        chatMsgObject.CHATSERVERENDPOINT = endpoint;
-        chatMsgObject.CHATSERVERPORT = listenPort;
+        //create reordered object with server fields first
+        const reorderedChatMsgObject = {
+            CHATSERVERENDPOINT: endpoint,
+            CHATSERVERPORT: listenPort,
+            CHATSERVERUSER: chatClientAddress,
+            CHATSERVERDATE: chatPstString,
+            CHATUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
+            ...chatMsgObject
+        };
 
-        console.log(JSON.stringify(chatMsgObject));
+        console.log(JSON.stringify(reorderedChatMsgObject));
 
         //broadcast
-        io.emit(chatSocketEvent,chatMsgObject);
+        io.emit(chatSocketEvent, reorderedChatMsgObject);
     }
     //GENERIC TAPMESSAGE SENDER, FOR MULTIPLE, INDEPENDENT CHAT CHANNELS
     function sendTapMessage(tapSocketEvent,tapMsgObject){
-        
+
         //GET THE ADDRESS AND DATE
         let tapClientAddress = socket.handshake.address;
         let tapServerDate = new Date();
         let tapPstString = tapServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
-        
-        //update the emitted json object with server information
-        tapMsgObject.CHATSERVERUSER = tapClientAddress;
-        tapMsgObject.CHATSERVERDATE = tapPstString;
-        tapMsgObject.CHATUSERCOUNT = stuffedAnimalWarPageCounters[endpoint];
-        tapMsgObject.CHATSERVERENDPOINT = endpoint;
-        tapMsgObject.CHATSERVERPORT = listenPort;
-         
-        console.log(JSON.stringify(tapMsgObject));
-        
+
+        //create reordered object with server fields first
+        const reorderedTapMsgObject = {
+            CHATSERVERENDPOINT: endpoint,
+            CHATSERVERPORT: listenPort,
+            CHATSERVERUSER: tapClientAddress,
+            CHATSERVERDATE: tapPstString,
+            CHATUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
+            ...tapMsgObject
+        };
+
+        console.log(JSON.stringify(reorderedTapMsgObject));
+
         //broadcast TAP message (client page needs to have  a socket.on handler for this)
-        io.emit(tapSocketEvent,tapMsgObject);
-        
+        io.emit(tapSocketEvent, reorderedTapMsgObject);
+
     }
     //GENERIC PATHMESSAGE SENDER, FOR MULTIPLE, INDEPENDENT CHAT CHANNELS
     function sendPathMessage(pathSocketEvent,pathMsgObject){
@@ -423,16 +425,20 @@ io.on('connection', function(socket){
         let pathServerDate = new Date();
         let pathPstString = pathServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
 
-        pathMsgObject.CHATSERVERUSER = pathClientAddress;
-        pathMsgObject.CHATSERVERDATE = pathPstString;
-        pathMsgObject.CHATUSERCOUNT = stuffedAnimalWarPageCounters[endpoint];
-        pathMsgObject.CHATSERVERENDPOINT = endpoint;
-        pathMsgObject.CHATSERVERPORT = listenPort;
+        //create reordered object with server fields first
+        const reorderedPathMsgObject = {
+            CHATSERVERENDPOINT: endpoint,
+            CHATSERVERPORT: listenPort,
+            CHATSERVERUSER: pathClientAddress,
+            CHATSERVERDATE: pathPstString,
+            CHATUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
+            ...pathMsgObject
+        };
 
-        console.log(JSON.stringify(pathMsgObject));
+        console.log(JSON.stringify(reorderedPathMsgObject));
 
         //broadcast TAP message (client page needs to have  a socket.on handler for this)
-        io.emit(pathSocketEvent,pathMsgObject);
+        io.emit(pathSocketEvent, reorderedPathMsgObject);
     }
     //GENERIC PRESENTATION IMAGE SENDER, FOR MULTIPLE, INDEPENDENT CHAT CHANNELS
     function sendPresentImageMessage(presentImageSocketEvent,presentImageMsgObject){
@@ -440,15 +446,19 @@ io.on('connection', function(socket){
         let presentImageServerDate = new Date();
         let presentImagePstString = presentImageServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
 
-        presentImageMsgObject.CHATSERVERUSER = presentImageClientAddress;
-        presentImageMsgObject.CHATSERVERDATE = presentImagePstString;
-        presentImageMsgObject.CHATUSERCOUNT = stuffedAnimalWarPageCounters[endpoint];
-        presentImageMsgObject.CHATSERVERENDPOINT = endpoint;
-        presentImageMsgObject.CHATSERVERPORT = listenPort;
+        //create reordered object with server fields first
+        const reorderedPresentImageMsgObject = {
+            CHATSERVERENDPOINT: endpoint,
+            CHATSERVERPORT: listenPort,
+            CHATSERVERUSER: presentImageClientAddress,
+            CHATSERVERDATE: presentImagePstString,
+            CHATUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
+            ...presentImageMsgObject
+        };
 
-        console.log(JSON.stringify(presentImageMsgObject));
+        console.log(JSON.stringify(reorderedPresentImageMsgObject));
 
-        io.emit(presentImageSocketEvent,presentImageMsgObject);
+        io.emit(presentImageSocketEvent, reorderedPresentImageMsgObject);
     }
 
 });
