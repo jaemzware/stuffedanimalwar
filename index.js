@@ -52,9 +52,9 @@ server.listen(listenPort, () => {
 });
 
 /**
- * ENDPOINTS & EVENTS[NOTE: BY CONVENTION THERE SHOULD BE AN HTML FILE OF THE SAME NAME FOR EACH ENTRY, CLONED FROM FROMKITTEHWITHLOVE.HTML WITH ITS OWN UNIQUE "endpoint" NAME]
+ * ENDPOINTS: Each endpoint uses the custom .json of the same name. if there is not a custom .json of the same name, the fallback is jim.json]
  */
-const stuffedAnimalWarEndpoints = ['jim', 'maddie', 'jacob', 'katie', 'mark', 'nina'];
+const stuffedAnimalWarEndpoints = ['jim', 'maddie', 'jacob', 'katie', 'mark', 'nina', 'frank', 'bill', 'ted'];
 const stuffedAnimalWarChatSocketEvent = 'chatmessage';
 const stuffedAnimalWarTapSocketEvent = 'tapmessage';
 const stuffedAnimalWarPathSocketEvent = 'pathmessage';
@@ -105,9 +105,22 @@ stuffedAnimalWarEndpoints.forEach(endpoint => {
     //SERVE THE HTML PAGE ENDPOINT
     app.get('/' + endpoint, function(req, res){
         try {
-            // Read the endpoint-specific JSON configuration
+            // Try to read the endpoint-specific JSON configuration
             const configPath = path.join(__dirname, endpoint + '.json');
-            const configData = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+            let configData;
+
+            try {
+                configData = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+            } catch (fileError) {
+                // If the endpoint-specific JSON doesn't exist, fall back to jim.json
+                console.log(`No custom JSON found for endpoint ${endpoint}, falling back to jim.json`);
+                const jimConfigPath = path.join(__dirname, 'jim.json');
+                configData = JSON.parse(fs.readFileSync(jimConfigPath, 'utf8'));
+
+                // Override endpoint and masterAlias for the fallback
+                configData.endpoint = endpoint;
+                configData.masterAlias = endpoint.toUpperCase();
+            }
 
             // Generate HTML by replacing placeholders in the template
             let html = templateHtml;
