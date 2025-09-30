@@ -311,13 +311,13 @@ io.on('connection', function(socket){
     let connectChatPstString = chatServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
     stuffedAnimalWarPageCounters[endpoint]++;
     let connectMsgObject = {
-                CHATCLIENTMESSAGE:'CONNECT',
-                  CHATCLIENTUSER: '',
-                  CHATSERVERUSER:chatClientAddress,
-                  CHATSERVERDATE:connectChatPstString,
-                  CHATUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
-                  CHATSERVERENDPOINT: endpoint,
-                  CHATSERVERPORT: listenPort
+                CHATSERVERENDPOINT: endpoint,
+                CHATSERVERPORT: listenPort,
+                CHATSERVERUSER: chatClientAddress,
+                CHATSERVERDATE: connectChatPstString,
+                CHATUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
+                CHATCLIENTMESSAGE: 'CONNECT',
+                CHATCLIENTUSER: ''
      }; 
     console.log(JSON.stringify(connectMsgObject));
     io.emit(endpoint + stuffedAnimalWarConnectSocketEvent,connectMsgObject);
@@ -329,13 +329,13 @@ io.on('connection', function(socket){
         let chatPstString = chatServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
         stuffedAnimalWarPageCounters[endpoint]--;
         let disconnectMsgObject = {
-                CHATCLIENTMESSAGE:'DISCONNECT',
-                CHATCLIENTUSER: '',
+                CHATSERVERENDPOINT: endpoint,
+                CHATSERVERPORT: listenPort,
                 CHATSERVERUSER:chatClientAddress,
                 CHATSERVERDATE:chatPstString,
                 CHATUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
-                CHATSERVERENDPOINT: endpoint,
-                CHATSERVERPORT: listenPort
+                CHATCLIENTMESSAGE:'DISCONNECT',
+                CHATCLIENTUSER: ''
          }; 
         console.log(JSON.stringify(disconnectMsgObject));
         io.emit(endpoint + stuffedAnimalWarDisconnectSocketEvent,disconnectMsgObject);
@@ -345,14 +345,14 @@ io.on('connection', function(socket){
     socket.on('error', function(errorMsgObject){
         let chatClientAddress = socket.handshake.address;
         let chatPstString = chatServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
-        errorMsgObject.CHATCLIENTMESSAGE = 'ERROR';
-        errorMsgObject.CHATCLIENTUSER = '';
+        errorMsgObject.CHATSERVERENDPOINT = endpoint;
+        errorMsgObject.CHATSERVERPORT = listenPort;
         errorMsgObject.CHATSERVERUSER = chatClientAddress;
         errorMsgObject.CHATSERVERDATE = chatPstString;
         errorMsgObject.CHATUSERCOUNT = stuffedAnimalWarPageCounters[endpoint];
-        errorMsgObject.CHATSERVERENDPOINT = endpoint;
-        errorMsgObject.CHATSERVERPORT = listenPort;
-        console.log('ERROR: ' + errorMsgObject  );
+        errorMsgObject.CHATCLIENTMESSAGE = 'ERROR';
+        errorMsgObject.CHATCLIENTUSER = '';
+        console.log(JSON.stringify(errorMsgObject));
     });
 
     /**
