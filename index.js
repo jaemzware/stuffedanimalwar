@@ -383,11 +383,11 @@ io.on('connection', function(socket){
         let chatPstString = chatServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
 
         //update the emitted json object with server information
+        chatMsgObject.CHATSERVERENDPOINT = endpoint;
+        chatMsgObject.CHATSERVERPORT = listenPort;
         chatMsgObject.CHATSERVERUSER = chatClientAddress;
         chatMsgObject.CHATSERVERDATE = chatPstString;
         chatMsgObject.CHATUSERCOUNT = stuffedAnimalWarPageCounters[endpoint];
-        chatMsgObject.CHATSERVERENDPOINT = endpoint;
-        chatMsgObject.CHATSERVERPORT = listenPort;
 
         console.log(JSON.stringify(chatMsgObject));
 
@@ -403,11 +403,11 @@ io.on('connection', function(socket){
         let tapPstString = tapServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
         
         //update the emitted json object with server information
+        tapMsgObject.CHATSERVERENDPOINT = endpoint;
+        tapMsgObject.CHATSERVERPORT = listenPort;
         tapMsgObject.CHATSERVERUSER = tapClientAddress;
         tapMsgObject.CHATSERVERDATE = tapPstString;
         tapMsgObject.CHATUSERCOUNT = stuffedAnimalWarPageCounters[endpoint];
-        tapMsgObject.CHATSERVERENDPOINT = endpoint;
-        tapMsgObject.CHATSERVERPORT = listenPort;
          
         console.log(JSON.stringify(tapMsgObject));
         
@@ -421,11 +421,11 @@ io.on('connection', function(socket){
         let pathServerDate = new Date();
         let pathPstString = pathServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
 
+        pathMsgObject.CHATSERVERENDPOINT = endpoint;
+        pathMsgObject.CHATSERVERPORT = listenPort;
         pathMsgObject.CHATSERVERUSER = pathClientAddress;
         pathMsgObject.CHATSERVERDATE = pathPstString;
         pathMsgObject.CHATUSERCOUNT = stuffedAnimalWarPageCounters[endpoint];
-        pathMsgObject.CHATSERVERENDPOINT = endpoint;
-        pathMsgObject.CHATSERVERPORT = listenPort;
 
         console.log(JSON.stringify(pathMsgObject));
 
@@ -438,11 +438,11 @@ io.on('connection', function(socket){
         let presentImageServerDate = new Date();
         let presentImagePstString = presentImageServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
 
+        presentImageMsgObject.CHATSERVERENDPOINT = endpoint;
+        presentImageMsgObject.CHATSERVERPORT = listenPort;
         presentImageMsgObject.CHATSERVERUSER = presentImageClientAddress;
         presentImageMsgObject.CHATSERVERDATE = presentImagePstString;
         presentImageMsgObject.CHATUSERCOUNT = stuffedAnimalWarPageCounters[endpoint];
-        presentImageMsgObject.CHATSERVERENDPOINT = endpoint;
-        presentImageMsgObject.CHATSERVERPORT = listenPort;
 
         console.log(JSON.stringify(presentImageMsgObject));
 
