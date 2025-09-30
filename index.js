@@ -74,8 +74,29 @@ let templateHtml = fs.readFileSync(path.join(__dirname, 'template.html'), 'utf8'
 //SERVE INDEX FOR NO ENDPOINT AFTER PORT ADDRESS
 app.get('/', function(req, res){
     console.log(req);
-        //send a file back as the response
-        res.sendFile(__dirname + '/index.html');
+    // Generate dynamic HTML with links from stuffedAnimalWarEndpoints
+    const linksHtml = stuffedAnimalWarEndpoints.map(endpoint =>
+        `            <h2><a class="jaemzwarelogo" href="${endpoint}">${endpoint}</a></h2>`
+    ).join('\n');
+
+    const html = `<!--STUFFED ANIMAL WAR - jaemzware.org - 20150611 -->
+<!--STUFFED ANIMAL WAR - stuffedanimalwar.com - 20211128 -->
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>stuffedanimalwar.com</title>
+        <link rel="Stylesheet" href="stylebase.css" />
+    </head>
+    <body>
+        <div class='seattlenativelinks'>
+${linksHtml}
+        </div>
+    </body>
+</html>
+`;
+
+    res.send(html);
 });
 /**
  * 1 - define endpoints to serve custom stuffedanimalwar pages (e.g. fromkittehwithlove.json)
