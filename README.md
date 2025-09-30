@@ -160,6 +160,7 @@ stuffedanimalwar/
 2. **Create configuration files** for each endpoint:
    - Each endpoint needs a corresponding `{username}.json` file
    - Example: `maddie` endpoint requires `maddie.json`
+   - If no custom `.json` file exists for an endpoint, `jim.json` is used as a fallback
 
 ### Configuration File Structure
 
