@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-kill "$(lsof -t -i:55556 )"
+lsof -t -i:55556 | xargs -r kill

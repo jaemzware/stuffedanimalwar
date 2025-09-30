@@ -54,7 +54,7 @@ server.listen(listenPort, () => {
 /**
  * ENDPOINTS & EVENTS[NOTE: BY CONVENTION THERE SHOULD BE AN HTML FILE OF THE SAME NAME FOR EACH ENTRY, CLONED FROM FROMKITTEHWITHLOVE.HTML WITH ITS OWN UNIQUE "endpoint" NAME]
  */
-const stuffedAnimalWarEndpoints = ['fromkittehwithlove', 'maddie', 'jacob', 'katie', 'mark', 'nina'];
+const stuffedAnimalWarEndpoints = ['jim', 'maddie', 'jacob', 'katie', 'mark', 'nina'];
 const stuffedAnimalWarChatSocketEvent = 'chatmessage';
 const stuffedAnimalWarTapSocketEvent = 'tapmessage';
 const stuffedAnimalWarPathSocketEvent = 'pathmessage';
@@ -99,7 +99,7 @@ ${linksHtml}
     res.send(html);
 });
 /**
- * 1 - define endpoints to serve custom stuffedanimalwar pages (e.g. fromkittehwithlove.json)
+ * 1 - define endpoints to serve custom stuffedanimalwar pages (e.g. jim.json)
  */
 stuffedAnimalWarEndpoints.forEach(endpoint => {
     //SERVE THE HTML PAGE ENDPOINT
@@ -213,7 +213,7 @@ stuffedAnimalWarEndpoints.forEach(endpoint => {
             " RAW VIDEO UPLOAD " + sizeInBytes + " BYTES ");
 
         /**
-         * 3 - broadcast the right event for you your custom stuffedanimalwar page. the name must match chatImageSocketEvent in your custom stuffedanimalwar page (e.g. fromkittehwithlove.json)
+         * 3 - broadcast the right event for you your custom stuffedanimalwar page. the name must match chatImageSocketEvent in your custom stuffedanimalwar page (e.g. jim.json)
          */
         // Broadcast the image data to all connected Socket.IO clients
         io.emit(endpoint + stuffedAnimalWarChatVideoSocketEvent, chatVideoMsgObject);
