@@ -138,13 +138,12 @@ stuffedAnimalWarEndpoints.forEach(endpoint => {
 
         // Step 3: Calculate the size in bytes
         const sizeInBytes = binaryData.length;
-        console.log("RAW IMAGE UPLOAD " +
-            sizeInBytes +
-            " BYTES CHATSERVERUSER:" + chatImageMsgObject.CHATSERVERUSER +
-            " CHATSERVERDATE: " + chatImageMsgObject.CHATSERVERDATE +
-            " CHATUSERCOUNT: " +chatImageMsgObject.CHATUSERCOUNT +
-            " CHATSERVERENDPOINT: " + chatImageMsgObject.CHATSERVERENDPOINT +
-            " CHATSERVERPORT: " + chatImageMsgObject.CHATSERVERPORT);
+        console.log("CHATSERVERENDPOINT:" + chatImageMsgObject.CHATSERVERENDPOINT +
+            " CHATSERVERPORT: " + chatImageMsgObject.CHATSERVERPORT +
+            " CHATSERVERUSER: " + chatImageMsgObject.CHATSERVERUSER +
+            " CHATSERVERDATE: " +chatImageMsgObject.CHATSERVERDATE +
+            " CHATUSERCOUNT: " + chatImageMsgObject.CHATUSERCOUNT +
+            " RAW IMAGE UPLOAD " + sizeInBytes + " BYTES ");
 
         // Broadcast the image data to all connected Socket.IO clients
         io.emit(endpoint + stuffedAnimalWarChatImageSocketEvent, chatImageMsgObject);
@@ -185,13 +184,12 @@ stuffedAnimalWarEndpoints.forEach(endpoint => {
 
 // Step 3: Calculate the size in bytes
         const sizeInBytes = binaryData.length;
-        console.log("RAW VIDEO UPLOAD " +
-            sizeInBytes +
-            " BYTES CHATSERVERUSER:" + chatVideoMsgObject.CHATSERVERUSER +
+        console.log("CHATSERVERENDPOINT:" + chatVideoMsgObject.CHATSERVERENDPOINT +
+            " CHATSERVERPORT: " + chatVideoMsgObject.CHATSERVERPORT +
+            " CHATSERVERUSER: " +chatVideoMsgObject.CHATSERVERUSER +
             " CHATSERVERDATE: " + chatVideoMsgObject.CHATSERVERDATE +
-            " CHATUSERCOUNT: " +chatVideoMsgObject.CHATUSERCOUNT +
-            " CHATSERVERENDPOINT: " + chatVideoMsgObject.CHATSERVERENDPOINT +
-            " CHATSERVERPORT: " + chatVideoMsgObject.CHATSERVERPORT);
+            " CHATUSERCOUNT: " + chatVideoMsgObject.CHATUSERCOUNT +
+            " RAW VIDEO UPLOAD " + sizeInBytes + " BYTES ");
 
         /**
          * 3 - broadcast the right event for you your custom stuffedanimalwar page. the name must match chatImageSocketEvent in your custom stuffedanimalwar page (e.g. fromkittehwithlove.json)
