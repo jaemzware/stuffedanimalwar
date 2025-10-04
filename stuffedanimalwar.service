@@ -1,0 +1,16 @@
+[Unit]
+Description=StuffedAnimalWar
+After=network.target
+
+[Service]
+Type=simple
+User=jaemzware
+WorkingDirectory=/home/jaemzware/stuffedanimalwar
+ExecStart=/usr/bin/node index.js
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
