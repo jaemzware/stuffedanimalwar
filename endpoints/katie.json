@@ -3,135 +3,95 @@
     "masterAlias": "KATIE",
     "unspecifiedAlias": "anonymous",
     "stuffedAnimalMediaObject" : {
-        "backgroundimage":"https://seattlerules.com/media/stuffedanimalwar/katie/katiebackground.jpg",
+        "backgroundimage":"photos/boots.jpg",
         "animals": [
             {
-                "file": "https://seattlerules.com/media/stuffedanimalwar/badger.png",
+                "file": "animals/badger.png",
                 "title": "Badger"
             },
             {
-                "file": "https://seattlerules.com/media/stuffedanimalwar/bat.png",
+                "file": "animals/bat.png",
                 "title": "Bat"
             },
             {
-                "file": "https://seattlerules.com/media/stuffedanimalwar/bear.png",
+                "file": "animals/bear.png",
                 "title": "Bear"
             },
             {
-                "file": "https://seattlerules.com/media/stuffedanimalwar/birds.png",
+                "file": "animals/birds.png",
                 "title": "Birds"
             },
             {
-                "file": "https://seattlerules.com/media/stuffedanimalwar/bison.png",
+                "file": "animals/bison.png",
                 "title": "Bison"
             },
             {
-                "file": "https://seattlerules.com/media/stuffedanimalwar/boar.png",
+                "file": "animals/boar.png",
                 "title": "Boar"
             },
             {
-                "file": "https://seattlerules.com/media/stuffedanimalwar/deer.png",
+                "file": "animals/deer.png",
                 "title": "Buck"
             },
             {
-                "file": "https://seattlerules.com/media/stuffedanimalwar/cats.png",
+                "file": "animals/cats.png",
                 "title": "Cats"
             },
             {
-                "file": "https://seattlerules.com/media/stuffedanimalwar/cheetah.png",
+                "file": "animals/cheetah.png",
                 "title": "Cheetah"
             },
             {
-                "file": "https://seattlerules.com/media/stuffedanimalwar/chickens.png",
+                "file": "animals/chickens.png",
                 "title": "Chickens"
             },
             {
-                "file": "https://seattlerules.com/media/stuffedanimalwar/crocodiles.png",
+                "file": "animals/crocodiles.png",
                 "title": "Crocodiles"
             },
             {
-                "file": "https://seattlerules.com/media/stuffedanimalwar/crow.png",
+                "file": "animals/crow.png",
                 "title": "Crow"
             },
             {
-                "file": "https://seattlerules.com/media/stuffedanimalwar/darthvader.png",
-                "title": "Darth Vader"
-            },
-            {
-                "file": "https://seattlerules.com/media/stuffedanimalwar/dogs.png",
+                "file": "animals/dogs.png",
                 "title": "Dog"
             },
             {
-                "file": "https://seattlerules.com/media/stuffedanimalwar/duck.png",
+                "file": "animals/duck.png",
                 "title": "Duck"
             },
             {
-                "file": "https://seattlerules.com/media/stuffedanimalwar/eagle.png",
+                "file": "animals/eagle.png",
                 "title": "Eagle"
             },
             {
-                "file": "https://seattlerules.com/media/stuffedanimalwar/frog.png",
+                "file": "animals/frog.png",
                 "title": "Frog"
             },
             {
-                "file": "https://seattlerules.com/media/stuffedanimalwar/giraffe.png",
+                "file": "animals/giraffe.png",
                 "title": "Giraffe"
             },
             {
-                "file": "https://seattlerules.com/media/stuffedanimalwar/goldfish.png",
+                "file": "animals/goldfish.png",
                 "title": "Goldfish"
             },
             {
-                "file": "https://seattlerules.com/media/stuffedanimalwar/gorilla.png",
+                "file": "animals/gorilla.png",
                 "title": "Gorilla"
             },
             {
-                "file": "https://seattlerules.com/media/stuffedanimalwar/thechosenone.png",
-                "title": "Jedi"
-            },
-            {
-                "file": "https://seattlerules.com/media/stuffedanimalwar/lamblambs.png",
-                "title": "Lamb"
-            },
-            {
-                "file": "https://seattlerules.com/media/stuffedanimalwar/lions.png",
-                "title": "Lion"
-            },
-            {
-                "file": "https://seattlerules.com/media/stuffedanimalwar/monkey.png",
+                "file": "animals/monkey.png",
                 "title": "Monkey"
             },
             {
-                "file": "https://seattlerules.com/media/stuffedanimalwar/moose.png",
+                "file": "animals/moose.png",
                 "title": "Moose"
             },
             {
-                "file": "https://seattlerules.com/media/stuffedanimalwar/rainier.png",
-                "title": "Mt Rainier"
-            },
-            {
-                "file": "https://seattlerules.com/media/stuffedanimalwar/whale.png",
-                "title": "Orca"
-            },
-            {
-                "file": "https://seattlerules.com/media/stuffedanimalwar/queen.png",
-                "title": "Queen"
-            },
-            {
-                "file": "https://seattlerules.com/media/stuffedanimalwar/r2d2.png",
-                "title": "R2D2"
-            },
-            {
-                "file": "https://seattlerules.com/media/stuffedanimalwar/seagull.png",
+                "file": "animals/seagull.png",
                 "title": "Seagull"
-            },
-            {
-                "file": "https://seattlerules.com/media/stuffedanimalwar/stormtrooper.png",
-                "title": "Storm Trooper"
-            },
-            {
-                "file": "https://seattlerules.com/media/stuffedanimalwar/yoda.png",
-                "title": "Yoda"
             }
         ]
     },
