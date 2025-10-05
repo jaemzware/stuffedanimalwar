@@ -106,7 +106,7 @@ stuffedAnimalWarEndpoints.forEach(endpoint => {
     app.get('/' + endpoint, function(req, res){
         try {
             // Try to read the endpoint-specific JSON configuration
-            const configPath = path.join(__dirname, endpoint + '.json');
+            const configPath = path.join(__dirname, 'endpoints', endpoint + '.json');
             let configData;
 
             try {
@@ -114,7 +114,7 @@ stuffedAnimalWarEndpoints.forEach(endpoint => {
             } catch (fileError) {
                 // If the endpoint-specific JSON doesn't exist, fall back to jim.json
                 console.log(`No custom JSON found for endpoint ${endpoint}, falling back to jim.json`);
-                const jimConfigPath = path.join(__dirname, 'jim.json');
+                const jimConfigPath = path.join(__dirname, 'endpoints', 'jim.json');
                 configData = JSON.parse(fs.readFileSync(jimConfigPath, 'utf8'));
 
                 // Override endpoint and masterAlias for the fallback
