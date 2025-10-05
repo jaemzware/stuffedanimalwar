@@ -54,7 +54,7 @@ server.listen(listenPort, () => {
 /**
  * ENDPOINTS: Each endpoint uses the custom .json of the same name. if there is not a custom .json of the same name, the fallback is jim.json]
  */
-const stuffedAnimalWarEndpoints = ['jim', 'maddie', 'jacob', 'katie', 'mark', 'nina', 'frank', 'bill', 'ted'];
+const stuffedAnimalWarEndpoints = ['jim', 'maddie', 'jacob', 'katie', 'mark', 'nina', 'frank', 'bill', 'ted', 'picompat'];
 const stuffedAnimalWarChatSocketEvent = 'chatmessage';
 const stuffedAnimalWarTapSocketEvent = 'tapmessage';
 const stuffedAnimalWarPathSocketEvent = 'pathmessage';
@@ -245,7 +245,12 @@ app.get('/mp3-metadata', async (req, res) => {
             return res.status(400).json({ error: 'URL parameter is required' });
         }
 
-        if (url.startsWith('http')) {
+        // Check if it's a remote URL (and not localhost/127.0.0.1)
+        const isRemoteUrl = url.startsWith('http') &&
+            !url.includes('localhost') &&
+            !url.includes('127.0.0.1');
+
+        if (isRemoteUrl) {
             // Remote URL - fetch the file
             const response = await fetch(url);
             if (!response.ok) {
@@ -289,8 +294,19 @@ app.get('/mp3-metadata', async (req, res) => {
                 });
             }
         } else {
-            // Local file - use direct file path
-            const filePath = url.startsWith('/') ? url.substring(1) : url;
+            // Local file - extract path and read from filesystem
+            let filePath;
+
+            if (url.startsWith('http')) {
+                // It's a localhost URL - extract the path
+                const urlObj = new URL(url);
+                filePath = path.join(__dirname, urlObj.pathname);
+            } else {
+                // It's already a path
+                filePath = url.startsWith('/')
+                    ? path.join(__dirname, url)
+                    : path.join(__dirname, url);
+            }
 
             try {
                 // Read tags using NodeID3

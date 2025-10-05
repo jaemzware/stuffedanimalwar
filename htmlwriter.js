@@ -4,41 +4,52 @@ function writeStuffedAnimalWar(stuffedAnimalMediaObject){
     writeStuffedAnimalWarForm(stuffedAnimalMediaObject);
     document.write("</div>");
     document.write("<hr />");  
-}  
+}
 function writeStuffedAnimalWarDiv(stuffedAnimalMediaObject) {
     document.write("<div id=\"stuffedanimalwardiv\">");
+
     //IF THE BACKGROUND IMAGE WAS SPECIFIED
     if(stuffedAnimalMediaObject && stuffedAnimalMediaObject.backgroundimage){
-        //MAKE SURE IT'S AN IMAGE WE EXPECT; I.E. A URL WITH AN IMAGE EXTENSION AT THE END OF IT, OR gamemedia FOR LOCAL FILE REFERENCES
-        if (    stuffedAnimalMediaObject.backgroundimage.toLowerCase().indexOf("http://")===0||
-                stuffedAnimalMediaObject.backgroundimage.toLowerCase().indexOf("https://")===0){
-            if( stuffedAnimalMediaObject.backgroundimage.toLowerCase().indexOf(".jpg")   >   0 ||
-                stuffedAnimalMediaObject.backgroundimage.toLowerCase().indexOf(".jpeg")  >   0 ||
-                stuffedAnimalMediaObject.backgroundimage.toLowerCase().indexOf(".gif")   >   0 ||
-                stuffedAnimalMediaObject.backgroundimage.toLowerCase().indexOf(".png")   >   0){
-                //USE IT
-                document.write("<svg id=\"stuffedanimalwarsvg\" style=\"background-image:url('" + stuffedAnimalMediaObject.backgroundimage + "');\">");
-            }
-            else{
-                //JUST WRITE THE DEFAULT IMAGE
-                document.write("<svg id=\"stuffedanimalwarsvg\">");
-                //SHOW IN LOG WHY WE DIDNT USE IT
-                console.log('BACKGROUNDIMAGEPROVIDED  DOES NOT CONTAIN A VALID ENOUGH IMAGE URL. NEEDS TO END WITH .jpg, .jpeg, .JPG, .gif, .png'+stuffedAnimalMediaObject.backgroundimage);
+        let isValidImage = false;
+        let imagePath = stuffedAnimalMediaObject.backgroundimage;
+
+        // Check if it's a URL (http/https)
+        if (imagePath.toLowerCase().indexOf("http://") === 0 ||
+            imagePath.toLowerCase().indexOf("https://") === 0) {
+            // Validate URL has image extension
+            if (imagePath.toLowerCase().indexOf(".jpg") > 0 ||
+                imagePath.toLowerCase().indexOf(".jpeg") > 0 ||
+                imagePath.toLowerCase().indexOf(".gif") > 0 ||
+                imagePath.toLowerCase().indexOf(".png") > 0) {
+                isValidImage = true;
+            } else {
+                console.log('BACKGROUNDIMAGEPROVIDED DOES NOT CONTAIN A VALID ENOUGH IMAGE URL. NEEDS TO END WITH .jpg, .jpeg, .JPG, .gif, .png: ' + imagePath);
             }
         }
-        else{
-            //JUST WRITE THE DEFAULT IMAGE
+        // Check if it's a local file reference
+        else if (imagePath.toLowerCase().indexOf(".jpg") > 0 ||
+            imagePath.toLowerCase().indexOf(".jpeg") > 0 ||
+            imagePath.toLowerCase().indexOf(".gif") > 0 ||
+            imagePath.toLowerCase().indexOf(".png") > 0) {
+            isValidImage = true;
+        }
+        else {
+            console.log('BACKGROUNDIMAGEPROVIDED IS NOT A VALID IMAGE. NEEDS TO BE A URL (http:// or https://) OR A LOCAL FILE PATH WITH IMAGE EXTENSION (.jpg, .jpeg, .gif, .png): ' + imagePath);
+        }
+
+        // Write the SVG with or without background
+        if (isValidImage) {
+            document.write("<svg id=\"stuffedanimalwarsvg\" style=\"background-image:url('" + imagePath + "');\">");
+        } else {
             document.write("<svg id=\"stuffedanimalwarsvg\">");
-            //SHOW IN LOG WHY WE DIDNT USE IT
-            console.log('BACKGROUNDIMAGEPROVIDED  DOES NOT CONTAIN A VALID ENOUGH IMAGE URL. NEEDS TO START WITH http:// https:// it is: '+stuffedAnimalMediaObject.backgroundimage);
         }
     }
-    else{
+    else {
         //JUST WRITE THE DEFAULT IMAGE
         document.write("<svg id=\"stuffedanimalwarsvg\">");
-        //SHOW IN LOG WHY WE DIDNT USE IT
         console.log('BACKGROUNDIMAGENOTPROVIDED');
     }
+
     document.write("</svg>");
     document.write("</div>");
 }
