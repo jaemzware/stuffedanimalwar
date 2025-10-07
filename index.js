@@ -398,7 +398,7 @@ io.on('connection', function(socket){
         errorMsgObject.CHATUSERCOUNT = stuffedAnimalWarPageCounters[endpoint];
         errorMsgObject.CHATCLIENTMESSAGE = 'ERROR';
         errorMsgObject.CHATCLIENTUSER = '';
-        console.log(JSON.stringify(errorMsgObject));
+        console.log("ERROR:" + " ENDPOINT: " + endpoint  + ":" + listenPort + " CLIENT: " + chatClientAddress + " TIME: " + chatPstString + " ROOM COUNT: " + stuffedAnimalWarPageCounters[endpoint]);
     });
 
     /**
