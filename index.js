@@ -73,7 +73,6 @@ let templateHtml = fs.readFileSync(path.join(__dirname, 'template.html'), 'utf8'
 
 //SERVE INDEX FOR NO ENDPOINT AFTER PORT ADDRESS
 app.get('/', function(req, res){
-    console.log(req);
     // Generate dynamic HTML with links from stuffedAnimalWarEndpoints
     const linksHtml = stuffedAnimalWarEndpoints.map(endpoint =>
         `            <h2><a class="jaemzwarelogo" href="${endpoint}">${endpoint}</a></h2>`
