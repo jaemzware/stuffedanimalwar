@@ -2,8 +2,8 @@
     "endpoint": "jacob",
     "masterAlias": "JACOB",
     "unspecifiedAlias": "anonymous",
-    "stuffedAnimalMediaObject" : {
-        "backgroundimage":"photos/stuffedanimalwarfinal.jpg",
+    "stuffedAnimalMediaObject": {
+        "backgroundimage": "photos/stuffedanimalwarfinal.jpg",
         "animals": [
             {
                 "file": "animals/badger.png",
@@ -95,101 +95,367 @@
             }
         ]
     },
-    "mediaObject" : {
-        "songspath": "https://analogarchive.com/live/",
+    "mediaObject": {
+        "songspath": "https://analogarchive.com/b2proxy/analog/",
         "videospath": "https://seattlerules.com/media/trump/videos/",
         "photospath": "https://seattlerules.com/media/buttholesurferselectriclarryland/",
         "videos": [
-            {"file":"https://skatecreteordie.s3.us-east-005.backblazeb2.com/content/del.mp4","title":"Delridge ATV","poster":"https://skatecreteordie.s3.us-east-005.backblazeb2.com/production/skatecreteordiedeck.png"},
-            {"file":"https://skatecreteordie.com/marg.mp4","title":"Marg","poster":"https://skatecreteordie.s3.us-east-005.backblazeb2.com/production/skatecreteordiedeck.png"},
-            {"file":"https://seattlerules.com/media/bobcatbbqrampjam/bobcatrampjamandbbq20240922.mp4","title":"Bobcat Ramp Jam","poster":"https://skatecreteordie.s3.us-east-005.backblazeb2.com/production/skatecreteordiedeck.png"}
+            {
+                "file": "https://skatecreteordie.s3.us-east-005.backblazeb2.com/content/del.mp4",
+                "title": "Delridge ATV",
+                "poster": "https://skatecreteordie.s3.us-east-005.backblazeb2.com/production/skatecreteordiedeck.png"
+            },
+            {
+                "file": "https://skatecreteordie.com/marg.mp4",
+                "title": "Marg",
+                "poster": "https://skatecreteordie.s3.us-east-005.backblazeb2.com/production/skatecreteordiedeck.png"
+            },
+            {
+                "file": "https://seattlerules.com/media/bobcatbbqrampjam/bobcatrampjamandbbq20240922.mp4",
+                "title": "Bobcat Ramp Jam",
+                "poster": "https://skatecreteordie.s3.us-east-005.backblazeb2.com/production/skatecreteordiedeck.png"
+            }
         ],
         "photos": [
-            {"file":"IMG_8604.JPG", "title":"butthole surfers cover 1"},
-            {"file":"IMG_8605.JPG", "title":"butthole surfers cover 2"},
-            {"file":"IMG_8606.JPG", "title":"butthole surfers cover 3"},
-            {"file":"IMG_8607.JPG", "title":"butthole surfers cover 4"},
-            {"file":"IMG_8608.JPG", "title":"butthole surfers cover 5"},
-            {"file":"IMG_8609.JPG", "title":"butthole surfers cover 6"},
-            {"file":"https://seattlerules.com/media/soundgardensuperunknown/IMG_8626.JPG", "title":"soundgarden superunknown"},
-            {"file":"https://seattlerules.com/media/soundgardensuperunknown/IMG_8627.JPG", "title":"soundgarden superunknown"},
-            {"file":"https://seattlerules.com/media/soundgardensuperunknown/IMG_8628.JPG", "title":"soundgarden superunknown"},
-            {"file":"https://seattlerules.com/media/soundgardensuperunknown/IMG_8629.JPG", "title":"soundgarden superunknown"},
-            {"file":"https://seattlerules.com/media/soundgardensuperunknown/IMG_8630.JPG", "title":"soundgarden superunknown"},
-            {"file":"https://seattlerules.com/media/soundgardensuperunknown/IMG_8631.JPG", "title":"soundgarden superunknown"},
-            {"file":"https://seattlerules.com/media/soundgardensuperunknown/IMG_8632.JPG", "title":"soundgarden superunknown"},
-            {"file":"https://seattlerules.com/media/soundgardensuperunknown/IMG_8633.JPG", "title":"soundgarden superunknown"},
-            {"file":"https://seattlerules.com/media/soundgardensuperunknown/IMG_8634.JPG", "title":"soundgarden superunknown"}
+            {
+                "file": "IMG_8604.JPG",
+                "title": "butthole surfers cover 1"
+            },
+            {
+                "file": "IMG_8605.JPG",
+                "title": "butthole surfers cover 2"
+            },
+            {
+                "file": "IMG_8606.JPG",
+                "title": "butthole surfers cover 3"
+            },
+            {
+                "file": "IMG_8607.JPG",
+                "title": "butthole surfers cover 4"
+            },
+            {
+                "file": "IMG_8608.JPG",
+                "title": "butthole surfers cover 5"
+            },
+            {
+                "file": "IMG_8609.JPG",
+                "title": "butthole surfers cover 6"
+            },
+            {
+                "file": "https://seattlerules.com/media/soundgardensuperunknown/IMG_8626.JPG",
+                "title": "soundgarden superunknown"
+            },
+            {
+                "file": "https://seattlerules.com/media/soundgardensuperunknown/IMG_8627.JPG",
+                "title": "soundgarden superunknown"
+            },
+            {
+                "file": "https://seattlerules.com/media/soundgardensuperunknown/IMG_8628.JPG",
+                "title": "soundgarden superunknown"
+            },
+            {
+                "file": "https://seattlerules.com/media/soundgardensuperunknown/IMG_8629.JPG",
+                "title": "soundgarden superunknown"
+            },
+            {
+                "file": "https://seattlerules.com/media/soundgardensuperunknown/IMG_8630.JPG",
+                "title": "soundgarden superunknown"
+            },
+            {
+                "file": "https://seattlerules.com/media/soundgardensuperunknown/IMG_8631.JPG",
+                "title": "soundgarden superunknown"
+            },
+            {
+                "file": "https://seattlerules.com/media/soundgardensuperunknown/IMG_8632.JPG",
+                "title": "soundgarden superunknown"
+            },
+            {
+                "file": "https://seattlerules.com/media/soundgardensuperunknown/IMG_8633.JPG",
+                "title": "soundgarden superunknown"
+            },
+            {
+                "file": "https://seattlerules.com/media/soundgardensuperunknown/IMG_8634.JPG",
+                "title": "soundgarden superunknown"
+            }
         ],
         "songs": [
-            {"file":"Owl n Thistle - 20130213ZOOM0001.mp3","title":"skerik trio Owl n Thistle - 20130213ZOOM0001.mp3"},
-            {"file":"Owl n Thistle - 20130213ZOOM0002.mp3","title":"skerik trio Owl n Thistle - 20130213ZOOM0002.mp3"},
-            {"file":"Owl n Thistle - 20130213ZOOM0003.mp3","title":"skerik trio Owl n Thistle - 20130213ZOOM0003.mp3"},
-            {"file":"Owl n Thistle - 20130213ZOOM0004.mp3","title":"skerik trio Owl n Thistle - 20130213ZOOM0004.mp3"},
-            {"file":"Owl n Thistle - 20130213ZOOM0005.mp3","title":"skerik trio Owl n Thistle - 20130213ZOOM0005.mp3"},
-            {"file":"Owl n Thistle - 20130213ZOOM0006.mp3","title":"skerik trio Owl n Thistle - 20130213ZOOM0006.mp3"},
-            {"file":"Owl n Thistle - 20130213ZOOM0007.mp3","title":"skerik trio Owl n Thistle - 20130213ZOOM0007.mp3"},
-            {"file":"Owl n Thistle - 20130213ZOOM0008.mp3","title":"skerik trio Owl n Thistle - 20130213ZOOM0008.mp3"},
-            {"file":"Owl n Thistle - 20130213ZOOM0009.mp3","title":"skerik trio Owl n Thistle - 20130213ZOOM0009.mp3"},
-            {"file":"Owl n Thistle - 20130213ZOOM0010.mp3","title":"skerik trio Owl n Thistle - 20130213ZOOM0010.mp3"},
-            {"file":"Owl n Thistle - 20130213ZOOM0011.mp3","title":"skerik trio Owl n Thistle - 20130213ZOOM0011.mp3"},
-            {"file":"Owl n Thistle - 20130213ZOOM0012.mp3","title":"skerik trio Owl n Thistle - 20130213ZOOM0012.mp3"},
-            {"file":"Owl n Thistle - 20130213ZOOM0013.mp3","title":"skerik trio Owl n Thistle - 20130213ZOOM0013.mp3"},
-            {"file":"Owl n Thistle - 20130213ZOOM0014.mp3","title":"skerik trio Owl n Thistle - 20130213ZOOM0014.mp3"},
-            {"file":"Owl n Thistle - 20130213ZOOM0015.mp3","title":"skerik trio Owl n Thistle - 20130213ZOOM0015.mp3"},
-            {"file":"Owl n Thistle - 20130213ZOOM0016.mp3","title":"skerik trio Owl n Thistle - 20130213ZOOM0016.mp3"},
-            {"file":"Owl n Thistle - 20130213ZOOM0017.mp3","title":"skerik trio Owl n Thistle - 20130213ZOOM0017.mp3"}
+            {
+                "file": "losthighwaysoundtrack-sidea.mp3",
+                "title": "Lost Highway Soundtrack - Vinyl Side A"
+            },
+            {
+                "file": "losthighwaysoundtrack-sideb.mp3",
+                "title": "Lost Highway Soundtrack - Vinyl Side B"
+            },
+            {
+                "file": "losthighwaysoundtrack-sidec.mp3",
+                "title": "Lost Highway Soundtrack - Vinyl Side C"
+            },
+            {
+                "file": "losthighwaysoundtrack-sided.mp3",
+                "title": "Lost Highway Soundtrack - Vinyl Side D"
+            },
+            {
+                "file": "https://analogarchive.com/b2proxy/live/Owl%20n%20Thistle%20-%202013020701%20skerik01.mp3",
+                "title": "skerik trio Owl n Thistle - 2013020701 skerik01.mp3"
+            },
+            {
+                "file": "https://analogarchive.com/b2proxy/live/Owl%20n%20Thistle%20-%202013020702%20skerik02.mp3",
+                "title": "skerik trio Owl n Thistle - 2013020702 skerik02.mp3"
+            },
+            {
+                "file": "https://analogarchive.com/b2proxy/live/Owl%20n%20Thistle%20-%202013020703%20skerik03.mp3",
+                "title": "skerik trio Owl n Thistle - 2013020703 skerik03.mp3"
+            },
+            {
+                "file": "https://analogarchive.com/b2proxy/live/Owl%20n%20Thistle%20-%202013020704%20skerik04.mp3",
+                "title": "skerik trio Owl n Thistle - 2013020704 skerik04.mp3"
+            },
+            {
+                "file": "https://analogarchive.com/b2proxy/live/Owl%20n%20Thistle%20-%202013020705%20skerik05.mp3",
+                "title": "skerik trio Owl n Thistle - 2013020705 skerik05.mp3"
+            },
+            {
+                "file": "https://analogarchive.com/b2proxy/live/Owl%20n%20Thistle%20-%202013020706%20skerik06.mp3",
+                "title": "skerik trio Owl n Thistle - 2013020706 skerik06.mp3"
+            },
+            {
+                "file": "https://analogarchive.com/b2proxy/live/Owl%20n%20Thistle%20-%202013020707%20skerik07.mp3",
+                "title": "skerik trio Owl n Thistle - 2013020707 skerik07.mp3"
+            },
+            {
+                "file": "https://analogarchive.com/b2proxy/live/Owl%20n%20Thistle%20-%202013020708%20skerik08.mp3",
+                "title": "skerik trio Owl n Thistle - 2013020708 skerik08.mp3"
+            },
+            {
+                "file": "https://analogarchive.com/b2proxy/live/Owl%20n%20Thistle%20-%202013020709%20skerik09.mp3",
+                "title": "skerik trio Owl n Thistle - 2013020709 skerik09.mp3"
+            },
+            {
+                "file": "https://analogarchive.com/b2proxy/live/Owl%20n%20Thistle%20-%202013020710%20skerik10.mp3",
+                "title": "skerik trio Owl n Thistle - 2013020710 skerik10.mp3"
+            },
+            {
+                "file": "https://analogarchive.com/b2proxy/live/Owl%20n%20Thistle%20-%202013020711%20skerik11.mp3",
+                "title": "skerik trio Owl n Thistle - 2013020711 skerik11.mp3"
+            },
+            {
+                "file": "https://analogarchive.com/b2proxy/live/Owl%20n%20Thistle%20-%202013020712%20skerik12.mp3",
+                "title": "skerik trio Owl n Thistle - 2013020712 skerik12.mp3"
+            },
+            {
+                "file": "https://analogarchive.com/b2proxy/live/Owl%20n%20Thistle%20-%202013020713%20skerik13.mp3",
+                "title": "skerik trio Owl n Thistle - 2013020713 skerik13.mp3"
+            },
+            {
+                "file": "https://analogarchive.com/b2proxy/live/Owl%20n%20Thistle%20-%202013020714%20skerik14.mp3",
+                "title": "skerik trio Owl n Thistle - 2013020714 skerik14.mp3"
+            },
+            {
+                "file": "https://analogarchive.com/b2proxy/live/Owl%20n%20Thistle%20-%202013020715%20skerik15.mp3",
+                "title": "skerik trio Owl n Thistle - 2013020715 skerik15.mp3"
+            },
+            {
+                "file": "https://analogarchive.com/b2proxy/live/ZOOM0038-lastgasp-highline-2014.mp3",
+                "title": "lastgasp-ZOOM0038-lastgasp-highline-2014.mp3"
+            },
+            {
+                "file": "https://analogarchive.com/b2proxy/live/ZOOM0039-lastgasp-highline-2014.mp3",
+                "title": "lastgasp-ZOOM0039-lastgasp-highline-2014.mp3"
+            },
+            {
+                "file": "https://analogarchive.com/b2proxy/live/ZOOM0040-lastgasp-highline-2014.mp3",
+                "title": "lastgasp-ZOOM0040-lastgasp-highline-2014.mp3"
+            },
+            {
+                "file": "https://analogarchive.com/b2proxy/live/ZOOM0041-lastgasp-highline-2014.mp3",
+                "title": "lastgasp-ZOOM0041-lastgasp-highline-2014.mp3"
+            },
+            {
+                "file": "https://analogarchive.com/b2proxy/live/ZOOM0042-lastgasp-highline-2014.mp3",
+                "title": "lastgasp-ZOOM0042-lastgasp-highline-2014.mp3"
+            },
+            {
+                "file": "https://analogarchive.com/b2proxy/live/ZOOM0043-lastgasp-highline-2014.mp3",
+                "title": "lastgasp-ZOOM0043-lastgasp-highline-2014.mp3"
+            },
+            {
+                "file": "https://analogarchive.com/b2proxy/live/ZOOM0044-lastgasp-highline-2014.mp3",
+                "title": "lastgasp-ZOOM0044-lastgasp-highline-2014.mp3"
+            },
+            {
+                "file": "https://analogarchive.com/b2proxy/live/ZOOM0045-lastgasp-highline-2014.mp3",
+                "title": "lastgasp-ZOOM0045-lastgasp-highline-2014.mp3"
+            },
+            {
+                "file": "https://analogarchive.com/b2proxy/live/ZOOM0046-lastgasp-highline-2014.mp3",
+                "title": "lastgasp-ZOOM0046-lastgasp-highline-2014.mp3"
+            },
+            {
+                "file": "https://analogarchive.com/b2proxy/live/ZOOM0047-lastgasp-highline-2014.mp3",
+                "title": "lastgasp-ZOOM0047-lastgasp-highline-2014.mp3"
+            },
+            {
+                "file": "https://analogarchive.com/b2proxy/live/ZOOM0048-lastgasp-highline-2014.mp3",
+                "title": "lastgasp-ZOOM0048-lastgasp-highline-2014.mp3"
+            },
+            {
+                "file": "https://analogarchive.com/b2proxy/live/ZOOM0049-lastgasp-highline-2014.mp3",
+                "title": "lastgasp-ZOOM0049-lastgasp-highline-2014.mp3"
+            },
+            {
+                "file": "https://analogarchive.com/b2proxy/live/ZOOM0050-lastgasp-highline-2014.mp3",
+                "title": "lastgasp-ZOOM0050-lastgasp-highline-2014.mp3"
+            },
+            {
+                "file": "https://analogarchive.com/b2proxy/live/ZOOM0051-lastgasp-highline-2014.mp3",
+                "title": "lastgasp-ZOOM0051-lastgasp-highline-2014.mp3"
+            }
         ]
     },
-    "responsesObject" : {
+    "responsesObject": {
         "responses": [
-            {"response" : "check out this spot"},
-            {"response" : "claimer"},
-            {"response" : "did you google that comeback?"},
-            {"response" : "do it frontside"},
-            {"response" : "do it switch"},
-            {"response" : "get some"},
-            {"response" : "hold my beer, watch this"},
-            {"response" : "i dont know"},
-            {"response" : "i know right"},
-            {"response" : "i like you"},
-            {"response" : "i love you"},
-            {"response" : "i think youre attractive"},
-            {"response" : "id rather play with my cat"},
-            {"response" : "it\"s a bust"},
-            {"response" : "LOL"},
-            {"response" : "look it up"},
-            {"response" : "nice"},
-            {"response" : "Nuh UH!"},
-            {"response" : "ok"},
-            {"response" : "OMG"},
-            {"response" : "pics or it didnt happen"},
-            {"response" : "sarcastic clap"},
-            {"response" : "silence for effect"},
-            {"response" : "skate or die"},
-            {"response" : "STFU"},
-            {"response" : "that link is busted"},
-            {"response" : "that link is rad"},
-            {"response" : "that site is too slow"},
-            {"response" : "that sounds made up"},
-            {"response" : "that sucks"},
-            {"response" : "thats cool"},
-            {"response" : "thats what she said"},
-            {"response" : "this is not a political forum"},
-            {"response" : "this is not a religious forum"},
-            {"response" : "three to claim it"},
-            {"response" : "vague hipster comment"},
-            {"response" : "whatever"},
-            {"response" : "witty comeback"},
-            {"response" : "you inspire me"},
-            {"response" : "you look very nice today"},
-            {"response" : "you rock"},
-            {"response" : "you suck"},
-            {"response" : "your opinion is wrong"},
-            {"response" : "youre a real UP person"},
-            {"response" : "youre my best friend"},
-            {"response" : "youre working that outfit girl"},
-            {"response" : "youre wrong"}
+            {
+                "response": "check out this spot"
+            },
+            {
+                "response": "claimer"
+            },
+            {
+                "response": "did you google that comeback?"
+            },
+            {
+                "response": "do it frontside"
+            },
+            {
+                "response": "do it switch"
+            },
+            {
+                "response": "get some"
+            },
+            {
+                "response": "hold my beer, watch this"
+            },
+            {
+                "response": "i dont know"
+            },
+            {
+                "response": "i know right"
+            },
+            {
+                "response": "i like you"
+            },
+            {
+                "response": "i love you"
+            },
+            {
+                "response": "i think youre attractive"
+            },
+            {
+                "response": "id rather play with my cat"
+            },
+            {
+                "response": "it\"s a bust"
+            },
+            {
+                "response": "LOL"
+            },
+            {
+                "response": "look it up"
+            },
+            {
+                "response": "nice"
+            },
+            {
+                "response": "Nuh UH!"
+            },
+            {
+                "response": "ok"
+            },
+            {
+                "response": "OMG"
+            },
+            {
+                "response": "pics or it didnt happen"
+            },
+            {
+                "response": "sarcastic clap"
+            },
+            {
+                "response": "silence for effect"
+            },
+            {
+                "response": "skate or die"
+            },
+            {
+                "response": "STFU"
+            },
+            {
+                "response": "that link is busted"
+            },
+            {
+                "response": "that link is rad"
+            },
+            {
+                "response": "that site is too slow"
+            },
+            {
+                "response": "that sounds made up"
+            },
+            {
+                "response": "that sucks"
+            },
+            {
+                "response": "thats cool"
+            },
+            {
+                "response": "thats what she said"
+            },
+            {
+                "response": "this is not a political forum"
+            },
+            {
+                "response": "this is not a religious forum"
+            },
+            {
+                "response": "three to claim it"
+            },
+            {
+                "response": "vague hipster comment"
+            },
+            {
+                "response": "whatever"
+            },
+            {
+                "response": "witty comeback"
+            },
+            {
+                "response": "you inspire me"
+            },
+            {
+                "response": "you look very nice today"
+            },
+            {
+                "response": "you rock"
+            },
+            {
+                "response": "you suck"
+            },
+            {
+                "response": "your opinion is wrong"
+            },
+            {
+                "response": "youre a real UP person"
+            },
+            {
+                "response": "youre my best friend"
+            },
+            {
+                "response": "youre working that outfit girl"
+            },
+            {
+                "response": "youre wrong"
+            }
         ]
     }
 }
