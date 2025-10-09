@@ -16,6 +16,7 @@ router.get('/setup', async (req, res) => {
     // Check if credentials file exists and read it
     let existingSSID = '';
     let hasExistingCreds = false;
+    let isInAPMode = false;
 
     try {
         const credsData = await fs.readFile(CREDS_FILE, 'utf8');
@@ -25,6 +26,17 @@ router.get('/setup', async (req, res) => {
     } catch (error) {
         // File doesn't exist or is invalid - that's okay
     }
+
+    // Check if we're currently in AP mode
+    try {
+        const { stdout } = await execPromise('nmcli -t -f NAME connection show --active');
+        isInAPMode = stdout.includes('StuffedAnimalWAP');
+    } catch (error) {
+        // If we can't check, assume not in AP mode
+    }
+
+    // Only show warning if we have existing creds AND we're in AP mode (connection failed)
+    const showWarning = hasExistingCreds && isInAPMode;
 
     const html = `<!DOCTYPE html>
 <html>
@@ -176,7 +188,7 @@ router.get('/setup', async (req, res) => {
         <h1>WiFi Setup</h1>
         <p class="subtitle">Connect your StuffedAnimalWar to your home network</p>
         
-        ${hasExistingCreds ? `
+        ${showWarning ? `
         <div class="warning-box">
             <strong>⚠️ Previous Connection Failed</strong>
             The Pi couldn't connect to "${existingSSID}". Check your password or try a different network.
