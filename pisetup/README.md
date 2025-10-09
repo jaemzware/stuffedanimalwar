@@ -233,6 +233,19 @@ To change these, edit `install.sh` before running.
 - Click "Advanced" → "Proceed" in your browser
 - Certificate shows "Jaemzware LLC" organization
 
+## Endpoints
+
+**Stuffed Animal War (Port 55556)**
+- `https://stuffedanimalwar.local/` - Main chat endpoint index (lists all available rooms: jim, maddie, jacob, katie, mark, nina, frank, bill, ted)
+- `https://stuffedanimalwar.local/jim` - Real-time collaborative canvas and chat room (replace 'jim' with any endpoint name)
+- `https://stuffedanimalwar.local/picompat` - Chat endpoint using only onboard media (configured via picompat.json for offline/WAP use)
+- `https://stuffedanimalwar.local/setup` - WiFi configuration interface (enter credentials; falls back to WAP if connection fails or network unavailable)
+
+**Analog Archive JS (Port 55557)**
+- `https://stuffedanimalwar.local:55557/` - Audio player for onboard music folders (scanned from Pi's hard drives)
+- `https://stuffedanimalwar.local:55557/analog` - Backblaze B2 bucket audio library (requires home WiFi with gateway)
+- `https://stuffedanimalwar.local:55557/live` - Backblaze B2 live recordings library (requires home WiFi with gateway)
+
 ## Support
 
 For issues or questions:
