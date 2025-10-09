@@ -75,19 +75,22 @@ The installer will:
 
 **Choose YES to reboot when prompted.**
 
-### 4. Remove Initial WiFi Configuration
-
-After the reboot from installation, SSH back in and remove the temporary WiFi credentials:
+After rebooting, the Pi will automatically start in AP mode (since no WiFi credentials are saved yet). Connect to the **StuffedAnimalWAP** access point (password: **stuffedanimal**) and SSH back in:
 
 ```bash
-# Remove the WiFi configuration that was set in the imager
-sudo rm /etc/NetworkManager/system-connections/preconfigured.nmconnection
-
-# Reboot to start in AP mode
-sudo reboot
+ssh jaemzware@stuffedanimalwar.local
 ```
 
-The Pi will now boot into AP mode since there are no saved credentials.
+### 4. Remove Initial WiFi Configuration
+
+Now remove the temporary WiFi credentials that were set in the imager:
+
+```bash
+# Remove the WiFi configuration from the imager
+sudo rm /etc/NetworkManager/system-connections/preconfigured.nmconnection
+```
+
+You're now ready to test the `/setup` page!
 
 ### 5. First AP Mode Boot
 
