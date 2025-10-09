@@ -87,13 +87,8 @@ docker-compose logs -f
 3. **Generate SSL certificates (required for HTTPS)**
    ```bash
    mkdir sslcert
-   cd sslcert
-   
-   # Generate self-signed certificate for local development
-   openssl genrsa -out key.pem 4096
-   openssl req -x509 -new -sha256 -nodes -key key.pem -days 1095 -out certificate.pem -subj "/CN=localhost/O=stuffedanimalwar/C=US"
-   
-   cd ..
+   openssl genrsa -out sslcert/key.pem 4096
+   openssl req -x509 -new -sha256 -nodes -key sslcert/key.pem -days 1095 -out sslcert/cert.pem -subj "/CN=localhost/O=stuffedanimalwar/C=US"
    ```
 
 4. **Start the server**

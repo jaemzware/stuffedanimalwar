@@ -22,7 +22,7 @@ RUN apk add --no-cache openssl && \
     openssl req -x509 -new -sha256 -nodes \
         -key /app/sslcert/key.pem \
         -days 1095 \
-        -out /app/sslcert/certificate.pem \
+        -out /app/sslcert/cert.pem \
         -subj "/CN=localhost/O=stuffedanimalwar/C=US"
 
 # Expose the port the app runs on
