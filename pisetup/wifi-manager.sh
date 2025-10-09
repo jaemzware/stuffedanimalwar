@@ -70,6 +70,8 @@ done
 # Failed to connect - fall back to AP mode
 log "Failed to connect to home WiFi after ${MAX_WAIT}s. Starting AP mode."
 restore_led  # Stop blinking
+sleep 1  # Give LED time to restore
 nmcli connection up "$AP_CONNECTION" 2>/dev/null || log "Failed to start AP mode"
+
 
 exit 0
