@@ -26,6 +26,9 @@ restore_led() {
     echo mmc0 > /sys/class/leds/ACT/trigger 2>/dev/null || true
 }
 
+# Give NetworkManager time to fully initialize
+sleep 5
+
 # Check if credentials file exists
 if [ ! -f "$CREDS_FILE" ]; then
     log "No credentials file found. Starting in AP mode."
