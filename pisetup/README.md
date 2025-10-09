@@ -33,13 +33,19 @@ Flash Raspberry Pi OS Lite (32-bit) to your SD card using Raspberry Pi Imager.
 - **Hostname:** `stuffedanimalwar` (without .local)
 - **Username:** `jaemzware` (CRITICAL - scripts expect this exact username)
 - **Password:** Set your own password
-- **Configure wireless LAN:** **UNCHECK** (you want it to start in AP mode)
+- **Configure wireless LAN:** **CHECK** and enter your WiFi credentials (temporary, for initial setup only)
 - **Enable SSH:** **CHECK** (required for initial setup)
 - **Enable telemetry:** **UNCHECK** (optional, for privacy)
 
-### 2. Clone Repositories
+**Note:** You're configuring WiFi temporarily so you can SSH in and run the installer. After installation, you'll remove these credentials so the Pi starts in AP mode.
+
+### 2. Install Git and Clone Repositories
 
 ```bash
+# Install git (not included in Raspberry Pi OS Lite by default)
+sudo apt update
+sudo apt install -y git
+
 cd /home/jaemzware
 
 # Clone StuffedAnimalWar (main repository with setup scripts)
@@ -67,7 +73,23 @@ The installer will:
 - Set up systemd services
 - Offer to reboot
 
-### 4. First Boot
+**Choose YES to reboot when prompted.**
+
+### 4. Remove Initial WiFi Configuration
+
+After the reboot from installation, SSH back in and remove the temporary WiFi credentials:
+
+```bash
+# Remove the WiFi configuration that was set in the imager
+sudo rm /etc/NetworkManager/system-connections/preconfigured.nmconnection
+
+# Reboot to start in AP mode
+sudo reboot
+```
+
+The Pi will now boot into AP mode since there are no saved credentials.
+
+### 5. First AP Mode Boot
 
 On first boot (or when no WiFi credentials are saved):
 - Pi starts in **AP Mode**
