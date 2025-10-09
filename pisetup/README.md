@@ -59,10 +59,43 @@ cd stuffedanimalwar
 
 **Note:** The AnalogArchive repository is cloned as `analogarchive` (not `analogarchivejs`) to match the expected directory structure.
 
-### 3. Install Dependencies
+### 3. Configure Environment Variables
+
+Both applications require `.env` files for configuration:
 
 ```bash
-cd pisetup
+# StuffedAnimalWar
+cd /home/jaemzware/stuffedanimalwar
+cp .env.example .env
+# Edit if needed (defaults should work for Pi setup)
+
+# AnalogArchive
+cd /home/jaemzware/analogarchive
+cp .env.example .env
+# Edit B2 credentials if you want cloud storage (optional)
+```
+
+**Note:** The `.env.example` files are included in the repositories with sensible defaults for Raspberry Pi use. The SSL certificate paths will be automatically populated by the installer.
+
+### 3a. Add Music Files (AnalogArchive only)
+
+If you're using AnalogArchive, create a music directory and add MP3 files:
+
+```bash
+# Create music directory
+mkdir -p /home/jaemzware/analogarchive/music
+
+# Copy MP3 files to the music directory
+# You can do this via SCP from your computer:
+# scp /path/to/your/songs/*.mp3 jaemzware@stuffedanimalwar.local:/home/jaemzware/analogarchive/music/
+```
+
+**Note:** AnalogArchive requires at least one MP3 file in the `/music` directory to function properly.
+
+### 4. Install Dependencies
+
+```bash
+cd /home/jaemzware/stuffedanimalwar/pisetup
 sudo ./install.sh
 ```
 
@@ -81,7 +114,7 @@ After rebooting, the Pi will automatically start in AP mode (since no WiFi crede
 ssh jaemzware@stuffedanimalwar.local
 ```
 
-### 4. Remove Initial WiFi Configuration
+### 5. Remove Initial WiFi Configuration
 
 Now remove the temporary WiFi credentials that were set in the imager:
 
@@ -92,7 +125,7 @@ sudo rm /etc/NetworkManager/system-connections/preconfigured.nmconnection
 
 You're now ready to test the `/setup` page!
 
-### 5. First AP Mode Boot
+### 6. First AP Mode Boot
 
 On first boot (or when no WiFi credentials are saved):
 - Pi starts in **AP Mode**
