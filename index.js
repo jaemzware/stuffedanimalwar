@@ -31,6 +31,7 @@ const io = new Server(server, {
 });
 const path = require('path');
 let listenPort =55556;
+const setupRouter = require('./pisetup/setup-endpoint'); //RASBERRY PI wifi setup
 
 //GET PORT TO LISTEN TO
 if(process.argv.length !== 3){
@@ -43,6 +44,9 @@ else{
 
 //CONFIGURE EXPRESS TO SERVE STATIC FILES LIKE IMAGES AND SCRIPTS
 app.use(express.static(__dirname));
+//RASPBERRY PI WIFI SETUP PAGE
+app.use(express.json()); // ADD THIS LINE - Parse JSON request bodies
+app.use(setupRouter);
 //CONFIGURE EXPRESS TO TRUST PROXY ON FILE UPLOAD
 app.set('trust proxy', true); // Trust the first proxy
 

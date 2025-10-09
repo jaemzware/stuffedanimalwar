@@ -1,0 +1,18 @@
+[Unit]
+Description=WiFi Manager - Connect to home network or start AP mode
+DefaultDependencies=no
+Before=network-online.target
+Before=stuffedanimalwar.service
+Before=analogarchive.service
+After=NetworkManager.service
+Wants=NetworkManager.service
+
+[Service]
+Type=oneshot
+ExecStart=/home/jaemzware/stuffedanimalwar/pisetup/wifi-manager.sh
+RemainAfterExit=yes
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
