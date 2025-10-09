@@ -1,0 +1,19 @@
+[Unit]
+Description=AnalogArchive Music Server
+After=network.target
+After=wifi-manager.service
+Requires=wifi-manager.service
+
+[Service]
+Type=simple
+User=jaemzware
+WorkingDirectory=/home/jaemzware/analogarchive
+ExecStart=/usr/bin/node index.js
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+Environment="PORT=55557"
+
+[Install]
+WantedBy=multi-user.target

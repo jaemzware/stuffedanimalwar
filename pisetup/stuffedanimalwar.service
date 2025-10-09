@@ -1,6 +1,8 @@
 [Unit]
-Description=StuffedAnimalWar
+Description=StuffedAnimalWar Chat Engine
 After=network.target
+After=wifi-manager.service
+Requires=wifi-manager.service
 
 [Service]
 Type=simple
@@ -11,6 +13,7 @@ Restart=always
 RestartSec=10
 StandardOutput=journal
 StandardError=journal
+Environment="PORT=55556"
 
 [Install]
 WantedBy=multi-user.target
