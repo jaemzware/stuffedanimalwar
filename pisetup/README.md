@@ -142,12 +142,12 @@ On first boot (or when no WiFi credentials are saved):
 **AP Mode (in the woods):**
 - Connect to: StuffedAnimalWAP
 - StuffedAnimalWar: `https://stuffedanimalwar.local`
-- AnalogArchive: `https://analogarchive.local`
+- AnalogArchive: `https://stuffedanimalwar.local:55557`
 
 **Home WiFi Mode:**
 - Ensure devices are on the same network as the Pi
 - StuffedAnimalWar: `https://stuffedanimalwar.local`
-- AnalogArchive: `https://analogarchive.local`
+- AnalogArchive: `https://stuffedanimalwar.local:55557`
 
 ### Resetting WiFi
 
@@ -193,7 +193,6 @@ sudo tail -f /var/log/nginx/error.log
 │   │   ├── stuffedanimalwar.service      # App service file
 │   │   ├── analogarchive.service         # AnalogArchive service file
 │   │   ├── nginx-stuffedanimalwar.conf   # Nginx reverse proxy
-│   │   ├── nginx-analogarchive.conf      # Nginx reverse proxy
 │   │   └── README.md                     # This file
 │   ├── sslcert/                          # Generated SSL certificates
 │   │   ├── cert.pem
@@ -201,6 +200,7 @@ sudo tail -f /var/log/nginx/error.log
 │   ├── wifi-credentials.json             # Saved WiFi credentials (created via /setup)
 │   └── index.js                          # Main application
 └── analogarchive/                        # Optional: AnalogArchive audio streaming
+    ├── music/                            # Music files directory
     └── index.js
 ```
 
