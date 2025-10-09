@@ -25,25 +25,6 @@ chmod 644 "$CERT_DIR/cert.pem"
 echo "Certificate generated at $CERT_DIR"
 echo "  - Certificate: $CERT_DIR/cert.pem"
 echo "  - Private Key: $CERT_DIR/key.pem"
-
-# Update stuffedanimalwar .env file
-SAW_ENV="/home/jaemzware/stuffedanimalwar/.env"
-if [ -f "$SAW_ENV" ]; then
-    sed -i '/^SSL_KEY=/d' "$SAW_ENV"
-    sed -i '/^SSL_CERT=/d' "$SAW_ENV"
-    echo "SSL_KEY=$CERT_DIR/key.pem" >> "$SAW_ENV"
-    echo "SSL_CERT=$CERT_DIR/cert.pem" >> "$SAW_ENV"
-    echo "Updated $SAW_ENV"
-fi
-
-# Update analogarchive .env file
-AA_ENV="/home/jaemzware/analogarchive/.env"
-if [ -f "$AA_ENV" ]; then
-    sed -i '/^SSL_KEY_PATH=/d' "$AA_ENV"
-    sed -i '/^SSL_CERT_PATH=/d' "$AA_ENV"
-    echo "SSL_KEY_PATH=$CERT_DIR/key.pem" >> "$AA_ENV"
-    echo "SSL_CERT_PATH=$CERT_DIR/cert.pem" >> "$AA_ENV"
-    echo "Updated $AA_ENV"
-fi
-
-echo "SSL certificate setup complete!"
+echo ""
+echo "SSL certificate generation complete!"
+echo "Make sure your .env files reference these certificate paths."
