@@ -328,9 +328,12 @@ async function displayMetadata(audioUrl) {
     } catch (error) {
         console.error('Error displaying metadata:', error);
 
-        // Fallback to showing just the filename
-        const filename = audioUrl.split('/').pop().split('.')[0];
-        title.textContent = filename;
+        // Display the error message in the player
+        artist.textContent = 'Could not obtain meta information: ' + error.message;
+        album.textContent = '';
+        title.textContent = '';
+        artistAlbumSeparator.style.display = 'none';
+        albumTitleSeparator.style.display = 'none';
 
         // Use a colored background as fallback
         if (albumArtContainer) {
@@ -347,7 +350,7 @@ async function displayMetadata(audioUrl) {
                 return `rgb(${r}, ${g}, ${b})`;
             };
 
-            albumArtContainer.style.backgroundColor = generateColor(filename);
+            albumArtContainer.style.backgroundColor = generateColor(audioUrl);
         }
     }
 }
@@ -402,20 +405,6 @@ function setupMetadataListeners() {
         });
     }
 }
-// Extend existing PlayNextTrack function
-const originalPlayNextTrack = window.PlayNextTrack || function() {};
-window.PlayNextTrack = function(currentFile) {
-    // Call the original function
-    originalPlayNextTrack(currentFile);
-
-    // Then update metadata after a short delay
-    setTimeout(function() {
-        const audioSource = document.getElementById('jaemzwaredynamicaudiosource');
-        if (audioSource && audioSource.src) {
-            displayMetadata(audioSource.src);
-        }
-    }, 100);
-};
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////SPEED SLIDER FOR SHAPES AND ANIMALS
@@ -433,4 +422,3 @@ function initSpeedSlider() {
 function getSpeed() {
     return parseInt(document.getElementById('speedSlider').value);
 }
-
