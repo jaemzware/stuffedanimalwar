@@ -73,27 +73,6 @@ echo "[9/11] Installing nginx configurations..."
 cp "$SCRIPT_DIR/nginx-stuffedanimalwar.conf" /etc/nginx/sites-available/
 ln -sf /etc/nginx/sites-available/nginx-stuffedanimalwar.conf /etc/nginx/sites-enabled/
 
-# Install analogarchive config if directory exists
-if [ -d "$AA_DIR" ]; then
-    echo "  - AnalogArchive detected, installing nginx config..."
-    cp "$SCRIPT_DIR/nginx-analogarchive.conf" /etc/nginx/sites-available/
-    ln -sf /etc/nginx/sites-available/nginx-analogarchive.conf /etc/nginx/sites-enabled/
-
-    echo "  - Configuring analogarchive.local mDNS resolution..."
-    cat > /etc/avahi/services/analogarchive.service << 'AVAHI_EOF'
-<?xml version="1.0" standalone='no'?>
-<!DOCTYPE service-group SYSTEM "avahi-service.dtd">
-<service-group>
-  <name replace-wildcards="yes">AnalogArchive</name>
-  <service>
-    <type>_https._tcp</type>
-    <port>443</port>
-    <host-name>analogarchive.local</host-name>
-  </service>
-</service-group>
-AVAHI_EOF
-fi
-
 # Remove default nginx site
 rm -f /etc/nginx/sites-enabled/default
 
