@@ -13,15 +13,30 @@ log() {
     logger -t wifi-manager "$1"
 }
 
+# LED control functions
+setup_led_blink() {
+    # Make LED blink during WiFi connection attempt
+    echo timer > /sys/class/leds/ACT/trigger 2>/dev/null || true
+    echo 100 > /sys/class/leds/ACT/delay_on 2>/dev/null || true
+    echo 100 > /sys/class/leds/ACT/delay_off 2>/dev/null || true
+}
+
+restore_led() {
+    # Restore default LED behavior (disk activity)
+    echo mmc0 > /sys/class/leds/ACT/trigger 2>/dev/null || true
+}
+
 # Check if credentials file exists
 if [ ! -f "$CREDS_FILE" ]; then
     log "No credentials file found. Starting in AP mode."
+    restore_led
     nmcli connection up "$AP_CONNECTION" 2>/dev/null || log "Failed to start AP mode"
     exit 0
 fi
 
 # Credentials exist, try to connect to home WiFi
 log "Credentials found. Attempting to connect to home WiFi..."
+setup_led_blink  # Start blinking LED
 
 # Read SSID from credentials file
 SSID=$(jq -r '.ssid' "$CREDS_FILE")
@@ -43,6 +58,7 @@ log "Waiting up to ${MAX_WAIT}s for connection..."
 for i in $(seq 1 $MAX_WAIT); do
     if nmcli -t -f STATE general | grep -q "connected (site only)\|connected"; then
         log "Successfully connected to home WiFi!"
+        restore_led  # Stop blinking, restore normal
         exit 0
     fi
     sleep 1
@@ -50,6 +66,7 @@ done
 
 # Failed to connect - fall back to AP mode
 log "Failed to connect to home WiFi after ${MAX_WAIT}s. Starting AP mode."
+restore_led  # Stop blinking
 nmcli connection up "$AP_CONNECTION" 2>/dev/null || log "Failed to start AP mode"
 
 exit 0
