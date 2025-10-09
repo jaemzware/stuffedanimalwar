@@ -241,6 +241,7 @@ stuffedAnimalWarEndpoints.forEach(endpoint => {
  * mp3 metadata
  */
 // MP3 metadata proxy endpoint
+// MP3 metadata proxy endpoint
 app.get('/mp3-metadata', async (req, res) => {
     try {
         const url = req.query.url;
@@ -254,43 +255,66 @@ app.get('/mp3-metadata', async (req, res) => {
             !url.includes('127.0.0.1');
 
         if (isRemoteUrl) {
-            // Remote URL - fetch the file
-            const response = await fetch(url);
-            if (!response.ok) {
-                return res.status(response.status).json({
-                    error: `Failed to fetch: ${response.statusText}`
-                });
-            }
-
-            // Get the file data
-            const arrayBuffer = await response.arrayBuffer();
-            const buffer = Buffer.from(arrayBuffer);
+            // Remote URL - fetch the file with timeout
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
 
             try {
-                // Read tags using NodeID3
-                const tags = NodeID3.read(buffer);
+                const response = await fetch(url, {
+                    signal: controller.signal,
+                    headers: {
+                        'Range': 'bytes=0-524288' // Only fetch first 512KB for ID3 tags
+                    }
+                });
+                clearTimeout(timeoutId);
 
-                // Extract artwork if available
-                let artwork = null;
-                if (tags.image && tags.image.imageBuffer) {
-                    artwork = tags.image.imageBuffer.toString('base64');
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch: ${response.statusText}`);
                 }
 
-                // Send metadata as JSON
-                res.json({
-                    title: tags.title || '',
-                    artist: tags.artist || '',
-                    album: tags.album || '',
-                    artwork: artwork
-                });
-            } catch (metadataError) {
-                console.error('Error parsing metadata:', metadataError);
+                // Get the file data
+                const arrayBuffer = await response.arrayBuffer();
+                const buffer = Buffer.from(arrayBuffer);
 
-                // Fallback to basic info
+                try {
+                    // Read tags using NodeID3
+                    const tags = NodeID3.read(buffer);
+
+                    // Extract artwork if available
+                    let artwork = null;
+                    if (tags.image && tags.image.imageBuffer) {
+                        artwork = tags.image.imageBuffer.toString('base64');
+                    }
+
+                    // Send metadata as JSON
+                    res.json({
+                        title: tags.title || '',
+                        artist: tags.artist || '',
+                        album: tags.album || '',
+                        artwork: artwork
+                    });
+                } catch (metadataError) {
+                    console.error('Error parsing metadata:', metadataError);
+
+                    // Fallback to basic info
+                    const filename = url.split('/').pop().split('.')[0];
+
+                    res.json({
+                        title: decodeURIComponent(filename),
+                        artist: '',
+                        album: '',
+                        artwork: null
+                    });
+                }
+            } catch (fetchError) {
+                clearTimeout(timeoutId);
+
+                // If fetch fails (timeout, network error, etc), return filename as fallback
+                console.error('Error fetching remote file:', fetchError.message);
                 const filename = url.split('/').pop().split('.')[0];
 
                 res.json({
-                    title: filename,
+                    title: decodeURIComponent(filename),
                     artist: '',
                     album: '',
                     artwork: null
@@ -344,7 +368,17 @@ app.get('/mp3-metadata', async (req, res) => {
         }
     } catch (error) {
         console.error('MP3 metadata proxy error:', error);
-        res.status(500).json({ error: 'Error processing metadata' });
+
+        // Return a graceful fallback instead of 500 error
+        const url = req.query.url || '';
+        const filename = url.split('/').pop().split('.')[0];
+
+        res.json({
+            title: decodeURIComponent(filename) || 'Unknown',
+            artist: '',
+            album: '',
+            artwork: null
+        });
     }
 });
 /**

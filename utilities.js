@@ -121,12 +121,52 @@ function PlayNextVideo(currentFile){
         changeMp4(next,nextposter);
     }
 }
-function changeMp3(mp3Url){
-    //change the source of the AUDIO player
-    $('#jaemzwaredynamicaudiosource').attr("src",mp3Url);
+function changeMp3(mp3Url) {
+    let $selectSongs = $('#selectsongs');
+    let optionExists = false;
+
+    // Check if the song exists in the dropdown
+    $selectSongs.find('option').each(function() {
+        if ($(this).val() === mp3Url) {
+            optionExists = true;
+            return false; // break the loop
+        }
+    });
+
+    // If the option doesn't exist, add it dynamically with the URL as the display text
+    if (!optionExists) {
+        let newOption = $('<option>')
+            .val(mp3Url)
+            .text(mp3Url); // Just show the URL so we know it's a DJ selection
+
+        $selectSongs.append(newOption);
+    }
+
+    // Select the option
+    $selectSongs.val(mp3Url);
+
+    // Clear the metadata display immediately to prevent showing stale data
+    const artist = document.getElementById('track-artist');
+    const album = document.getElementById('track-album');
+    const title = document.getElementById('track-title');
+    const albumArt = document.getElementById('album-art-img');
+    const artistAlbumSeparator = document.getElementById('artist-album-separator');
+    const albumTitleSeparator = document.getElementById('album-title-separator');
+
+    if (artist) artist.textContent = 'Loading...';
+    if (album) album.textContent = '';
+    if (title) title.textContent = '';
+    if (albumArt) albumArt.style.display = 'none';
+    if (artistAlbumSeparator) artistAlbumSeparator.style.display = 'none';
+    if (albumTitleSeparator) albumTitleSeparator.style.display = 'none';
+
+    // Change the source of the AUDIO player
+    $('#jaemzwaredynamicaudiosource').attr("src", mp3Url);
     document.getElementById("jaemzwaredynamicaudioplayer").load();
     document.getElementById("jaemzwaredynamicaudioplayer").play();
-    $('#selectsongs').val(mp3Url);
+
+    // The existing displayMetadata will be triggered by the loadedmetadata event
+    // and will update the metadata display below the player
 }
 
 function changeMp4(mp4Url){
@@ -288,9 +328,12 @@ async function displayMetadata(audioUrl) {
     } catch (error) {
         console.error('Error displaying metadata:', error);
 
-        // Fallback to showing just the filename
-        const filename = audioUrl.split('/').pop().split('.')[0];
-        title.textContent = filename;
+        // Display the error message in the player
+        artist.textContent = 'Could not obtain meta information: ' + error.message;
+        album.textContent = '';
+        title.textContent = '';
+        artistAlbumSeparator.style.display = 'none';
+        albumTitleSeparator.style.display = 'none';
 
         // Use a colored background as fallback
         if (albumArtContainer) {
@@ -307,7 +350,7 @@ async function displayMetadata(audioUrl) {
                 return `rgb(${r}, ${g}, ${b})`;
             };
 
-            albumArtContainer.style.backgroundColor = generateColor(filename);
+            albumArtContainer.style.backgroundColor = generateColor(audioUrl);
         }
     }
 }
@@ -362,20 +405,6 @@ function setupMetadataListeners() {
         });
     }
 }
-// Extend existing PlayNextTrack function
-const originalPlayNextTrack = window.PlayNextTrack || function() {};
-window.PlayNextTrack = function(currentFile) {
-    // Call the original function
-    originalPlayNextTrack(currentFile);
-
-    // Then update metadata after a short delay
-    setTimeout(function() {
-        const audioSource = document.getElementById('jaemzwaredynamicaudiosource');
-        if (audioSource && audioSource.src) {
-            displayMetadata(audioSource.src);
-        }
-    }, 100);
-};
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////SPEED SLIDER FOR SHAPES AND ANIMALS
@@ -393,4 +422,3 @@ function initSpeedSlider() {
 function getSpeed() {
     return parseInt(document.getElementById('speedSlider').value);
 }
-
