@@ -25,28 +25,51 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
-echo "[1/9] Updating system packages..."
+echo "[1/11] Updating system packages..."
 apt update
 apt upgrade -y
 
-echo "[2/9] Installing dependencies..."
+echo "[2/11] Installing system dependencies..."
 apt install -y nginx avahi-daemon network-manager jq
 
-echo "[3/9] Stopping conflicting services..."
+echo "[3/11] Installing Node.js..."
+if ! command -v node &> /dev/null; then
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+    apt install -y nodejs
+    echo "Node.js $(node --version) installed"
+else
+    echo "Node.js $(node --version) already installed"
+fi
+
+echo "[4/11] Installing Node.js dependencies for StuffedAnimalWar..."
+cd "$SAW_DIR"
+sudo -u jaemzware npm install
+
+echo "[5/11] Installing Node.js dependencies for AnalogArchive..."
+if [ -d "$AA_DIR" ]; then
+    cd "$AA_DIR"
+    sudo -u jaemzware npm install
+    echo "AnalogArchive dependencies installed"
+else
+    echo "AnalogArchive not found, skipping"
+fi
+
+echo "[6/11] Stopping conflicting services..."
 systemctl stop apache2 2>/dev/null || true
 systemctl disable apache2 2>/dev/null || true
 
-echo "[4/9] Generating SSL certificates..."
+echo "[7/11] Generating SSL certificates..."
+cd "$SCRIPT_DIR"
 sudo -u jaemzware bash "$SCRIPT_DIR/generate-certs.sh"
 
-echo "[5/9] Configuring NetworkManager AP connection..."
+echo "[8/11] Configuring NetworkManager AP connection..."
 # Create AP connection profile
 nmcli connection delete StuffedAnimalWAP 2>/dev/null || true
 nmcli connection add type wifi ifname wlan0 con-name StuffedAnimalWAP autoconnect no ssid StuffedAnimalWAP
 nmcli connection modify StuffedAnimalWAP 802-11-wireless.mode ap 802-11-wireless.band bg ipv4.method shared
 nmcli connection modify StuffedAnimalWAP wifi-sec.key-mgmt wpa-psk wifi-sec.psk "stuffedanimal"
 
-echo "[6/9] Installing nginx configurations..."
+echo "[9/11] Installing nginx configurations..."
 cp "$SCRIPT_DIR/nginx-stuffedanimalwar.conf" /etc/nginx/sites-available/
 ln -sf /etc/nginx/sites-available/nginx-stuffedanimalwar.conf /etc/nginx/sites-enabled/
 
@@ -63,20 +86,19 @@ rm -f /etc/nginx/sites-enabled/default
 # Test nginx config
 nginx -t
 
-echo "[7/9] Installing WiFi Manager..."
+echo "[10/11] Installing WiFi Manager and application services..."
 cp "$SCRIPT_DIR/wifi-manager.service" /etc/systemd/system/
 chmod +x "$SCRIPT_DIR/wifi-manager.sh"
 
-echo "[8/9] Installing application services..."
 cp "$SCRIPT_DIR/stuffedanimalwar.service" /etc/systemd/system/
 
-# Install analogarchive service if analogarchive directory exists
+# Install analogarchive service if it exists
 if [ -d "$AA_DIR" ]; then
     echo "  - Installing AnalogArchive service..."
     cp "$SCRIPT_DIR/analogarchive.service" /etc/systemd/system/
 fi
 
-echo "[9/9] Setting hostname and enabling services..."
+echo "[11/11] Setting hostname and enabling services..."
 hostnamectl set-hostname stuffedanimalwar
 
 systemctl daemon-reload
