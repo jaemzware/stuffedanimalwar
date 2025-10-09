@@ -12,7 +12,20 @@ const path = require('path');
 const CREDS_FILE = '/home/jaemzware/stuffedanimalwar/wifi-credentials.json';
 
 // Serve the setup page
-router.get('/setup', (req, res) => {
+router.get('/setup', async (req, res) => {
+    // Check if credentials file exists and read it
+    let existingSSID = '';
+    let hasExistingCreds = false;
+
+    try {
+        const credsData = await fs.readFile(CREDS_FILE, 'utf8');
+        const creds = JSON.parse(credsData);
+        existingSSID = creds.ssid || '';
+        hasExistingCreds = true;
+    } catch (error) {
+        // File doesn't exist or is invalid - that's okay
+    }
+
     const html = `<!DOCTYPE html>
 <html>
 <head>
@@ -56,7 +69,7 @@ router.get('/setup', (req, res) => {
             color: #333;
             font-weight: 500;
         }
-        select, input[type="password"], button {
+        input[type="text"], input[type="password"], button {
             width: 100%;
             padding: 12px;
             border: 2px solid #e0e0e0;
@@ -64,7 +77,7 @@ router.get('/setup', (req, res) => {
             font-size: 16px;
             transition: border-color 0.3s;
         }
-        select:focus, input[type="password"]:focus {
+        input[type="text"]:focus, input[type="password"]:focus {
             outline: none;
             border-color: #667eea;
         }
@@ -127,6 +140,35 @@ router.get('/setup', (req, res) => {
             color: #999;
             font-size: 12px;
         }
+        .hint {
+            font-size: 12px;
+            color: #999;
+            margin-top: 4px;
+        }
+        .warning-box {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 20px;
+            color: #856404;
+        }
+        .warning-box strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .button-secondary {
+            background: #dc3545 !important;
+            flex: 1;
+        }
+        .button-secondary:hover {
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4) !important;
+        }
     </style>
 </head>
 <body>
@@ -134,20 +176,32 @@ router.get('/setup', (req, res) => {
         <h1>WiFi Setup</h1>
         <p class="subtitle">Connect your StuffedAnimalWar to your home network</p>
         
+        ${hasExistingCreds ? `
+        <div class="warning-box">
+            <strong>⚠️ Previous Connection Failed</strong>
+            The Pi couldn't connect to "${existingSSID}". Check your password or try a different network.
+        </div>
+        ` : ''}
+        
         <form id="wifiForm">
             <div class="form-group">
-                <label for="ssid">Select Network:</label>
-                <select id="ssid" name="ssid" required>
-                    <option value="">Scanning for networks...</option>
-                </select>
+                <label for="ssid">Network Name (SSID):</label>
+                <input type="text" id="ssid" name="ssid" list="networks" placeholder="Enter your WiFi network name" value="${existingSSID}" required autocomplete="off">
+                <datalist id="networks">
+                </datalist>
+                <div class="hint">Type your network name or select from detected networks</div>
             </div>
             
             <div class="form-group">
                 <label for="password">Password:</label>
                 <input type="password" id="password" name="password" placeholder="Enter WiFi password" required>
+                <div class="hint">Re-enter your password to try again</div>
             </div>
             
-            <button type="submit" id="submitBtn">Connect</button>
+            <div class="button-group">
+                <button type="submit" id="submitBtn">Connect</button>
+                ${hasExistingCreds ? `<button type="button" class="button-secondary" id="resetBtn">Clear & Reboot</button>` : ''}
+            </div>
         </form>
         
         <div class="loading" id="loading">
@@ -170,18 +224,19 @@ router.get('/setup', (req, res) => {
                 const response = await fetch('/setup/scan');
                 const data = await response.json();
                 
-                const select = document.getElementById('ssid');
-                select.innerHTML = '<option value="">-- Select a network --</option>';
+                const datalist = document.getElementById('networks');
+                datalist.innerHTML = '';
                 
-                data.networks.forEach(network => {
-                    const option = document.createElement('option');
-                    option.value = network;
-                    option.textContent = network;
-                    select.appendChild(option);
-                });
+                if (data.networks && data.networks.length > 0) {
+                    data.networks.forEach(network => {
+                        const option = document.createElement('option');
+                        option.value = network;
+                        datalist.appendChild(option);
+                    });
+                }
             } catch (error) {
                 console.error('Error scanning networks:', error);
-                document.getElementById('ssid').innerHTML = '<option value="">Error scanning networks</option>';
+                // Silent fail - user can still type network name manually
             }
         }
 
@@ -189,14 +244,14 @@ router.get('/setup', (req, res) => {
         document.getElementById('wifiForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            const ssid = document.getElementById('ssid').value;
+            const ssid = document.getElementById('ssid').value.trim();
             const password = document.getElementById('password').value;
             const submitBtn = document.getElementById('submitBtn');
             const loading = document.getElementById('loading');
             const status = document.getElementById('status');
             
             if (!ssid || !password) {
-                showStatus('Please select a network and enter a password.', 'error');
+                showStatus('Please enter a network name and password.', 'error');
                 return;
             }
             
@@ -238,7 +293,44 @@ router.get('/setup', (req, res) => {
             status.style.display = 'block';
         }
 
-        // Scan networks on page load
+        // Handle reset button
+        const resetBtn = document.getElementById('resetBtn');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', async () => {
+                if (!confirm('Clear saved WiFi credentials and reboot? The Pi will restart in AP mode.')) {
+                    return;
+                }
+                
+                resetBtn.disabled = true;
+                document.getElementById('submitBtn').disabled = true;
+                document.getElementById('loading').style.display = 'block';
+                
+                try {
+                    const response = await fetch('/setup/reset', {
+                        method: 'POST'
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        showStatus('Credentials cleared. Rebooting to AP mode...', 'success');
+                    } else {
+                        showStatus('Error: ' + data.message, 'error');
+                        resetBtn.disabled = false;
+                        document.getElementById('submitBtn').disabled = false;
+                        document.getElementById('loading').style.display = 'none';
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    showStatus('Reset error. Please try again.', 'error');
+                    resetBtn.disabled = false;
+                    document.getElementById('submitBtn').disabled = false;
+                    document.getElementById('loading').style.display = 'none';
+                }
+            });
+        }
+
+        // Scan networks on page load (may not work in AP mode, but try anyway)
         scanNetworks();
     </script>
 </body>
@@ -253,13 +345,13 @@ router.get('/setup/scan', async (req, res) => {
         const { stdout } = await execPromise('nmcli -t -f SSID dev wifi list');
         const networks = stdout
             .split('\n')
-            .filter(ssid => ssid.trim() && ssid !== '--')
+            .filter(ssid => ssid.trim() && ssid !== '--' && ssid !== 'StuffedAnimalWAP')
             .filter((ssid, index, self) => self.indexOf(ssid) === index); // Remove duplicates
 
         res.json({ networks });
     } catch (error) {
         console.error('Error scanning WiFi:', error);
-        res.status(500).json({ error: 'Failed to scan networks' });
+        res.status(500).json({ error: 'Failed to scan networks', networks: [] });
     }
 });
 
@@ -293,6 +385,35 @@ router.post('/setup/connect', async (req, res) => {
     } catch (error) {
         console.error('Error saving credentials:', error);
         res.status(500).json({ success: false, message: 'Failed to save credentials' });
+    }
+});
+
+// Clear WiFi credentials and reboot
+router.post('/setup/reset', async (req, res) => {
+    try {
+        // Delete credentials file if it exists
+        try {
+            await fs.unlink(CREDS_FILE);
+            console.log('WiFi credentials deleted');
+        } catch (error) {
+            // File might not exist - that's okay
+        }
+
+        // Send success response before rebooting
+        res.json({ success: true, message: 'Credentials cleared. Rebooting...' });
+
+        // Reboot after a short delay to allow response to be sent
+        setTimeout(() => {
+            exec('sudo reboot', (error) => {
+                if (error) {
+                    console.error('Reboot error:', error);
+                }
+            });
+        }, 1000);
+
+    } catch (error) {
+        console.error('Error resetting credentials:', error);
+        res.status(500).json({ success: false, message: 'Failed to reset credentials' });
     }
 });
 
