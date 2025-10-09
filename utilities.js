@@ -121,12 +121,52 @@ function PlayNextVideo(currentFile){
         changeMp4(next,nextposter);
     }
 }
-function changeMp3(mp3Url){
-    //change the source of the AUDIO player
-    $('#jaemzwaredynamicaudiosource').attr("src",mp3Url);
+function changeMp3(mp3Url) {
+    let $selectSongs = $('#selectsongs');
+    let optionExists = false;
+
+    // Check if the song exists in the dropdown
+    $selectSongs.find('option').each(function() {
+        if ($(this).val() === mp3Url) {
+            optionExists = true;
+            return false; // break the loop
+        }
+    });
+
+    // If the option doesn't exist, add it dynamically with the URL as the display text
+    if (!optionExists) {
+        let newOption = $('<option>')
+            .val(mp3Url)
+            .text(mp3Url); // Just show the URL so we know it's a DJ selection
+
+        $selectSongs.append(newOption);
+    }
+
+    // Select the option
+    $selectSongs.val(mp3Url);
+
+    // Clear the metadata display immediately to prevent showing stale data
+    const artist = document.getElementById('track-artist');
+    const album = document.getElementById('track-album');
+    const title = document.getElementById('track-title');
+    const albumArt = document.getElementById('album-art-img');
+    const artistAlbumSeparator = document.getElementById('artist-album-separator');
+    const albumTitleSeparator = document.getElementById('album-title-separator');
+
+    if (artist) artist.textContent = 'Loading...';
+    if (album) album.textContent = '';
+    if (title) title.textContent = '';
+    if (albumArt) albumArt.style.display = 'none';
+    if (artistAlbumSeparator) artistAlbumSeparator.style.display = 'none';
+    if (albumTitleSeparator) albumTitleSeparator.style.display = 'none';
+
+    // Change the source of the AUDIO player
+    $('#jaemzwaredynamicaudiosource').attr("src", mp3Url);
     document.getElementById("jaemzwaredynamicaudioplayer").load();
     document.getElementById("jaemzwaredynamicaudioplayer").play();
-    $('#selectsongs').val(mp3Url);
+
+    // The existing displayMetadata will be triggered by the loadedmetadata event
+    // and will update the metadata display below the player
 }
 
 function changeMp4(mp4Url){
