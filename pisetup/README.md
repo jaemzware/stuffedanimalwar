@@ -26,7 +26,16 @@ The Pi automatically falls back to AP mode if it can't connect to your saved WiF
 
 ### 1. Prepare SD Card
 
-Flash Raspberry Pi OS Lite (headless) to your SD card.
+Flash Raspberry Pi OS Lite (32-bit) to your SD card using Raspberry Pi Imager.
+
+**Important Imager Settings:**
+- **OS:** Raspberry Pi OS Lite (32-bit)
+- **Hostname:** `stuffedanimalwar` (without .local)
+- **Username:** `jaemzware` (CRITICAL - scripts expect this exact username)
+- **Password:** Set your own password
+- **Configure wireless LAN:** **UNCHECK** (you want it to start in AP mode)
+- **Enable SSH:** **CHECK** (required for initial setup)
+- **Enable telemetry:** **UNCHECK** (optional, for privacy)
 
 ### 2. Clone Repositories
 
