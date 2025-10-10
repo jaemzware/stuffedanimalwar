@@ -6,7 +6,7 @@
 CREDS_FILE="/home/jaemzware/stuffedanimalwar/wifi-credentials.json"
 AP_CONNECTION="StuffedAnimalWAP"
 HOME_CONNECTION="HomeWiFi"
-MAX_WAIT=60  # seconds to wait for home WiFi connection
+MAX_WAIT=30  # seconds to wait for home WiFi connection
 
 log() {
     echo "[WiFi Manager] $1"
