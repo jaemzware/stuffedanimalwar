@@ -151,8 +151,35 @@ function initializeSocketHandlers(){
 
         // Add click event to load video in existing player
         videoContainer.on("click", function() {
+            const videoUrl = chatVideoMsgObject.CHATCLIENTVIDEO;
+
+            // Add to selectvideos dropdown if it doesn't exist
+            let $selectVideos = $('#selectvideos');
+            let optionExists = false;
+
+            $selectVideos.find('option').each(function() {
+                if ($(this).val() === videoUrl) {
+                    optionExists = true;
+                    return false; // break the loop
+                }
+            });
+
+            if (!optionExists) {
+                // Create a label from the datestamp and IP (using existing fields)
+                const videoLabel = formatChatServerUserIp(chatVideoMsgObject.CHATSERVERUSER) + " - " + chatVideoMsgObject.CHATSERVERDATE;
+
+                let newOption = $('<option>')
+                    .val(videoUrl)
+                    .text(videoLabel);
+
+                $selectVideos.append(newOption);
+            }
+
+            // Select the option
+            $selectVideos.val(videoUrl);
+
             // Update the video source
-            $("#jaemzwaredynamicvideosource").attr("src", chatVideoMsgObject.CHATCLIENTVIDEO);
+            $("#jaemzwaredynamicvideosource").attr("src", videoUrl);
 
             // Get the video element and reload it
             const videoPlayer = document.getElementById("jaemzwaredynamicvideoplayer");
@@ -501,9 +528,9 @@ $('#videoUploadForm').on('submit', function (e) {
         return;
     }
 
-    const maxSize = 50 * 1024 * 1024; // 50MB
+    const maxSize = 10 * 1024 * 1024; // 10MB
     if (file.size > maxSize) {
-        alert('File size must be less than 50MB.');
+        alert('File size must be less than 10MB.');
         e.preventDefault();
         return;
     }

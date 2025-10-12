@@ -110,7 +110,7 @@ function writeStuffedAnimalWarForm(stuffedAnimalMediaObject){
     document.write("</div>");
     // Speed label and slider that take remaining space
     document.write("<div style=\"display: flex; align-items: center; flex-grow: 1; min-width: 0;\">");
-    document.write("<label for=\"speedSlider\" style=\"margin-right: 5px; white-space: nowrap;\">Speed:</label>");
+    document.write("<label for=\"speedSlider\" style=\"margin-right: 5px; white-space: nowrap;\">Delay:</label>");
     document.write("<input type=\"range\" id=\"speedSlider\" min=\"1\" max=\"100\" value=\"50\" style=\"flex-grow: 1; margin-right: 5px; min-width: 50px;\">");
     document.write("<span id=\"speedValue\" style=\"min-width: 25px; text-align: right;\">50</span>");
     document.write("</div>");
@@ -345,7 +345,7 @@ function writeChatFormVideoUpload() {
             document.write("<td id=\"chatclientuploadformtd\">");
             document.write("<form id=\"videoUploadForm\" enctype=\"multipart/form-data\">");
             document.write("<input type=\"file\" name=\"video\" accept=\"video/*\" required>");
-            document.write("<button type=\"submit\">Upload Video (<50MB)</button>");
+            document.write("<button type=\"submit\">Upload Video (<10MB)</button>");
             document.write("</form>");
             document.write("</td>");
             document.write("<td id=\"chatclientuploadformtd\">");
