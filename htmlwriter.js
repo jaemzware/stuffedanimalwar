@@ -345,7 +345,7 @@ function writeChatFormVideoUpload() {
             document.write("<td id=\"chatclientuploadformtd\">");
             document.write("<form id=\"videoUploadForm\" enctype=\"multipart/form-data\">");
             document.write("<input type=\"file\" name=\"video\" accept=\"video/*\" required>");
-            document.write("<button type=\"submit\">Upload Video (<50MB)</button>");
+            document.write("<button type=\"submit\">Upload Video (<10MB)</button>");
             document.write("</form>");
             document.write("</td>");
             document.write("<td id=\"chatclientuploadformtd\">");

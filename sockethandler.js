@@ -528,9 +528,9 @@ $('#videoUploadForm').on('submit', function (e) {
         return;
     }
 
-    const maxSize = 50 * 1024 * 1024; // 50MB
+    const maxSize = 10 * 1024 * 1024; // 10MB
     if (file.size > maxSize) {
-        alert('File size must be less than 50MB.');
+        alert('File size must be less than 10MB.');
         e.preventDefault();
         return;
     }
