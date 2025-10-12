@@ -399,17 +399,17 @@ div.seattlenativelinks{
 
 #jaemzwaredynamicvideoplayer {
     max-width: 100%;
-    width: 640px; /* Fixed width as originally intended */
-    height: 480px; /* Fixed height as originally intended */
-    margin: 0 auto; /* Center the video */
+    width: 480px; /* Smaller width for desktop */
+    height: 360px; /* Smaller height for desktop */
+    margin: 0; /* Align left */
     display: block; /* Remove any inline spacing */
 }
 
 /* Video selector styles */
 #selectvideos {
-    max-width: 640px; /* Match the video width */
+    max-width: 480px; /* Match the smaller video width */
     width: 100%;
-    margin: 0 auto 10px auto; /* Center and add some space below */
+    margin: 0 0 10px 0; /* Align left and add some space below */
     display: block; /* Proper block-level display */
 }
 
@@ -520,6 +520,7 @@ a.jaemzwarelogo:active, .skateparkdetail a:active {
     #jaemzwaredynamicvideoplayer {
         width: 100%; /* On small screens, use responsive width */
         height: auto; /* Let the height adjust proportionally */
+        margin: 0; /* Align left on mobile */
     }
 }
 
