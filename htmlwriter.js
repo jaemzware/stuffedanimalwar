@@ -60,17 +60,17 @@ function writeStuffedAnimalWarForm(stuffedAnimalMediaObject){
     //ANIMAL CHOICES
     document.write("<tr>");
     document.write("<td>");
-        document.write("<select id=\"animals\" name=\"sawstyle\" size=1 >");
-        document.write("<option value=\"dot\" selected>BULLET</option>");
-        document.write("<option value=\"line\">LINE</option>");
-        document.write("<option value=\"custom\">CUSTOM URL</option>");
-        //SPECIFIED ANIMALS
-        if(stuffedAnimalMediaObject && stuffedAnimalMediaObject.animals[0]){
-            for (let i=0;i<stuffedAnimalMediaObject.animals.length;i++){
-                document.write("<option value=\""+stuffedAnimalMediaObject.animals[i].file+"\">"+stuffedAnimalMediaObject.animals[i].title+"</option>");
-            }
+    document.write("<select id=\"animals\" name=\"sawstyle\" size=1 >");
+    document.write("<option value=\"dot\" selected>BULLET</option>");
+    document.write("<option value=\"line\">LINE</option>");
+    document.write("<option value=\"custom\">CUSTOM URL</option>");
+    //SPECIFIED ANIMALS
+    if(stuffedAnimalMediaObject && stuffedAnimalMediaObject.animals[0]){
+        for (let i=0;i<stuffedAnimalMediaObject.animals.length;i++){
+            document.write("<option value=\""+stuffedAnimalMediaObject.animals[i].file+"\">"+stuffedAnimalMediaObject.animals[i].title+"</option>");
         }
-        document.write("</select>");
+    }
+    document.write("</select>");
     document.write("</td>");
     document.write("<td>");
     document.write("<button type=\"button\" id=\"colorPickerButton\" class=\"color-picker-button\">");
@@ -78,25 +78,42 @@ function writeStuffedAnimalWarForm(stuffedAnimalMediaObject){
     document.write("</button>");
     document.write("</td>");
     document.write("<td>");
-        //CUSTOM URL TEXT BOX
-        document.write("<input style=\"vertical-align:top;text-align:left;\" id=\"imagepathtextbox\" size=\"20\" placeholder=\"CUSTOM URL\" />");
+    //CUSTOM URL TEXT BOX
+    document.write("<input style=\"vertical-align:top;text-align:left;\" id=\"imagepathtextbox\" size=\"20\" placeholder=\"CUSTOM URL\" />");
     document.write("</td>");
     document.write("<td>");
     //CLEAR BUTTON
-        document.write("<input style=\"vertical-align:top;text-align:left;\" id=\"clearboardbutton\" type=\"button\" value=\"Clean\" />");
+    document.write("<input style=\"vertical-align:top;text-align:left;\" id=\"clearboardbutton\" type=\"button\" value=\"Clean\" />");
     document.write("</td>");
     document.write("</tr>");
     document.write("<tr>");
     document.write("<td colspan='4'>");
-    //MOVEMENT DIRECTION
-    document.write("<div style=\"display: inline-block; vertical-align: bottom; text-align: left;\">");
-    document.write("<label style=\"display: inline-block; margin-right: 10px;\"><input type=\"radio\" id=\"movement-up\" name=\"sawmove\" value=\"UP\" checked>UP</label>");
-    document.write("<label style=\"display: inline-block; margin-right: 10px;\"><input type=\"radio\" id=\"movement-down\" name=\"sawmove\" value=\"DOWN\">DOWN</label>");
-    document.write("<label style=\"display: inline-block; margin-right: 10px;\"><input type=\"radio\" id=\"movement-left\" name=\"sawmove\" value=\"LEFT\">LEFT</label>");
-    document.write("<label style=\"display: inline-block; margin-right: 10px;\"><input type=\"radio\" id=\"movement-right\" name=\"sawmove\" value=\"RIGHT\">RIGHT</label>");
-    document.write("<label style=\"display: inline-block; margin-right: 10px;\"><input type=\"radio\" id=\"movement-sineright\" name=\"sawmove\" value=\"R-SINE\">R-SINE</label>");
-    document.write("<label style=\"display: inline-block; margin-right: 10px;\"><input type=\"radio\" id=\"movement-sineleft\" name=\"sawmove\" value=\"L-SINE\">L-SINE</label>");
-    document.write("<label style=\"display: inline-block; margin-right: 10px;\"><input type=\"radio\" id=\"movement-still\" name=\"sawmove\" value=\"STILL\">STILL</label>");
+    //MOVEMENT DIRECTION - 3 ROW LAYOUT
+    document.write("<div style=\"display: flex; flex-direction: column; align-items: center;\">");
+
+    // TOP ROW - UP (centered to align with STILL radio button position)
+    document.write("<div style=\"display: flex; justify-content: center; margin-bottom: 5px;\">");
+    document.write("<div style=\"width: 300px; display: flex; justify-content: center;\">");
+    document.write("<label style=\"display: inline-block;\"><input type=\"radio\" id=\"movement-up\" name=\"sawmove\" value=\"UP\" checked>UP</label>");
+    document.write("</div>");
+    document.write("</div>");
+
+    // MIDDLE ROW - L-SINE, LEFT, STILL, RIGHT, R-SINE
+    document.write("<div style=\"display: flex; justify-content: center; margin-bottom: 5px;\">");
+    document.write("<label style=\"margin: 0 5px;\"><input type=\"radio\" id=\"movement-sineleft\" name=\"sawmove\" value=\"L-SINE\">L-SINE</label>");
+    document.write("<label style=\"margin: 0 5px;\"><input type=\"radio\" id=\"movement-left\" name=\"sawmove\" value=\"LEFT\">LEFT</label>");
+    document.write("<label style=\"margin: 0 5px;\"><input type=\"radio\" id=\"movement-still\" name=\"sawmove\" value=\"STILL\">STILL</label>");
+    document.write("<label style=\"margin: 0 5px;\"><input type=\"radio\" id=\"movement-right\" name=\"sawmove\" value=\"RIGHT\">RIGHT</label>");
+    document.write("<label style=\"margin: 0 5px;\"><input type=\"radio\" id=\"movement-sineright\" name=\"sawmove\" value=\"R-SINE\">R-SINE</label>");
+    document.write("</div>");
+
+    // BOTTOM ROW - DOWN (centered to align with STILL radio button position)
+    document.write("<div style=\"display: flex; justify-content: center;\">");
+    document.write("<div style=\"width: 300px; display: flex; justify-content: center;\">");
+    document.write("<label style=\"display: inline-block;\"><input type=\"radio\" id=\"movement-down\" name=\"sawmove\" value=\"DOWN\">DOWN</label>");
+    document.write("</div>");
+    document.write("</div>");
+
     document.write("</div>");
     document.write("</td>");
     document.write("</tr>");
@@ -120,11 +137,11 @@ function writeStuffedAnimalWarForm(stuffedAnimalMediaObject){
     //MESSAGES FROM CHAT FORM
     document.write("<tr>");
     document.write("<td colspan='4'>");
-    document.write("<div id=\"messagesdiv\"></div>");
+    document.write("<div id=\"messagesdiv\" style=\"height: 350px; overflow-y: auto; overflow-x: hidden;\"></div>");
     document.write("</td>");
     document.write("</tr>");
     document.write("</table>");
-    document.write("</form>");  
+    document.write("</form>");
 }
 //STUFFEDANIMALWAR//////////////////////////////////////////////STUFFEDANIMALWAR//////////////////////////////////////////////////STUFFEDANIMALWAR
 //AUDIOVIDEOPHOTOS//////////////////////////////////////////////AUDIOVIDEOPHOTOS//////////////////////////////////////////////////AUDIOVIDEOPHOTOS
