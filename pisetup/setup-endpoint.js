@@ -17,6 +17,7 @@ router.get('/setup', async (req, res) => {
     let existingSSID = '';
     let hasExistingCreds = false;
     let isInAPMode = false;
+    let currentHostname = 'stuffedanimalwar';
 
     try {
         const credsData = await fs.readFile(CREDS_FILE, 'utf8');
@@ -25,6 +26,14 @@ router.get('/setup', async (req, res) => {
         hasExistingCreds = true;
     } catch (error) {
         // File doesn't exist or is invalid - that's okay
+    }
+
+    // Get current hostname
+    try {
+        const { stdout } = await execPromise('hostname');
+        currentHostname = stdout.trim();
+    } catch (error) {
+        // If we can't get hostname, use default
     }
 
     // Check if we're currently in AP mode
@@ -197,13 +206,19 @@ router.get('/setup', async (req, res) => {
         
         <form id="wifiForm">
             <div class="form-group">
+                <label for="hostname">Device Hostname:</label>
+                <input type="text" id="hostname" name="hostname" placeholder="e.g., stuffedanimalwar1" value="${currentHostname}" required pattern="[a-zA-Z0-9-]+" autocomplete="off">
+                <div class="hint">Only letters, numbers, and hyphens. Access via: hostname.local</div>
+            </div>
+
+            <div class="form-group">
                 <label for="ssid">Network Name (SSID):</label>
                 <input type="text" id="ssid" name="ssid" list="networks" placeholder="Enter your WiFi network name" value="${existingSSID}" required autocomplete="off">
                 <datalist id="networks">
                 </datalist>
                 <div class="hint">Type your network name or select from detected networks</div>
             </div>
-            
+
             <div class="form-group">
                 <label for="password">Password:</label>
                 <input type="password" id="password" name="password" placeholder="Enter WiFi password" required>
@@ -255,36 +270,48 @@ router.get('/setup', async (req, res) => {
         // Handle form submission
         document.getElementById('wifiForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
+            const hostname = document.getElementById('hostname').value.trim();
             const ssid = document.getElementById('ssid').value.trim();
             const password = document.getElementById('password').value;
             const submitBtn = document.getElementById('submitBtn');
             const loading = document.getElementById('loading');
             const status = document.getElementById('status');
-            
-            if (!ssid || !password) {
-                showStatus('Please enter a network name and password.', 'error');
+
+            if (!hostname || !ssid || !password) {
+                showStatus('Please fill in all fields.', 'error');
                 return;
             }
-            
+
+            // Validate hostname format
+            if (!/^[a-zA-Z0-9-]+$/.test(hostname)) {
+                showStatus('Hostname can only contain letters, numbers, and hyphens.', 'error');
+                return;
+            }
+
             // Disable form and show loading
             submitBtn.disabled = true;
             loading.style.display = 'block';
             status.style.display = 'none';
-            
+
             try {
                 const response = await fetch('/setup/connect', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ ssid, password })
+                    body: JSON.stringify({ hostname, ssid, password })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (data.success) {
-                    showStatus('WiFi configured! Rebooting... The Pi will connect to your home network.', 'success');
+                    showStatus('WiFi configured! Rebooting... The Pi will be available at ' + hostname + '.local', 'success');
+
+                    // Redirect to root using the new hostname after showing spinner for 2 seconds
+                    setTimeout(() => {
+                        window.location.href = 'https://' + hostname + '.local';
+                    }, 2000);
                 } else {
                     showStatus('Error: ' + data.message, 'error');
                     submitBtn.disabled = false;
@@ -312,20 +339,28 @@ router.get('/setup', async (req, res) => {
                 if (!confirm('Clear saved WiFi credentials and reboot? The Pi will restart in AP mode.')) {
                     return;
                 }
-                
+
                 resetBtn.disabled = true;
                 document.getElementById('submitBtn').disabled = true;
                 document.getElementById('loading').style.display = 'block';
-                
+
+                // Get current hostname from the form field
+                const currentHostname = document.getElementById('hostname').value.trim();
+
                 try {
                     const response = await fetch('/setup/reset', {
                         method: 'POST'
                     });
-                    
+
                     const data = await response.json();
-                    
+
                     if (data.success) {
                         showStatus('Credentials cleared. Rebooting to AP mode...', 'success');
+
+                        // Redirect to root using current hostname after showing spinner for 2 seconds
+                        setTimeout(() => {
+                            window.location.href = 'https://' + currentHostname + '.local';
+                        }, 2000);
                     } else {
                         showStatus('Error: ' + data.message, 'error');
                         resetBtn.disabled = false;
@@ -370,10 +405,19 @@ router.get('/setup/scan', async (req, res) => {
 // Save WiFi credentials and reboot
 router.post('/setup/connect', async (req, res) => {
     try {
-        const { ssid, password } = req.body;
+        const { hostname, ssid, password } = req.body;
 
         if (!ssid || !password) {
             return res.status(400).json({ success: false, message: 'SSID and password required' });
+        }
+
+        if (!hostname) {
+            return res.status(400).json({ success: false, message: 'Hostname required' });
+        }
+
+        // Validate hostname format
+        if (!/^[a-zA-Z0-9-]+$/.test(hostname)) {
+            return res.status(400).json({ success: false, message: 'Invalid hostname format' });
         }
 
         // Save credentials to JSON file
@@ -381,6 +425,30 @@ router.post('/setup/connect', async (req, res) => {
         await fs.writeFile(CREDS_FILE, JSON.stringify(credentials, null, 2));
 
         console.log(`WiFi credentials saved for SSID: ${ssid}`);
+
+        // Change hostname if different from current
+        try {
+            const { stdout } = await execPromise('hostname');
+            const currentHostname = stdout.trim();
+
+            if (hostname !== currentHostname) {
+                console.log(`Changing hostname from ${currentHostname} to ${hostname}`);
+
+                // Update /etc/hostname
+                await execPromise(`echo "${hostname}" | sudo tee /etc/hostname`);
+
+                // Update /etc/hosts - replace old hostname with new one
+                await execPromise(`sudo sed -i 's/127.0.1.1.*/127.0.1.1\t${hostname}/g' /etc/hosts`);
+
+                // Set hostname immediately (will persist after reboot due to /etc/hostname change)
+                await execPromise(`sudo hostnamectl set-hostname ${hostname}`);
+
+                console.log(`Hostname changed to ${hostname}`);
+            }
+        } catch (hostnameError) {
+            console.error('Error changing hostname:', hostnameError);
+            // Continue anyway - WiFi settings are more critical
+        }
 
         // Send success response before rebooting
         res.json({ success: true, message: 'Credentials saved. Rebooting...' });
