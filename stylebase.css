@@ -15,19 +15,19 @@ html {
 }
 
 body {
-   background-color:black;
-   color:white;
-   font-weight:normal;
-   font-family:sans-serif;
-   margin: 0px;
-   background-repeat:no-repeat;
-   background-position:top left;
-   text-align: left;
-   overflow-x: hidden; /* Prevent horizontal scrolling */
-   width: 100%;
-   max-width: 100%;
-   -webkit-text-size-adjust: 100%;
-   box-sizing: border-box;
+    background-color:black;
+    color:white;
+    font-weight:normal;
+    font-family:sans-serif;
+    margin: 0px;
+    background-repeat:no-repeat;
+    background-position:top left;
+    text-align: left;
+    overflow-x: hidden; /* Prevent horizontal scrolling */
+    width: 100%;
+    max-width: 100%;
+    -webkit-text-size-adjust: 100%;
+    box-sizing: border-box;
 }
 
 img {
@@ -73,7 +73,7 @@ select, input, button {
 }
 span.remoteChatClientUser{
     color:white;
-   /*font-size:xx-large;*/
+    /*font-size:xx-large;*/
 }
 /* Updated Photo Container Styles */
 .photo-container {
@@ -461,6 +461,33 @@ a.jaemzwarelogo:active, .skateparkdetail a:active {
         font-size: 16px; /* Prevent iOS zoom on focus */
         max-width: 100%;
     }
+    /* Fix table cell widths for mobile portrait */
+    #stuffedanimalwarformtable tr:first-child td:nth-child(1) {
+        width: 45% !important; /* Animals dropdown */
+    }
+    #stuffedanimalwarformtable tr:first-child td:nth-child(2) {
+        width: 35% !important; /* Color picker / custom URL */
+    }
+    #stuffedanimalwarformtable tr:first-child td:nth-child(3) {
+        width: 20% !important; /* Clean button */
+    }
+    #colorPickerButton {
+        width: 100% !important; /* Fill its cell */
+        max-width: 100%;
+    }
+    #animals {
+        width: 100%;
+        max-width: 100%;
+        font-size: 16px;
+    }
+    #animals option {
+        font-size: 16px;
+    }
+    #clearboardbutton {
+        width: 100%;
+        padding: 4px 2px;
+        font-size: 14px;
+    }
     #sawflexdiv{
         display: block;
     }
@@ -540,4 +567,3 @@ a.jaemzwarelogo:active, .skateparkdetail a:active {
         height: 24px;
     }
 }
-
