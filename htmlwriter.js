@@ -86,22 +86,34 @@ function writeStuffedAnimalWarForm(stuffedAnimalMediaObject){
         document.write("<input style=\"vertical-align:top;text-align:left;\" id=\"clearboardbutton\" type=\"button\" value=\"Clean\" />");
     document.write("</td>");
     document.write("</tr>");
+// NEW CODE - D-PAD VERSION:
     document.write("<tr>");
     document.write("<td colspan='4'>");
-    //MOVEMENT DIRECTION
-    document.write("<div style=\"display: inline-block; vertical-align: bottom; text-align: left;\">");
-    document.write("<label style=\"display: inline-block; margin-right: 10px;\"><input type=\"radio\" id=\"movement-up\" name=\"sawmove\" value=\"UP\" checked>UP</label>");
-    document.write("<label style=\"display: inline-block; margin-right: 10px;\"><input type=\"radio\" id=\"movement-down\" name=\"sawmove\" value=\"DOWN\">DOWN</label>");
-    document.write("<label style=\"display: inline-block; margin-right: 10px;\"><input type=\"radio\" id=\"movement-left\" name=\"sawmove\" value=\"LEFT\">LEFT</label>");
-    document.write("<label style=\"display: inline-block; margin-right: 10px;\"><input type=\"radio\" id=\"movement-right\" name=\"sawmove\" value=\"RIGHT\">RIGHT</label>");
-    document.write("<label style=\"display: inline-block; margin-right: 10px;\"><input type=\"radio\" id=\"movement-sineright\" name=\"sawmove\" value=\"R-SINE\">R-SINE</label>");
-    document.write("<label style=\"display: inline-block; margin-right: 10px;\"><input type=\"radio\" id=\"movement-sineleft\" name=\"sawmove\" value=\"L-SINE\">L-SINE</label>");
-    document.write("<label style=\"display: inline-block; margin-right: 10px;\"><input type=\"radio\" id=\"movement-still\" name=\"sawmove\" value=\"STILL\">STILL</label>");
+
+// Hidden radio buttons to maintain compatibility with existing sockethandler.js
+    document.write("<div style='display: none;'>");
+    document.write("<input type='radio' id='movement-up' name='sawmove' value='UP'>");
+    document.write("<input type='radio' id='movement-down' name='sawmove' value='DOWN'>");
+    document.write("<input type='radio' id='movement-left' name='sawmove' value='LEFT'>");
+    document.write("<input type='radio' id='movement-right' name='sawmove' value='RIGHT'>");
+    document.write("<input type='radio' id='movement-sineright' name='sawmove' value='R-SINE'>");
+    document.write("<input type='radio' id='movement-sineleft' name='sawmove' value='L-SINE'>");
+    document.write("<input type='radio' id='movement-still' name='sawmove' value='STILL' checked>");
     document.write("</div>");
+
+// D-Pad UI
+    document.write("<div class='dpad-container'>");
+    document.write("  <button type='button' class='direction-btn btn-up' data-direction='UP'>↑<br><small>UP</small></button>");
+    document.write("  <button type='button' class='direction-btn btn-left' data-direction='LEFT'>←<br><small>LEFT</small></button>");
+    document.write("  <button type='button' class='direction-btn btn-still active' data-direction='STILL'>⊙<br><small>STILL</small></button>");
+    document.write("  <button type='button' class='direction-btn btn-right' data-direction='RIGHT'>→<br><small>RIGHT</small></button>");
+    document.write("  <button type='button' class='direction-btn btn-down' data-direction='DOWN'>↓<br><small>DOWN</small></button>");
+    document.write("  <button type='button' class='direction-btn btn-lsine' data-direction='L-SINE'>↖️<br><small>L-SINE</small></button>");
+    document.write("  <button type='button' class='direction-btn btn-rsine' data-direction='R-SINE'>↗️<br><small>R-SINE</small></button>");
+    document.write("</div>");
+
     document.write("</td>");
     document.write("</tr>");
-    document.write("<tr>");
-    document.write("<td colspan='4'>");
     // Combined points and speed slider row
     document.write("<div style=\"display: flex; align-items: center; width: 100%;\">");
     // Points display that will adjust its width based on content

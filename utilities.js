@@ -63,6 +63,37 @@ document.addEventListener('DOMContentLoaded', function() {
 
     //speed slider
     initSpeedSlider();
+
+    // Initialize D-Pad buttons
+    const directionButtons = document.querySelectorAll('.direction-btn');
+
+    directionButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const direction = this.getAttribute('data-direction');
+
+            // Remove active class from all buttons
+            directionButtons.forEach(btn => btn.classList.remove('active'));
+
+            // Add active class to clicked button
+            this.classList.add('active');
+
+            // Update the hidden radio button to maintain compatibility
+            const radioMap = {
+                'UP': 'movement-up',
+                'DOWN': 'movement-down',
+                'LEFT': 'movement-left',
+                'RIGHT': 'movement-right',
+                'R-SINE': 'movement-sineright',
+                'L-SINE': 'movement-sineleft',
+                'STILL': 'movement-still'
+            };
+
+            const radioId = radioMap[direction];
+            if (radioId) {
+                document.getElementById(radioId).checked = true;
+            }
+        });
+    });
 });
 /*
  * THESE ARE UTILITY FUNCTIONS FOR CONTROLLING THE AUDIO AND VIDEO PLAYERS ON THE PAGE  THESE ARE RESPONSES TO THE
