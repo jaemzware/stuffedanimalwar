@@ -624,8 +624,10 @@ $('#clearboardbutton').on("click", function() {
 $('#animals').on('change', function() {
     if ($(this).val() === "custom") {
         $('#imagepathtextbox').show();
+        $('#colorPickerButton').hide();
     } else {
         $('#imagepathtextbox').hide();
+        $('#colorPickerButton').show();
     }
     if ($(this).val() === "line") {
         //RESET OLD POINT LINE VALUES
