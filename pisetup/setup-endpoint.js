@@ -10,6 +10,7 @@ const fs = require('fs').promises;
 const path = require('path');
 
 const CREDS_FILE = '/home/jaemzware/stuffedanimalwar/wifi-credentials.json';
+const DEFAULT_HOSTNAME = 'stuffedanimalwar';
 
 // Serve the setup page
 router.get('/setup', async (req, res) => {
@@ -17,7 +18,7 @@ router.get('/setup', async (req, res) => {
     let existingSSID = '';
     let hasExistingCreds = false;
     let isInAPMode = false;
-    let currentHostname = 'stuffedanimalwar';
+    let currentHostname = DEFAULT_HOSTNAME;
 
     try {
         const credsData = await fs.readFile(CREDS_FILE, 'utf8');
@@ -245,6 +246,9 @@ router.get('/setup', async (req, res) => {
     </div>
 
     <script>
+        // Configuration
+        const DEFAULT_HOSTNAME = '${DEFAULT_HOSTNAME}';
+
         // Scan for networks on page load
         async function scanNetworks() {
             try {
@@ -344,9 +348,6 @@ router.get('/setup', async (req, res) => {
                 document.getElementById('submitBtn').disabled = true;
                 document.getElementById('loading').style.display = 'block';
 
-                // Get current hostname from the form field
-                const currentHostname = document.getElementById('hostname').value.trim();
-
                 try {
                     const response = await fetch('/setup/reset', {
                         method: 'POST'
@@ -357,9 +358,9 @@ router.get('/setup', async (req, res) => {
                     if (data.success) {
                         showStatus('Credentials cleared. Rebooting to AP mode...', 'success');
 
-                        // Redirect to root using current hostname after showing spinner for 2 seconds
+                        // Redirect to default hostname (backend resets hostname to DEFAULT_HOSTNAME)
                         setTimeout(() => {
-                            window.location.href = 'https://' + currentHostname + '.local';
+                            window.location.href = 'https://' + DEFAULT_HOSTNAME + '.local';
                         }, 2000);
                     } else {
                         showStatus('Error: ' + data.message, 'error');
@@ -471,12 +472,37 @@ router.post('/setup/connect', async (req, res) => {
 // Clear WiFi credentials and reboot
 router.post('/setup/reset', async (req, res) => {
     try {
+
         // Delete credentials file if it exists
         try {
             await fs.unlink(CREDS_FILE);
             console.log('WiFi credentials deleted');
         } catch (error) {
             // File might not exist - that's okay
+        }
+
+        // Reset hostname to default
+        try {
+            const { stdout } = await execPromise('hostname');
+            const currentHostname = stdout.trim();
+
+            if (currentHostname !== DEFAULT_HOSTNAME) {
+                console.log(`Resetting hostname from ${currentHostname} to ${DEFAULT_HOSTNAME}`);
+
+                // Update /etc/hostname
+                await execPromise(`echo "${DEFAULT_HOSTNAME}" | sudo tee /etc/hostname`);
+
+                // Update /etc/hosts - replace current hostname with default
+                await execPromise(`sudo sed -i 's/127.0.1.1.*/127.0.1.1\t${DEFAULT_HOSTNAME}/g' /etc/hosts`);
+
+                // Set hostname immediately
+                await execPromise(`sudo hostnamectl set-hostname ${DEFAULT_HOSTNAME}`);
+
+                console.log(`Hostname reset to ${DEFAULT_HOSTNAME}`);
+            }
+        } catch (hostnameError) {
+            console.error('Error resetting hostname:', hostnameError);
+            // Continue anyway - WiFi reset is still useful
         }
 
         // Send success response before rebooting
