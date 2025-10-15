@@ -54,13 +54,21 @@ function writeStuffedAnimalWarDiv(stuffedAnimalMediaObject) {
     document.write("</div>");
 }
 function writeStuffedAnimalWarForm(stuffedAnimalMediaObject){
+    document.write("<style>");
+    document.write(".direction-radio { position: absolute; opacity: 0; width: 0; height: 0; }");
+    document.write(".direction-label { display: inline-block; padding: 8px 16px; background-color: #444; color: #fff; border-radius: 6px; cursor: pointer; user-select: none; transition: all 0.2s ease; margin: 0 5px; }");
+    document.write(".direction-label-vertical { width: 80px; text-align: center; }");
+    document.write(".direction-label:hover { background-color: #555; }");
+    document.write(".direction-radio:checked + .direction-label { background-color: #0066cc; font-weight: bold; }");
+    document.write("</style>");
+
     document.write("<form id='stuffedanimalwarform'>");
     document.write("<table id='stuffedanimalwarformtable'>");
 
     //ANIMAL CHOICES
     document.write("<tr>");
     document.write("<td>");
-    document.write("<select id=\"animals\" name=\"sawstyle\" size=1 >");
+    document.write("<select id=\"animals\" name=\"sawstyle\" size=1 style=\"height: 32px;\">");
     document.write("<option value=\"dot\" selected>BULLET</option>");
     document.write("<option value=\"line\">LINE</option>");
     document.write("<option value=\"custom\">CUSTOM URL</option>");
@@ -72,46 +80,56 @@ function writeStuffedAnimalWarForm(stuffedAnimalMediaObject){
     }
     document.write("</select>");
     document.write("</td>");
-    document.write("<td>");
-    document.write("<button type=\"button\" id=\"colorPickerButton\" class=\"color-picker-button\">");
-    document.write("<span class=\"color-picker-button-sample\"></span>");
+    document.write("<td style=\"width: 100%;\">");
+    // Color picker button (visible by default)
+    document.write("<button type=\"button\" id=\"colorPickerButton\" class=\"color-picker-button\" style=\"width: 100%; height: 32px; padding: 0;\">");
+    document.write("<span class=\"color-picker-button-sample\" style=\"width: 100%; height: 100%; margin: 0; border-radius: 4px; display: block;\"></span>");
     document.write("</button>");
-    document.write("</td>");
-    document.write("<td>");
-    //CUSTOM URL TEXT BOX
-    document.write("<input style=\"vertical-align:top;text-align:left;\" id=\"imagepathtextbox\" size=\"20\" placeholder=\"CUSTOM URL\" />");
+    // Custom URL text box (hidden by default)
+    document.write("<input style=\"vertical-align:top;text-align:left;display:none;width:100%;height:32px;box-sizing:border-box;\" id=\"imagepathtextbox\" placeholder=\"CUSTOM URL\" />");
     document.write("</td>");
     document.write("<td>");
     //CLEAR BUTTON
-    document.write("<input style=\"vertical-align:top;text-align:left;\" id=\"clearboardbutton\" type=\"button\" value=\"Clean\" />");
+    document.write("<input style=\"vertical-align:top;text-align:left;height:32px;\" id=\"clearboardbutton\" type=\"button\" value=\"Clean\" />");
     document.write("</td>");
     document.write("</tr>");
     document.write("<tr>");
     document.write("<td colspan='4'>");
     //MOVEMENT DIRECTION - 3 ROW LAYOUT
-    document.write("<div style=\"display: flex; flex-direction: column; align-items: center;\">");
+    document.write("<div style=\"display: grid; grid-template-columns: auto 80px auto; grid-template-rows: auto auto auto; gap: 5px; justify-items: center; align-items: center; justify-content: center;\">");
 
-    // TOP ROW - UP (centered to align with STILL radio button position)
-    document.write("<div style=\"display: flex; justify-content: center; margin-bottom: 5px;\">");
-    document.write("<div style=\"width: 300px; display: flex; justify-content: center;\">");
-    document.write("<label style=\"display: inline-block;\"><input type=\"radio\" id=\"movement-up\" name=\"sawmove\" value=\"UP\" checked>UP</label>");
-    document.write("</div>");
-    document.write("</div>");
-
-    // MIDDLE ROW - L-SINE, LEFT, STILL, RIGHT, R-SINE
-    document.write("<div style=\"display: flex; justify-content: center; margin-bottom: 5px;\">");
-    document.write("<label style=\"margin: 0 5px;\"><input type=\"radio\" id=\"movement-sineleft\" name=\"sawmove\" value=\"L-SINE\">L-SINE</label>");
-    document.write("<label style=\"margin: 0 5px;\"><input type=\"radio\" id=\"movement-left\" name=\"sawmove\" value=\"LEFT\">LEFT</label>");
-    document.write("<label style=\"margin: 0 5px;\"><input type=\"radio\" id=\"movement-still\" name=\"sawmove\" value=\"STILL\">STILL</label>");
-    document.write("<label style=\"margin: 0 5px;\"><input type=\"radio\" id=\"movement-right\" name=\"sawmove\" value=\"RIGHT\">RIGHT</label>");
-    document.write("<label style=\"margin: 0 5px;\"><input type=\"radio\" id=\"movement-sineright\" name=\"sawmove\" value=\"R-SINE\">R-SINE</label>");
+    // TOP ROW - UP (grid column 2)
+    document.write("<div style=\"grid-column: 2; grid-row: 1;\">");
+    document.write("<input type=\"radio\" class=\"direction-radio\" id=\"movement-up\" name=\"sawmove\" value=\"UP\" checked>");
+    document.write("<label class=\"direction-label direction-label-vertical\" for=\"movement-up\">UP</label>");
     document.write("</div>");
 
-    // BOTTOM ROW - DOWN (centered to align with STILL radio button position)
-    document.write("<div style=\"display: flex; justify-content: center;\">");
-    document.write("<div style=\"width: 300px; display: flex; justify-content: center;\">");
-    document.write("<label style=\"display: inline-block;\"><input type=\"radio\" id=\"movement-down\" name=\"sawmove\" value=\"DOWN\">DOWN</label>");
+    // MIDDLE ROW - L-SINE, LEFT (grid column 1)
+    document.write("<div style=\"grid-column: 1; grid-row: 2; display: flex; gap: 5px;\">");
+    document.write("<input type=\"radio\" class=\"direction-radio\" id=\"movement-sineleft\" name=\"sawmove\" value=\"L-SINE\">");
+    document.write("<label class=\"direction-label\" for=\"movement-sineleft\">L-SINE</label>");
+    document.write("<input type=\"radio\" class=\"direction-radio\" id=\"movement-left\" name=\"sawmove\" value=\"LEFT\">");
+    document.write("<label class=\"direction-label\" for=\"movement-left\">LEFT</label>");
     document.write("</div>");
+
+    // MIDDLE ROW - STILL (grid column 2)
+    document.write("<div style=\"grid-column: 2; grid-row: 2;\">");
+    document.write("<input type=\"radio\" class=\"direction-radio\" id=\"movement-still\" name=\"sawmove\" value=\"STILL\">");
+    document.write("<label class=\"direction-label direction-label-vertical\" for=\"movement-still\">STILL</label>");
+    document.write("</div>");
+
+    // MIDDLE ROW - RIGHT, R-SINE (grid column 3)
+    document.write("<div style=\"grid-column: 3; grid-row: 2; display: flex; gap: 5px;\">");
+    document.write("<input type=\"radio\" class=\"direction-radio\" id=\"movement-right\" name=\"sawmove\" value=\"RIGHT\">");
+    document.write("<label class=\"direction-label\" for=\"movement-right\">RIGHT</label>");
+    document.write("<input type=\"radio\" class=\"direction-radio\" id=\"movement-sineright\" name=\"sawmove\" value=\"R-SINE\">");
+    document.write("<label class=\"direction-label\" for=\"movement-sineright\">R-SINE</label>");
+    document.write("</div>");
+
+    // BOTTOM ROW - DOWN (grid column 2)
+    document.write("<div style=\"grid-column: 2; grid-row: 3;\">");
+    document.write("<input type=\"radio\" class=\"direction-radio\" id=\"movement-down\" name=\"sawmove\" value=\"DOWN\">");
+    document.write("<label class=\"direction-label direction-label-vertical\" for=\"movement-down\">DOWN</label>");
     document.write("</div>");
 
     document.write("</div>");
