@@ -11,6 +11,7 @@ const path = require('path');
 
 const CREDS_FILE = '/home/jaemzware/stuffedanimalwar/wifi-credentials.json';
 const DEFAULT_HOSTNAME = 'stuffedanimalwar';
+const DEFAULT_SSID = 'StuffedAnimalWAP';
 
 // Serve the setup page
 router.get('/setup', async (req, res) => {
@@ -40,7 +41,7 @@ router.get('/setup', async (req, res) => {
     // Check if we're currently in AP mode
     try {
         const { stdout } = await execPromise('nmcli -t -f NAME connection show --active');
-        isInAPMode = stdout.includes('StuffedAnimalWAP');
+        isInAPMode = stdout.includes(DEFAULT_SSID);
     } catch (error) {
         // If we can't check, assume not in AP mode
     }
@@ -248,6 +249,7 @@ router.get('/setup', async (req, res) => {
     <script>
         // Configuration
         const DEFAULT_HOSTNAME = '${DEFAULT_HOSTNAME}';
+        const DEFAULT_SSID = '${DEFAULT_SSID}';
 
         // Scan for networks on page load
         async function scanNetworks() {
@@ -393,7 +395,7 @@ router.get('/setup/scan', async (req, res) => {
         const { stdout } = await execPromise('nmcli -t -f SSID dev wifi list');
         const networks = stdout
             .split('\n')
-            .filter(ssid => ssid.trim() && ssid !== '--' && ssid !== 'StuffedAnimalWAP')
+            .filter(ssid => ssid.trim() && ssid !== '--' && ssid !== DEFAULT_SSID)
             .filter((ssid, index, self) => self.indexOf(ssid) === index); // Remove duplicates
 
         res.json({ networks });
