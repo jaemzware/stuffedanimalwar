@@ -87,6 +87,12 @@ cp .env.example .env
 
 **Note:** The `.env.example` files are included in the repositories with sensible defaults for Raspberry Pi use. The SSL certificate paths will be automatically populated by the installer.
 
+**SSL Certificates:** AnalogArchive reuses the SSL certificates generated for StuffedAnimalWar - you don't need to create separate certificates. Just ensure your AnalogArchive `.env` file points to the StuffedAnimalWar certificate directory:
+```bash
+SSL_KEY_PATH=/home/jaemzware/stuffedanimalwar/sslcert/key.pem
+SSL_CERT_PATH=/home/jaemzware/stuffedanimalwar/sslcert/cert.pem
+```
+
 ### 4a. Add Music Files (AnalogArchive only)
 
 If you're using AnalogArchive, create a music directory and add MP3 files:
