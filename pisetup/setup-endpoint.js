@@ -10,13 +10,75 @@ const fs = require('fs').promises;
 const path = require('path');
 
 const CREDS_FILE = '/home/jaemzware/stuffedanimalwar/wifi-credentials.json';
+const DEFAULT_HOSTNAME = 'stuffedanimalwar';
+const DEFAULT_SSID = 'StuffedAnimalWAP';
+
+// Middleware to check if request is from .local domain (Raspberry Pi only)
+function requireLocalDomain(req, res, next) {
+    const requestHost = req.get('host') || '';
+    if (!requestHost.includes('.local')) {
+        return res.status(403).json({
+            success: false,
+            message: 'Setup endpoint only available on .local domains'
+        });
+    }
+    next();
+}
 
 // Serve the setup page
 router.get('/setup', async (req, res) => {
+    // Security: Only allow /setup on .local domains (Raspberry Pi)
+    // Prevents this endpoint from being accessible on production .com servers
+    const requestHost = req.get('host') || '';
+    if (!requestHost.includes('.local')) {
+        return res.status(403).send(`
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Setup Not Available</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 100%;
+            padding: 40px;
+            text-align: center;
+        }
+        h1 { color: #333; margin-bottom: 20px; font-size: 28px; }
+        p { color: #666; line-height: 1.6; margin-bottom: 20px; }
+        .footer { margin-top: 30px; color: #999; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔒 Setup Not Available</h1>
+        <p>The WiFi setup page is only accessible on Raspberry Pi devices via .local addresses.</p>
+        <p>This security feature prevents configuration access on production servers.</p>
+        <div class="footer">© 2025 Jaemzware LLC</div>
+    </div>
+</body>
+</html>
+        `);
+    }
+
     // Check if credentials file exists and read it
     let existingSSID = '';
     let hasExistingCreds = false;
     let isInAPMode = false;
+    let currentHostname = DEFAULT_HOSTNAME;
 
     try {
         const credsData = await fs.readFile(CREDS_FILE, 'utf8');
@@ -27,10 +89,42 @@ router.get('/setup', async (req, res) => {
         // File doesn't exist or is invalid - that's okay
     }
 
+    // Get current hostname - get what Avahi is actually broadcasting (handles conflicts)
+    let systemHostname = DEFAULT_HOSTNAME;
+    let hasHostnameConflict = false;
+    try {
+        // First, get the system hostname
+        const { stdout: sysHost } = await execPromise('hostname');
+        systemHostname = sysHost.trim();
+        currentHostname = systemHostname;
+
+        // Get what Avahi is actually broadcasting by querying dbus
+        // This will show the actual mDNS name including conflict suffixes like -2, -3, etc.
+        try {
+            const { stdout: avahiHostname } = await execPromise(
+                'dbus-send --system --print-reply --dest=org.freedesktop.Avahi / org.freedesktop.Avahi.Server.GetHostName 2>/dev/null | grep string | cut -d\\" -f2 || echo ""'
+            );
+
+            if (avahiHostname.trim()) {
+                const avahiName = avahiHostname.trim();
+                if (avahiName !== systemHostname) {
+                    // Conflict detected! Avahi renamed it
+                    hasHostnameConflict = true;
+                    currentHostname = avahiName;
+                }
+            }
+        } catch (avahiError) {
+            // If dbus query fails, stick with system hostname
+            console.log('Could not get Avahi hostname via dbus, using system hostname');
+        }
+    } catch (error) {
+        // If we can't get hostname, use default
+    }
+
     // Check if we're currently in AP mode
     try {
         const { stdout } = await execPromise('nmcli -t -f NAME connection show --active');
-        isInAPMode = stdout.includes('StuffedAnimalWAP');
+        isInAPMode = stdout.includes(DEFAULT_SSID);
     } catch (error) {
         // If we can't check, assume not in AP mode
     }
@@ -194,8 +288,21 @@ router.get('/setup', async (req, res) => {
             The Pi couldn't connect to "${existingSSID}". Check your password or try a different network.
         </div>
         ` : ''}
+
+        ${hasHostnameConflict ? `
+        <div class="warning-box">
+            <strong>⚠️ Hostname Conflict Detected</strong>
+            Another device on the network is using "${systemHostname}". This device is currently accessible as "${currentHostname}.local". You can keep this name or change it to something unique.
+        </div>
+        ` : ''}
         
         <form id="wifiForm">
+            <div class="form-group">
+                <label for="hostname">Device Hostname:</label>
+                <input type="text" id="hostname" name="hostname" placeholder="e.g., stuffedanimalwar1" value="${currentHostname}" required pattern="[a-zA-Z0-9-]+" autocomplete="off">
+                <div class="hint">Only letters, numbers, and hyphens. Access via: hostname.local</div>
+            </div>
+
             <div class="form-group">
                 <label for="ssid">Network Name (SSID):</label>
                 <input type="text" id="ssid" name="ssid" list="networks" placeholder="Enter your WiFi network name" value="${existingSSID}" required autocomplete="off">
@@ -203,7 +310,7 @@ router.get('/setup', async (req, res) => {
                 </datalist>
                 <div class="hint">Type your network name or select from detected networks</div>
             </div>
-            
+
             <div class="form-group">
                 <label for="password">Password:</label>
                 <input type="password" id="password" name="password" placeholder="Enter WiFi password" required>
@@ -230,6 +337,10 @@ router.get('/setup', async (req, res) => {
     </div>
 
     <script>
+        // Configuration
+        const DEFAULT_HOSTNAME = '${DEFAULT_HOSTNAME}';
+        const DEFAULT_SSID = '${DEFAULT_SSID}';
+
         // Scan for networks on page load
         async function scanNetworks() {
             try {
@@ -255,36 +366,48 @@ router.get('/setup', async (req, res) => {
         // Handle form submission
         document.getElementById('wifiForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
+            const hostname = document.getElementById('hostname').value.trim();
             const ssid = document.getElementById('ssid').value.trim();
             const password = document.getElementById('password').value;
             const submitBtn = document.getElementById('submitBtn');
             const loading = document.getElementById('loading');
             const status = document.getElementById('status');
-            
-            if (!ssid || !password) {
-                showStatus('Please enter a network name and password.', 'error');
+
+            if (!hostname || !ssid || !password) {
+                showStatus('Please fill in all fields.', 'error');
                 return;
             }
-            
+
+            // Validate hostname format
+            if (!/^[a-zA-Z0-9-]+$/.test(hostname)) {
+                showStatus('Hostname can only contain letters, numbers, and hyphens.', 'error');
+                return;
+            }
+
             // Disable form and show loading
             submitBtn.disabled = true;
             loading.style.display = 'block';
             status.style.display = 'none';
-            
+
             try {
                 const response = await fetch('/setup/connect', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ ssid, password })
+                    body: JSON.stringify({ hostname, ssid, password })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (data.success) {
-                    showStatus('WiFi configured! Rebooting... The Pi will connect to your home network.', 'success');
+                    showStatus('WiFi configured! Rebooting... The Pi will be available at ' + hostname + '.local', 'success');
+
+                    // Redirect to root using the new hostname after showing spinner for 2 seconds
+                    setTimeout(() => {
+                        window.location.href = 'https://' + hostname + '.local';
+                    }, 2000);
                 } else {
                     showStatus('Error: ' + data.message, 'error');
                     submitBtn.disabled = false;
@@ -312,20 +435,25 @@ router.get('/setup', async (req, res) => {
                 if (!confirm('Clear saved WiFi credentials and reboot? The Pi will restart in AP mode.')) {
                     return;
                 }
-                
+
                 resetBtn.disabled = true;
                 document.getElementById('submitBtn').disabled = true;
                 document.getElementById('loading').style.display = 'block';
-                
+
                 try {
                     const response = await fetch('/setup/reset', {
                         method: 'POST'
                     });
-                    
+
                     const data = await response.json();
-                    
+
                     if (data.success) {
                         showStatus('Credentials cleared. Rebooting to AP mode...', 'success');
+
+                        // Redirect to default hostname (backend resets hostname to DEFAULT_HOSTNAME)
+                        setTimeout(() => {
+                            window.location.href = 'https://' + DEFAULT_HOSTNAME + '.local';
+                        }, 2000);
                     } else {
                         showStatus('Error: ' + data.message, 'error');
                         resetBtn.disabled = false;
@@ -352,12 +480,12 @@ router.get('/setup', async (req, res) => {
 });
 
 // Scan for available WiFi networks
-router.get('/setup/scan', async (req, res) => {
+router.get('/setup/scan', requireLocalDomain, async (req, res) => {
     try {
         const { stdout } = await execPromise('nmcli -t -f SSID dev wifi list');
         const networks = stdout
             .split('\n')
-            .filter(ssid => ssid.trim() && ssid !== '--' && ssid !== 'StuffedAnimalWAP')
+            .filter(ssid => ssid.trim() && ssid !== '--' && ssid !== DEFAULT_SSID)
             .filter((ssid, index, self) => self.indexOf(ssid) === index); // Remove duplicates
 
         res.json({ networks });
@@ -368,12 +496,21 @@ router.get('/setup/scan', async (req, res) => {
 });
 
 // Save WiFi credentials and reboot
-router.post('/setup/connect', async (req, res) => {
+router.post('/setup/connect', requireLocalDomain, async (req, res) => {
     try {
-        const { ssid, password } = req.body;
+        const { hostname, ssid, password } = req.body;
 
         if (!ssid || !password) {
             return res.status(400).json({ success: false, message: 'SSID and password required' });
+        }
+
+        if (!hostname) {
+            return res.status(400).json({ success: false, message: 'Hostname required' });
+        }
+
+        // Validate hostname format
+        if (!/^[a-zA-Z0-9-]+$/.test(hostname)) {
+            return res.status(400).json({ success: false, message: 'Invalid hostname format' });
         }
 
         // Save credentials to JSON file
@@ -381,6 +518,30 @@ router.post('/setup/connect', async (req, res) => {
         await fs.writeFile(CREDS_FILE, JSON.stringify(credentials, null, 2));
 
         console.log(`WiFi credentials saved for SSID: ${ssid}`);
+
+        // Change hostname if different from current
+        try {
+            const { stdout } = await execPromise('hostname');
+            const currentHostname = stdout.trim();
+
+            if (hostname !== currentHostname) {
+                console.log(`Changing hostname from ${currentHostname} to ${hostname}`);
+
+                // Update /etc/hostname
+                await execPromise(`echo "${hostname}" | sudo tee /etc/hostname`);
+
+                // Update /etc/hosts - replace old hostname with new one
+                await execPromise(`sudo sed -i 's/127.0.1.1.*/127.0.1.1\t${hostname}/g' /etc/hosts`);
+
+                // Set hostname immediately (will persist after reboot due to /etc/hostname change)
+                await execPromise(`sudo hostnamectl set-hostname ${hostname}`);
+
+                console.log(`Hostname changed to ${hostname}`);
+            }
+        } catch (hostnameError) {
+            console.error('Error changing hostname:', hostnameError);
+            // Continue anyway - WiFi settings are more critical
+        }
 
         // Send success response before rebooting
         res.json({ success: true, message: 'Credentials saved. Rebooting...' });
@@ -401,14 +562,39 @@ router.post('/setup/connect', async (req, res) => {
 });
 
 // Clear WiFi credentials and reboot
-router.post('/setup/reset', async (req, res) => {
+router.post('/setup/reset', requireLocalDomain, async (req, res) => {
     try {
+
         // Delete credentials file if it exists
         try {
             await fs.unlink(CREDS_FILE);
             console.log('WiFi credentials deleted');
         } catch (error) {
             // File might not exist - that's okay
+        }
+
+        // Reset hostname to default
+        try {
+            const { stdout } = await execPromise('hostname');
+            const currentHostname = stdout.trim();
+
+            if (currentHostname !== DEFAULT_HOSTNAME) {
+                console.log(`Resetting hostname from ${currentHostname} to ${DEFAULT_HOSTNAME}`);
+
+                // Update /etc/hostname
+                await execPromise(`echo "${DEFAULT_HOSTNAME}" | sudo tee /etc/hostname`);
+
+                // Update /etc/hosts - replace current hostname with default
+                await execPromise(`sudo sed -i 's/127.0.1.1.*/127.0.1.1\t${DEFAULT_HOSTNAME}/g' /etc/hosts`);
+
+                // Set hostname immediately
+                await execPromise(`sudo hostnamectl set-hostname ${DEFAULT_HOSTNAME}`);
+
+                console.log(`Hostname reset to ${DEFAULT_HOSTNAME}`);
+            }
+        } catch (hostnameError) {
+            console.error('Error resetting hostname:', hostnameError);
+            // Continue anyway - WiFi reset is still useful
         }
 
         // Send success response before rebooting
