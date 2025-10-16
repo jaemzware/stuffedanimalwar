@@ -13,8 +13,67 @@ const CREDS_FILE = '/home/jaemzware/stuffedanimalwar/wifi-credentials.json';
 const DEFAULT_HOSTNAME = 'stuffedanimalwar';
 const DEFAULT_SSID = 'StuffedAnimalWAP';
 
+// Middleware to check if request is from .local domain (Raspberry Pi only)
+function requireLocalDomain(req, res, next) {
+    const requestHost = req.get('host') || '';
+    if (!requestHost.includes('.local')) {
+        return res.status(403).json({
+            success: false,
+            message: 'Setup endpoint only available on .local domains'
+        });
+    }
+    next();
+}
+
 // Serve the setup page
 router.get('/setup', async (req, res) => {
+    // Security: Only allow /setup on .local domains (Raspberry Pi)
+    // Prevents this endpoint from being accessible on production .com servers
+    const requestHost = req.get('host') || '';
+    if (!requestHost.includes('.local')) {
+        return res.status(403).send(`
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Setup Not Available</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 100%;
+            padding: 40px;
+            text-align: center;
+        }
+        h1 { color: #333; margin-bottom: 20px; font-size: 28px; }
+        p { color: #666; line-height: 1.6; margin-bottom: 20px; }
+        .footer { margin-top: 30px; color: #999; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔒 Setup Not Available</h1>
+        <p>The WiFi setup page is only accessible on Raspberry Pi devices via .local addresses.</p>
+        <p>This security feature prevents configuration access on production servers.</p>
+        <div class="footer">© 2025 Jaemzware LLC</div>
+    </div>
+</body>
+</html>
+        `);
+    }
+
     // Check if credentials file exists and read it
     let existingSSID = '';
     let hasExistingCreds = false;
@@ -30,10 +89,34 @@ router.get('/setup', async (req, res) => {
         // File doesn't exist or is invalid - that's okay
     }
 
-    // Get current hostname
+    // Get current hostname - get what Avahi is actually broadcasting (handles conflicts)
+    let systemHostname = DEFAULT_HOSTNAME;
+    let hasHostnameConflict = false;
     try {
-        const { stdout } = await execPromise('hostname');
-        currentHostname = stdout.trim();
+        // First, get the system hostname
+        const { stdout: sysHost } = await execPromise('hostname');
+        systemHostname = sysHost.trim();
+        currentHostname = systemHostname;
+
+        // Get what Avahi is actually broadcasting by querying dbus
+        // This will show the actual mDNS name including conflict suffixes like -2, -3, etc.
+        try {
+            const { stdout: avahiHostname } = await execPromise(
+                'dbus-send --system --print-reply --dest=org.freedesktop.Avahi / org.freedesktop.Avahi.Server.GetHostName 2>/dev/null | grep string | cut -d\\" -f2 || echo ""'
+            );
+
+            if (avahiHostname.trim()) {
+                const avahiName = avahiHostname.trim();
+                if (avahiName !== systemHostname) {
+                    // Conflict detected! Avahi renamed it
+                    hasHostnameConflict = true;
+                    currentHostname = avahiName;
+                }
+            }
+        } catch (avahiError) {
+            // If dbus query fails, stick with system hostname
+            console.log('Could not get Avahi hostname via dbus, using system hostname');
+        }
     } catch (error) {
         // If we can't get hostname, use default
     }
@@ -203,6 +286,13 @@ router.get('/setup', async (req, res) => {
         <div class="warning-box">
             <strong>⚠️ Previous Connection Failed</strong>
             The Pi couldn't connect to "${existingSSID}". Check your password or try a different network.
+        </div>
+        ` : ''}
+
+        ${hasHostnameConflict ? `
+        <div class="warning-box">
+            <strong>⚠️ Hostname Conflict Detected</strong>
+            Another device on the network is using "${systemHostname}". This device is currently accessible as "${currentHostname}.local". You can keep this name or change it to something unique.
         </div>
         ` : ''}
         
@@ -390,7 +480,7 @@ router.get('/setup', async (req, res) => {
 });
 
 // Scan for available WiFi networks
-router.get('/setup/scan', async (req, res) => {
+router.get('/setup/scan', requireLocalDomain, async (req, res) => {
     try {
         const { stdout } = await execPromise('nmcli -t -f SSID dev wifi list');
         const networks = stdout
@@ -406,7 +496,7 @@ router.get('/setup/scan', async (req, res) => {
 });
 
 // Save WiFi credentials and reboot
-router.post('/setup/connect', async (req, res) => {
+router.post('/setup/connect', requireLocalDomain, async (req, res) => {
     try {
         const { hostname, ssid, password } = req.body;
 
@@ -472,7 +562,7 @@ router.post('/setup/connect', async (req, res) => {
 });
 
 // Clear WiFi credentials and reboot
-router.post('/setup/reset', async (req, res) => {
+router.post('/setup/reset', requireLocalDomain, async (req, res) => {
     try {
 
         // Delete credentials file if it exists
