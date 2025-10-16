@@ -98,10 +98,22 @@ function writeStuffedAnimalWarForm(stuffedAnimalMediaObject){
     //MOVEMENT DIRECTION - 3 ROW LAYOUT
     document.write("<div style=\"display: grid; grid-template-columns: auto 80px auto; grid-template-rows: auto auto auto; gap: 5px; justify-items: center; align-items: center; justify-content: center;\">");
 
+    // TOP ROW - UPLEFT (grid column 1, row 1)
+    document.write("<div style=\"grid-column: 1; grid-row: 1;\">");
+    document.write("<input type=\"radio\" class=\"direction-radio\" id=\"movement-upleft\" name=\"sawmove\" value=\"UPLEFT\">");
+    document.write("<label class=\"direction-label\" for=\"movement-upleft\">UPLEFT</label>");
+    document.write("</div>");
+
     // TOP ROW - UP (grid column 2)
     document.write("<div style=\"grid-column: 2; grid-row: 1;\">");
     document.write("<input type=\"radio\" class=\"direction-radio\" id=\"movement-up\" name=\"sawmove\" value=\"UP\" checked>");
     document.write("<label class=\"direction-label direction-label-vertical\" for=\"movement-up\">UP</label>");
+    document.write("</div>");
+
+    // TOP ROW - UPRIGHT (grid column 3, row 1)
+    document.write("<div style=\"grid-column: 3; grid-row: 1;\">");
+    document.write("<input type=\"radio\" class=\"direction-radio\" id=\"movement-upright\" name=\"sawmove\" value=\"UPRIGHT\">");
+    document.write("<label class=\"direction-label\" for=\"movement-upright\">UPRIGHT</label>");
     document.write("</div>");
 
     // MIDDLE ROW - L-SINE, LEFT (grid column 1)
@@ -126,10 +138,22 @@ function writeStuffedAnimalWarForm(stuffedAnimalMediaObject){
     document.write("<label class=\"direction-label\" for=\"movement-sineright\">R-SINE</label>");
     document.write("</div>");
 
+    // BOTTOM ROW - DOWNLEFT (grid column 1, row 3)
+    document.write("<div style=\"grid-column: 1; grid-row: 3;\">");
+    document.write("<input type=\"radio\" class=\"direction-radio\" id=\"movement-downleft\" name=\"sawmove\" value=\"DOWNLEFT\">");
+    document.write("<label class=\"direction-label\" for=\"movement-downleft\">DOWNLEFT</label>");
+    document.write("</div>");
+
     // BOTTOM ROW - DOWN (grid column 2)
     document.write("<div style=\"grid-column: 2; grid-row: 3;\">");
     document.write("<input type=\"radio\" class=\"direction-radio\" id=\"movement-down\" name=\"sawmove\" value=\"DOWN\">");
     document.write("<label class=\"direction-label direction-label-vertical\" for=\"movement-down\">DOWN</label>");
+    document.write("</div>");
+
+    // BOTTOM ROW - DOWNRIGHT (grid column 3, row 3)
+    document.write("<div style=\"grid-column: 3; grid-row: 3;\">");
+    document.write("<input type=\"radio\" class=\"direction-radio\" id=\"movement-downright\" name=\"sawmove\" value=\"DOWNRIGHT\">");
+    document.write("<label class=\"direction-label\" for=\"movement-downright\">DOWNRIGHT</label>");
     document.write("</div>");
 
     document.write("</div>");
