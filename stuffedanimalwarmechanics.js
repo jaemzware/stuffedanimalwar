@@ -84,6 +84,94 @@ function moveAnimalObjectRight(animalObjectId,animalXAxisAttr,animalYAxisAttr) {
         $('#'+animalObjectId).attr(animalYAxisAttr,yPosition);  //MOVE BACK TO THE TOP OF THE SVG
     }
 }
+function moveAnimalObjectUpLeft(animalObjectId,animalXAxisAttr,animalYAxisAttr) {
+    let xPosition = $('#'+animalObjectId).attr(animalXAxisAttr);    //get the current location
+    let yPosition = $('#'+animalObjectId).attr(animalYAxisAttr);    //get the current location
+    let svgWidth = $('#stuffedanimalwarsvg').width();
+    let svgHeight = $('#stuffedanimalwarsvg').height();
+    if(yPosition>0 && xPosition>0){    //if still on the gameboard
+        //randomize the distance of how much each animal moves
+        let randomAnimalPositionIncrement=Math.floor((Math.random() * animalPositionIncrement) + 1);
+        yPosition=parseInt(yPosition)-parseInt(randomAnimalPositionIncrement);        //update the coordinates
+        xPosition=parseInt(xPosition)-parseInt(randomAnimalPositionIncrement);        //update the coordinates
+        $('#'+animalObjectId).attr(animalYAxisAttr,yPosition);
+        $('#'+animalObjectId).attr(animalXAxisAttr,xPosition);
+    }
+    else{
+        if(yPosition<=0){
+            $('#'+animalObjectId).attr(animalYAxisAttr,svgHeight);
+        }
+        if(xPosition<=0){
+            $('#'+animalObjectId).attr(animalXAxisAttr,svgWidth);
+        }
+    }
+}
+function moveAnimalObjectUpRight(animalObjectId,animalXAxisAttr,animalYAxisAttr) {
+    let xPosition = $('#'+animalObjectId).attr(animalXAxisAttr);    //get the current location
+    let yPosition = $('#'+animalObjectId).attr(animalYAxisAttr);    //get the current location
+    let svgWidth = $('#stuffedanimalwarsvg').width();
+    let svgHeight = $('#stuffedanimalwarsvg').height();
+    if(yPosition>0 && xPosition<svgWidth){    //if still on the gameboard
+        //randomize the distance of how much each animal moves
+        let randomAnimalPositionIncrement=Math.floor((Math.random() * animalPositionIncrement) + 1);
+        yPosition=parseInt(yPosition)-parseInt(randomAnimalPositionIncrement);        //update the coordinates
+        xPosition=parseInt(xPosition)+parseInt(randomAnimalPositionIncrement);        //update the coordinates
+        $('#'+animalObjectId).attr(animalYAxisAttr,yPosition);
+        $('#'+animalObjectId).attr(animalXAxisAttr,xPosition);
+    }
+    else{
+        if(yPosition<=0){
+            $('#'+animalObjectId).attr(animalYAxisAttr,svgHeight);
+        }
+        if(xPosition>=svgWidth){
+            $('#'+animalObjectId).attr(animalXAxisAttr,'0');
+        }
+    }
+}
+function moveAnimalObjectDownLeft(animalObjectId,animalXAxisAttr,animalYAxisAttr) {
+    let xPosition = $('#'+animalObjectId).attr(animalXAxisAttr);
+    let yPosition = $('#'+animalObjectId).attr(animalYAxisAttr);
+    let svgWidth = $('#stuffedanimalwarsvg').width();
+    let svgHeight = $('#stuffedanimalwarsvg').height();
+    if(yPosition<svgHeight && xPosition>0){     //if still on SVG gameboard
+        //randomize the distance of how much each animal moves
+        let randomAnimalPositionIncrement=Math.floor((Math.random() * animalPositionIncrement) + 1);
+        yPosition=parseInt(yPosition)+parseInt(randomAnimalPositionIncrement);         //update the coordinates
+        xPosition=parseInt(xPosition)-parseInt(randomAnimalPositionIncrement);         //update the coordinates
+        $('#'+animalObjectId).attr(animalYAxisAttr,yPosition);
+        $('#'+animalObjectId).attr(animalXAxisAttr,xPosition);
+    }
+    else{
+        if(yPosition>=svgHeight){
+            $('#'+animalObjectId).attr(animalYAxisAttr,'0');
+        }
+        if(xPosition<=0){
+            $('#'+animalObjectId).attr(animalXAxisAttr,svgWidth);
+        }
+    }
+}
+function moveAnimalObjectDownRight(animalObjectId,animalXAxisAttr,animalYAxisAttr) {
+    let xPosition = $('#'+animalObjectId).attr(animalXAxisAttr);
+    let yPosition = $('#'+animalObjectId).attr(animalYAxisAttr);
+    let svgWidth = $('#stuffedanimalwarsvg').width();
+    let svgHeight = $('#stuffedanimalwarsvg').height();
+    if(yPosition<svgHeight && xPosition<svgWidth){     //if still on SVG gameboard
+        //randomize the distance of how much each animal moves
+        let randomAnimalPositionIncrement=Math.floor((Math.random() * animalPositionIncrement) + 1);
+        yPosition=parseInt(yPosition)+parseInt(randomAnimalPositionIncrement);         //update the coordinates
+        xPosition=parseInt(xPosition)+parseInt(randomAnimalPositionIncrement);         //update the coordinates
+        $('#'+animalObjectId).attr(animalYAxisAttr,yPosition);
+        $('#'+animalObjectId).attr(animalXAxisAttr,xPosition);
+    }
+    else{
+        if(yPosition>=svgHeight){
+            $('#'+animalObjectId).attr(animalYAxisAttr,'0');
+        }
+        if(xPosition>=svgWidth){
+            $('#'+animalObjectId).attr(animalXAxisAttr,'0');
+        }
+    }
+}
 function moveAnimalObjectSineRight(animalObjectId, animalXAxisAttr, animalYAxisAttr) {
     // Get the current location
     let xPosition = parseInt($('#' + animalObjectId).attr(animalXAxisAttr));
@@ -226,6 +314,98 @@ function moveShapeObjectRight(shapeObjectId,shapeXAxisAttr,shapeYAxisAttr) {
 
     removeShapeAndAnimalObjectsIfHit(shapeObjectId,shapeXAxisAttr,shapeYAxisAttr)
 }
+function moveShapeObjectUpLeft(shapeObjectId,shapeXAxisAttr,shapeYAxisAttr) {
+    //get the current location
+    let xPosition = $('#'+shapeObjectId).attr(shapeXAxisAttr);
+    let yPosition = $('#'+shapeObjectId).attr(shapeYAxisAttr);
+    let svgWidth = $('#stuffedanimalwarsvg').width();
+    let svgHeight = $('#stuffedanimalwarsvg').height();
+    if(yPosition>0 && xPosition>0){    //if still on the SVG gameboard
+        yPosition=parseInt(yPosition)-parseInt(shapePositionIncrement);              //update the coordinates
+        xPosition=parseInt(xPosition)-parseInt(shapePositionIncrement);              //update the coordinates
+        $('#'+shapeObjectId).attr(shapeYAxisAttr,yPosition);$('#'+shapeObjectId).attr(shapeXAxisAttr,xPosition);
+    }
+    else{
+        if(yPosition<=0){
+            $('#'+shapeObjectId).attr(shapeYAxisAttr,svgHeight);
+        }
+        if(xPosition<=0){
+            $('#'+shapeObjectId).attr(shapeXAxisAttr,svgWidth);
+        }
+    }
+
+    removeShapeAndAnimalObjectsIfHit(shapeObjectId,shapeXAxisAttr,shapeYAxisAttr);
+}
+function moveShapeObjectUpRight(shapeObjectId,shapeXAxisAttr,shapeYAxisAttr) {
+    //get the current location
+    let xPosition = $('#'+shapeObjectId).attr(shapeXAxisAttr);
+    let yPosition = $('#'+shapeObjectId).attr(shapeYAxisAttr);
+    let svgWidth = $('#stuffedanimalwarsvg').width();
+    let svgHeight = $('#stuffedanimalwarsvg').height();
+    if(yPosition>0 && xPosition<svgWidth){    //if still on the SVG gameboard
+        yPosition=parseInt(yPosition)-parseInt(shapePositionIncrement);              //update the coordinates
+        xPosition=parseInt(xPosition)+parseInt(shapePositionIncrement);              //update the coordinates
+        $('#'+shapeObjectId).attr(shapeYAxisAttr,yPosition);$('#'+shapeObjectId).attr(shapeXAxisAttr,xPosition);
+    }
+    else{
+        if(yPosition<=0){
+            $('#'+shapeObjectId).attr(shapeYAxisAttr,svgHeight);
+        }
+        if(xPosition>=svgWidth){
+            $('#'+shapeObjectId).attr(shapeXAxisAttr,'0');
+        }
+    }
+
+    removeShapeAndAnimalObjectsIfHit(shapeObjectId,shapeXAxisAttr,shapeYAxisAttr);
+}
+function moveShapeObjectDownLeft(shapeObjectId,shapeXAxisAttr,shapeYAxisAttr) {
+    //get the current location
+    let xPosition = $('#'+shapeObjectId).attr(shapeXAxisAttr);
+    let yPosition = $('#'+shapeObjectId).attr(shapeYAxisAttr);
+    let svgWidth = $('#stuffedanimalwarsvg').width();
+    let svgHeight = $('#stuffedanimalwarsvg').height();
+    //if still on the gameboard
+    if(yPosition<svgHeight && xPosition>0){
+        //update the coordinates
+        yPosition=parseInt(yPosition)+parseInt(shapePositionIncrement);
+        xPosition=parseInt(xPosition)-parseInt(shapePositionIncrement);
+        $('#'+shapeObjectId).attr(shapeYAxisAttr,yPosition);$('#'+shapeObjectId).attr(shapeXAxisAttr,xPosition);
+    }
+    else{
+        if(yPosition>=svgHeight){
+            $('#'+shapeObjectId).attr(shapeYAxisAttr,'0');
+        }
+        if(xPosition<=0){
+            $('#'+shapeObjectId).attr(shapeXAxisAttr,svgWidth);
+        }
+    }
+
+    removeShapeAndAnimalObjectsIfHit(shapeObjectId,shapeXAxisAttr,shapeYAxisAttr)
+}
+function moveShapeObjectDownRight(shapeObjectId,shapeXAxisAttr,shapeYAxisAttr) {
+    //get the current location
+    let xPosition = $('#'+shapeObjectId).attr(shapeXAxisAttr);
+    let yPosition = $('#'+shapeObjectId).attr(shapeYAxisAttr);
+    let svgWidth = $('#stuffedanimalwarsvg').width();
+    let svgHeight = $('#stuffedanimalwarsvg').height();
+    //if still on the gameboard
+    if(yPosition<svgHeight && xPosition<svgWidth){
+        //update the coordinates
+        yPosition=parseInt(yPosition)+parseInt(shapePositionIncrement);
+        xPosition=parseInt(xPosition)+parseInt(shapePositionIncrement);
+        $('#'+shapeObjectId).attr(shapeYAxisAttr,yPosition);$('#'+shapeObjectId).attr(shapeXAxisAttr,xPosition);
+    }
+    else{
+        if(yPosition>=svgHeight){
+            $('#'+shapeObjectId).attr(shapeYAxisAttr,'0');
+        }
+        if(xPosition>=svgWidth){
+            $('#'+shapeObjectId).attr(shapeXAxisAttr,'0');
+        }
+    }
+
+    removeShapeAndAnimalObjectsIfHit(shapeObjectId,shapeXAxisAttr,shapeYAxisAttr)
+}
 function moveShapeObjectSineRight(shapeObjectId, shapeXAxisAttr, shapeYAxisAttr) {
     // Get the current location
     let xPosition = parseInt($('#' + shapeObjectId).attr(shapeXAxisAttr));
@@ -323,6 +503,26 @@ function startAnimalObjectTimerRight(animalObjectId,xAxisAttr,yAxisAttr,animalIn
     let animalObjectTimerId = {'objectId':animalObjectId,'timerId':timerId,'xAxisAttr':xAxisAttr,'yAxisAttr':yAxisAttr};
     animalObjects.push(animalObjectTimerId);
 }
+function startAnimalObjectTimerUpLeft(animalObjectId,xAxisAttr,yAxisAttr,animalInterval){
+    let timerId = window.setInterval(moveAnimalObjectUpLeft,animalInterval,animalObjectId,xAxisAttr,yAxisAttr);
+    let animalObjectTimerId = {'objectId':animalObjectId,'timerId':timerId,'xAxisAttr':xAxisAttr,'yAxisAttr':yAxisAttr};
+    animalObjects.push(animalObjectTimerId);
+}
+function startAnimalObjectTimerUpRight(animalObjectId,xAxisAttr,yAxisAttr,animalInterval){
+    let timerId = window.setInterval(moveAnimalObjectUpRight,animalInterval,animalObjectId,xAxisAttr,yAxisAttr);
+    let animalObjectTimerId = {'objectId':animalObjectId,'timerId':timerId,'xAxisAttr':xAxisAttr,'yAxisAttr':yAxisAttr};
+    animalObjects.push(animalObjectTimerId);
+}
+function startAnimalObjectTimerDownLeft(animalObjectId,xAxisAttr,yAxisAttr,animalInterval){
+    let timerId = window.setInterval(moveAnimalObjectDownLeft,animalInterval,animalObjectId,xAxisAttr,yAxisAttr);
+    let animalObjectTimerId = {'objectId':animalObjectId,'timerId':timerId,'xAxisAttr':xAxisAttr,'yAxisAttr':yAxisAttr};
+    animalObjects.push(animalObjectTimerId);
+}
+function startAnimalObjectTimerDownRight(animalObjectId,xAxisAttr,yAxisAttr,animalInterval){
+    let timerId = window.setInterval(moveAnimalObjectDownRight,animalInterval,animalObjectId,xAxisAttr,yAxisAttr);
+    let animalObjectTimerId = {'objectId':animalObjectId,'timerId':timerId,'xAxisAttr':xAxisAttr,'yAxisAttr':yAxisAttr};
+    animalObjects.push(animalObjectTimerId);
+}
 function startAnimalObjectTimerSineRight(animalObjectId,xAxisAttr,yAxisAttr,animalInterval){
     let timerId = window.setInterval(moveAnimalObjectSineRight,animalInterval,animalObjectId,xAxisAttr,yAxisAttr);
     let animalObjectTimerId = {'objectId':animalObjectId,'timerId':timerId,'xAxisAttr':xAxisAttr,'yAxisAttr':yAxisAttr};
@@ -356,6 +556,26 @@ function startShapeObjectTimerLeft(shapeObjectId,xAxisAttr,yAxisAttr,shapeInterv
 }
 function startShapeObjectTimerRight(shapeObjectId,xAxisAttr,yAxisAttr,shapeInterval){
     let timerId = window.setInterval(moveShapeObjectRight,shapeInterval,shapeObjectId,xAxisAttr,yAxisAttr);
+    let shapeObjectTimerId = {'objectId':shapeObjectId,'timerId':timerId,'xAxisAttr':xAxisAttr,'yAxisAttr':yAxisAttr};
+    shapeObjects.push(shapeObjectTimerId);
+}
+function startShapeObjectTimerUpLeft(shapeObjectId,xAxisAttr,yAxisAttr,shapeInterval){
+    let timerId = window.setInterval(moveShapeObjectUpLeft,shapeInterval,shapeObjectId,xAxisAttr,yAxisAttr);
+    let shapeObjectTimerId = {'objectId':shapeObjectId,'timerId':timerId,'xAxisAttr':xAxisAttr,'yAxisAttr':yAxisAttr};
+    shapeObjects.push(shapeObjectTimerId);
+}
+function startShapeObjectTimerUpRight(shapeObjectId,xAxisAttr,yAxisAttr,shapeInterval){
+    let timerId = window.setInterval(moveShapeObjectUpRight,shapeInterval,shapeObjectId,xAxisAttr,yAxisAttr);
+    let shapeObjectTimerId = {'objectId':shapeObjectId,'timerId':timerId,'xAxisAttr':xAxisAttr,'yAxisAttr':yAxisAttr};
+    shapeObjects.push(shapeObjectTimerId);
+}
+function startShapeObjectTimerDownLeft(shapeObjectId,xAxisAttr,yAxisAttr,shapeInterval){
+    let timerId = window.setInterval(moveShapeObjectDownLeft,shapeInterval,shapeObjectId,xAxisAttr,yAxisAttr);
+    let shapeObjectTimerId = {'objectId':shapeObjectId,'timerId':timerId,'xAxisAttr':xAxisAttr,'yAxisAttr':yAxisAttr};
+    shapeObjects.push(shapeObjectTimerId);
+}
+function startShapeObjectTimerDownRight(shapeObjectId,xAxisAttr,yAxisAttr,shapeInterval){
+    let timerId = window.setInterval(moveShapeObjectDownRight,shapeInterval,shapeObjectId,xAxisAttr,yAxisAttr);
     let shapeObjectTimerId = {'objectId':shapeObjectId,'timerId':timerId,'xAxisAttr':xAxisAttr,'yAxisAttr':yAxisAttr};
     shapeObjects.push(shapeObjectTimerId);
 }
@@ -411,6 +631,18 @@ function onBaseTapSocketEventDots(tapMsgObject){
            break;
        case 'RIGHT':
            startShapeObjectTimerRight(circleId,"cx","cy",uiSetShapeInterval);
+           break;
+       case 'UPLEFT':
+           startShapeObjectTimerUpLeft(circleId,"cx","cy",uiSetShapeInterval);
+           break;
+       case 'UPRIGHT':
+           startShapeObjectTimerUpRight(circleId,"cx","cy",uiSetShapeInterval);
+           break;
+       case 'DOWNLEFT':
+           startShapeObjectTimerDownLeft(circleId,"cx","cy",uiSetShapeInterval);
+           break;
+       case 'DOWNRIGHT':
+           startShapeObjectTimerDownRight(circleId,"cx","cy",uiSetShapeInterval);
            break;
        case 'R-SINE':
            startShapeObjectTimerSineRight(circleId,"cx","cy",uiSetShapeInterval);
@@ -506,6 +738,18 @@ function onBaseTapSocketEventImages(tapMsgObject){
             break;
         case 'RIGHT':
             startAnimalObjectTimerRight(animalId,"x","y",uiSetAnimalInterval);
+            break;
+        case 'UPLEFT':
+            startAnimalObjectTimerUpLeft(animalId,"x","y",uiSetAnimalInterval);
+            break;
+        case 'UPRIGHT':
+            startAnimalObjectTimerUpRight(animalId,"x","y",uiSetAnimalInterval);
+            break;
+        case 'DOWNLEFT':
+            startAnimalObjectTimerDownLeft(animalId,"x","y",uiSetAnimalInterval);
+            break;
+        case 'DOWNRIGHT':
+            startAnimalObjectTimerDownRight(animalId,"x","y",uiSetAnimalInterval);
             break;
         case 'R-SINE':
             startAnimalObjectTimerSineRight(animalId,"x","y",uiSetAnimalInterval);
