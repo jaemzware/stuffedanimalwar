@@ -39,7 +39,17 @@ Flash Raspberry Pi OS Lite (32-bit) to your SD card using Raspberry Pi Imager.
 
 **Note:** You're configuring WiFi temporarily so you can SSH in and run the installer. After installation, you'll remove these credentials so the Pi starts in AP mode.
 
-### 2. Install Git and Clone Repositories
+### 2. SSH Into the Pi
+
+After flashing the SD card and booting the Pi, SSH into the device:
+
+```bash
+ssh jaemzware@stuffedanimalwar.local
+```
+
+Use the password you set in the Raspberry Pi Imager settings.
+
+### 3. Install Git and Clone Repositories
 
 ```bash
 # Install git (not included in Raspberry Pi OS Lite by default)
@@ -59,7 +69,7 @@ cd stuffedanimalwar
 
 **Note:** The AnalogArchive repository is cloned as `analogarchive` (not `analogarchivejs`) to match the expected directory structure.
 
-### 3. Configure Environment Variables
+### 4. Configure Environment Variables
 
 Both applications require `.env` files for configuration:
 
@@ -77,7 +87,13 @@ cp .env.example .env
 
 **Note:** The `.env.example` files are included in the repositories with sensible defaults for Raspberry Pi use. The SSL certificate paths will be automatically populated by the installer.
 
-### 3a. Add Music Files (AnalogArchive only)
+**SSL Certificates:** AnalogArchive reuses the SSL certificates generated for StuffedAnimalWar - you don't need to create separate certificates. Just ensure your AnalogArchive `.env` file points to the StuffedAnimalWar certificate directory:
+```bash
+SSL_KEY_PATH=/home/jaemzware/stuffedanimalwar/sslcert/key.pem
+SSL_CERT_PATH=/home/jaemzware/stuffedanimalwar/sslcert/cert.pem
+```
+
+### 4a. Add Music Files (AnalogArchive only)
 
 If you're using AnalogArchive, create a music directory and add MP3 files:
 
@@ -92,7 +108,7 @@ mkdir -p /home/jaemzware/analogarchive/music
 
 **Note:** AnalogArchive requires at least one MP3 file in the `/music` directory to function properly.
 
-### 4. Install Dependencies
+### 5. Install Dependencies
 
 ```bash
 cd /home/jaemzware/stuffedanimalwar/pisetup
@@ -104,7 +120,10 @@ The installer will:
 - Generate self-signed SSL certificates
 - Configure the access point
 - Set up systemd services
+- Install and configure Samba file sharing
 - Offer to reboot
+
+**Note:** During installation, you will be prompted to set a separate SMB (Samba) password for the `jaemzware` user. This password is used for network file sharing and can be different from your SSH password.
 
 **Choose YES to reboot when prompted.**
 
@@ -114,7 +133,7 @@ After rebooting, the Pi will automatically start in AP mode (since no WiFi crede
 ssh jaemzware@stuffedanimalwar.local
 ```
 
-### 5. Remove Initial WiFi Configuration
+### 6. Remove Initial WiFi Configuration
 
 Now remove the temporary WiFi credentials that were set in the imager:
 
@@ -125,7 +144,7 @@ sudo rm /etc/NetworkManager/system-connections/preconfigured.nmconnection
 
 You're now ready to test the `/setup` page!
 
-### 6. First AP Mode Boot
+### 7. First AP Mode Boot
 
 On first boot (or when no WiFi credentials are saved):
 - Pi starts in **AP Mode**
