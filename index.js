@@ -296,7 +296,8 @@ app.get('/mp3-metadata', async (req, res) => {
                     if (isLocalDomain) {
                         console.log(`[MP3 Metadata] Detected local HTTPS domain: ${urlObj.hostname}, bypassing SSL verification`);
                         fetchOptions.agent = new https.Agent({
-                            rejectUnauthorized: false
+                            rejectUnauthorized: false,
+                            family: 4  // Force IPv4 to avoid IPv6 connection issues in Docker
                         });
                     }
                 }
