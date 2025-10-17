@@ -272,6 +272,8 @@ app.get('/mp3-metadata', async (req, res) => {
         }
 
         if (isRemoteUrl) {
+            console.log(`[MP3 Metadata] Treating as remote URL: ${url}`);
+
             // Remote URL - fetch the file with timeout
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
@@ -292,13 +294,20 @@ app.get('/mp3-metadata', async (req, res) => {
                                          urlObj.hostname === '127.0.0.1' ||
                                          urlObj.hostname.endsWith('.local');
                     if (isLocalDomain) {
+                        console.log(`[MP3 Metadata] Detected local HTTPS domain: ${urlObj.hostname}, bypassing SSL verification`);
                         fetchOptions.agent = new https.Agent({
                             rejectUnauthorized: false
                         });
                     }
                 }
 
+                console.log(`[MP3 Metadata] Fetching with options:`, {
+                    hasAgent: !!fetchOptions.agent,
+                    headers: fetchOptions.headers
+                });
+
                 const response = await fetch(url, fetchOptions);
+                console.log(`[MP3 Metadata] Fetch response status: ${response.status} ${response.statusText}`);
                 clearTimeout(timeoutId);
 
                 if (!response.ok) {
@@ -343,7 +352,8 @@ app.get('/mp3-metadata', async (req, res) => {
                 clearTimeout(timeoutId);
 
                 // If fetch fails (timeout, network error, etc), return filename as fallback
-                console.error('Error fetching remote file:', fetchError.message);
+                console.error('[MP3 Metadata] Error fetching remote file:', fetchError.message);
+                console.error('[MP3 Metadata] Full error:', fetchError);
                 const filename = url.split('/').pop().split('.')[0];
 
                 res.json({
@@ -354,6 +364,7 @@ app.get('/mp3-metadata', async (req, res) => {
                 });
             }
         } else {
+            console.log(`[MP3 Metadata] Treating as local file: ${url}`);
             // Local file - extract path and read from filesystem
             let filePath;
 
