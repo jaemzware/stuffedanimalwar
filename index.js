@@ -249,10 +249,27 @@ app.get('/mp3-metadata', async (req, res) => {
             return res.status(400).json({ error: 'URL parameter is required' });
         }
 
-        // Check if it's a remote URL (and not localhost/127.0.0.1)
-        const isRemoteUrl = url.startsWith('http') &&
-            !url.includes('localhost') &&
-            !url.includes('127.0.0.1');
+        // Check if it's a remote URL
+        // Treat as remote if it's an http/https URL AND either:
+        // 1. It's not a local host (localhost, 127.0.0.1, or .local domain without port), OR
+        // 2. It has an explicit port (like :55557) indicating a different service
+        let isRemoteUrl = false;
+        if (url.startsWith('http')) {
+            try {
+                const urlObj = new URL(url);
+                const hasExplicitPort = urlObj.port !== '';
+                const isLocalHost = urlObj.hostname === 'localhost' ||
+                                   urlObj.hostname === '127.0.0.1' ||
+                                   urlObj.hostname.endsWith('.local');
+
+                // If it has an explicit port, treat as remote (different service like analogarchive)
+                // Otherwise, only treat as remote if it's not a local hostname
+                isRemoteUrl = hasExplicitPort || !isLocalHost;
+            } catch (e) {
+                // If URL parsing fails, fall back to old behavior
+                isRemoteUrl = false;
+            }
+        }
 
         if (isRemoteUrl) {
             // Remote URL - fetch the file with timeout
