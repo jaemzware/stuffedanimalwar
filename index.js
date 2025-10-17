@@ -279,10 +279,25 @@ app.get('/mp3-metadata', async (req, res) => {
                 const urlObj = new URL(url);
                 const isLocalDomain = urlObj.hostname === 'localhost' ||
                                      urlObj.hostname === '127.0.0.1' ||
+                                     urlObj.hostname === 'host.docker.internal' ||
                                      urlObj.hostname.endsWith('.local');
 
+                // In Docker, localhost refers to the container itself, not the host
+                // Check for Docker environment and rewrite localhost to host.docker.internal
+                let hostname = urlObj.hostname;
+                const isDocker = fs.existsSync('/.dockerenv') ||
+                                fs.existsSync('/run/.containerenv') ||
+                                (process.env.KUBERNETES_SERVICE_HOST !== undefined);
+
+                if ((hostname === 'localhost' || hostname === '127.0.0.1') && isDocker) {
+                    hostname = 'host.docker.internal';
+                    console.log(`[MP3 Metadata] Running in container, rewriting ${urlObj.hostname} to ${hostname}`);
+                } else if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                    console.log(`[MP3 Metadata] Not in container, using ${hostname} directly`);
+                }
+
                 const requestOptions = {
-                    hostname: urlObj.hostname,
+                    hostname: hostname,
                     port: urlObj.port,
                     path: urlObj.pathname + urlObj.search,
                     method: 'GET',
@@ -294,7 +309,7 @@ app.get('/mp3-metadata', async (req, res) => {
 
                 // For local domains, bypass SSL verification and force IPv4
                 if (isLocalDomain) {
-                    console.log(`[MP3 Metadata] Detected local HTTPS domain: ${urlObj.hostname}, bypassing SSL verification and forcing IPv4`);
+                    console.log(`[MP3 Metadata] Detected local HTTPS domain: ${hostname}, bypassing SSL verification and forcing IPv4`);
                     requestOptions.rejectUnauthorized = false;
                     requestOptions.family = 4; // Force IPv4
                 }
