@@ -277,12 +277,28 @@ app.get('/mp3-metadata', async (req, res) => {
             const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
 
             try {
-                const response = await fetch(url, {
+                // For HTTPS URLs with self-signed certs (local/analogarchive), disable cert verification
+                const fetchOptions = {
                     signal: controller.signal,
                     headers: {
                         'Range': 'bytes=0-524288' // Only fetch first 512KB for ID3 tags
                     }
-                });
+                };
+
+                // Add agent to bypass SSL verification for HTTPS localhost/local domains
+                if (url.startsWith('https://')) {
+                    const urlObj = new URL(url);
+                    const isLocalDomain = urlObj.hostname === 'localhost' ||
+                                         urlObj.hostname === '127.0.0.1' ||
+                                         urlObj.hostname.endsWith('.local');
+                    if (isLocalDomain) {
+                        fetchOptions.agent = new https.Agent({
+                            rejectUnauthorized: false
+                        });
+                    }
+                }
+
+                const response = await fetch(url, fetchOptions);
                 clearTimeout(timeoutId);
 
                 if (!response.ok) {
