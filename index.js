@@ -249,32 +249,102 @@ app.get('/mp3-metadata', async (req, res) => {
             return res.status(400).json({ error: 'URL parameter is required' });
         }
 
-        // Check if it's a remote URL (and not localhost/127.0.0.1)
-        const isRemoteUrl = url.startsWith('http') &&
-            !url.includes('localhost') &&
-            !url.includes('127.0.0.1');
+        // Check if it's a remote URL
+        // Treat as remote if it's an http/https URL AND either:
+        // 1. It's not a local host (localhost, 127.0.0.1, or .local domain without port), OR
+        // 2. It has an explicit port (like :55557) indicating a different service
+        let isRemoteUrl = false;
+        if (url.startsWith('http')) {
+            try {
+                const urlObj = new URL(url);
+                const hasExplicitPort = urlObj.port !== '';
+                const isLocalHost = urlObj.hostname === 'localhost' ||
+                                   urlObj.hostname === '127.0.0.1' ||
+                                   urlObj.hostname.endsWith('.local');
+
+                // If it has an explicit port, treat as remote (different service like analogarchive)
+                // Otherwise, only treat as remote if it's not a local hostname
+                isRemoteUrl = hasExplicitPort || !isLocalHost;
+            } catch (e) {
+                // If URL parsing fails, fall back to old behavior
+                isRemoteUrl = false;
+            }
+        }
 
         if (isRemoteUrl) {
-            // Remote URL - fetch the file with timeout
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+            console.log(`[MP3 Metadata] Treating as remote URL: ${url}`);
 
             try {
-                const response = await fetch(url, {
-                    signal: controller.signal,
-                    headers: {
-                        'Range': 'bytes=0-524288' // Only fetch first 512KB for ID3 tags
-                    }
-                });
-                clearTimeout(timeoutId);
+                // Use https.request instead of fetch to properly support IPv4 family option
+                const urlObj = new URL(url);
+                const isLocalDomain = urlObj.hostname === 'localhost' ||
+                                     urlObj.hostname === '127.0.0.1' ||
+                                     urlObj.hostname === 'host.docker.internal' ||
+                                     urlObj.hostname.endsWith('.local');
 
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch: ${response.statusText}`);
+                // In Docker, localhost refers to the container itself, not the host
+                // Check for Docker environment and rewrite localhost to host.docker.internal
+                let hostname = urlObj.hostname;
+                const isDocker = fs.existsSync('/.dockerenv') ||
+                                fs.existsSync('/run/.containerenv') ||
+                                (process.env.KUBERNETES_SERVICE_HOST !== undefined);
+
+                if ((hostname === 'localhost' || hostname === '127.0.0.1') && isDocker) {
+                    hostname = 'host.docker.internal';
+                    console.log(`[MP3 Metadata] Running in container, rewriting ${urlObj.hostname} to ${hostname}`);
+                } else if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                    console.log(`[MP3 Metadata] Not in container, using ${hostname} directly`);
                 }
 
-                // Get the file data
-                const arrayBuffer = await response.arrayBuffer();
-                const buffer = Buffer.from(arrayBuffer);
+                const requestOptions = {
+                    hostname: hostname,
+                    port: urlObj.port,
+                    path: urlObj.pathname + urlObj.search,
+                    method: 'GET',
+                    headers: {
+                        'Range': 'bytes=0-524288' // Only fetch first 512KB for ID3 tags
+                    },
+                    timeout: 15000
+                };
+
+                // For local domains, bypass SSL verification and force IPv4
+                if (isLocalDomain) {
+                    console.log(`[MP3 Metadata] Detected local HTTPS domain: ${hostname}, bypassing SSL verification and forcing IPv4`);
+                    requestOptions.rejectUnauthorized = false;
+                    requestOptions.family = 4; // Force IPv4
+                }
+
+                console.log(`[MP3 Metadata] Request options:`, {
+                    hostname: requestOptions.hostname,
+                    port: requestOptions.port,
+                    family: requestOptions.family,
+                    rejectUnauthorized: requestOptions.rejectUnauthorized
+                });
+
+                // Wrap https.request in a Promise
+                const buffer = await new Promise((resolve, reject) => {
+                    const req = https.request(requestOptions, (res) => {
+                        console.log(`[MP3 Metadata] Response status: ${res.statusCode} ${res.statusMessage}`);
+
+                        if (res.statusCode !== 200 && res.statusCode !== 206) {
+                            reject(new Error(`Failed to fetch: ${res.statusCode} ${res.statusMessage}`));
+                            return;
+                        }
+
+                        const chunks = [];
+                        res.on('data', (chunk) => chunks.push(chunk));
+                        res.on('end', () => resolve(Buffer.concat(chunks)));
+                        res.on('error', reject);
+                    });
+
+                    req.on('error', reject);
+                    req.on('timeout', () => {
+                        req.destroy();
+                        reject(new Error('Request timeout'));
+                    });
+
+                    req.end();
+                });
 
                 try {
                     // Read tags using NodeID3
@@ -307,10 +377,9 @@ app.get('/mp3-metadata', async (req, res) => {
                     });
                 }
             } catch (fetchError) {
-                clearTimeout(timeoutId);
-
                 // If fetch fails (timeout, network error, etc), return filename as fallback
-                console.error('Error fetching remote file:', fetchError.message);
+                console.error('[MP3 Metadata] Error fetching remote file:', fetchError.message);
+                console.error('[MP3 Metadata] Full error:', fetchError);
                 const filename = url.split('/').pop().split('.')[0];
 
                 res.json({
@@ -321,6 +390,7 @@ app.get('/mp3-metadata', async (req, res) => {
                 });
             }
         } else {
+            console.log(`[MP3 Metadata] Treating as local file: ${url}`);
             // Local file - extract path and read from filesystem
             let filePath;
 
