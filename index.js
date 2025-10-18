@@ -301,63 +301,79 @@ app.get('/mp3-metadata', async (req, res) => {
                     console.log(`[MP3 Metadata] Not in container, using ${hostname} directly`);
                 }
 
-                const requestOptions = {
-                    hostname: hostname,
-                    port: urlObj.port,
-                    path: urlObj.pathname + urlObj.search,
-                    method: 'GET',
-                    headers: {
-                        'Range': 'bytes=0-524288' // Only fetch first 512KB for ID3 tags
-                    },
-                    timeout: 15000
-                };
+                // Determine if this is a FLAC file to adjust headers
+                const isFlacUrl = url.toLowerCase().endsWith('.flac');
 
-                // For local domains, bypass SSL verification and force IPv4
-                if (isLocalDomain) {
-                    console.log(`[MP3 Metadata] Detected local HTTPS domain: ${hostname}, bypassing SSL verification and forcing IPv4`);
-                    requestOptions.rejectUnauthorized = false;
-                    requestOptions.family = 4; // Force IPv4
-                }
+                // For FLAC files, we'll use music-metadata's stream parser which is more efficient
+                if (isFlacUrl && musicMetadata) {
+                    const requestOptions = {
+                        hostname: hostname,
+                        port: urlObj.port,
+                        path: urlObj.pathname + urlObj.search,
+                        method: 'GET',
+                        timeout: 15000
+                    };
 
-                console.log(`[MP3 Metadata] Request options:`, {
-                    hostname: requestOptions.hostname,
-                    port: requestOptions.port,
-                    family: requestOptions.family,
-                    rejectUnauthorized: requestOptions.rejectUnauthorized
-                });
+                    // For local domains, bypass SSL verification and force IPv4
+                    if (isLocalDomain) {
+                        console.log(`[FLAC Metadata] Detected local HTTPS domain: ${hostname}, bypassing SSL verification and forcing IPv4`);
+                        requestOptions.rejectUnauthorized = false;
+                        requestOptions.family = 4; // Force IPv4
+                    }
 
-                // Wrap https.request in a Promise
-                const buffer = await new Promise((resolve, reject) => {
-                    const req = https.request(requestOptions, (res) => {
-                        console.log(`[MP3 Metadata] Response status: ${res.statusCode} ${res.statusMessage}`);
-
-                        if (res.statusCode !== 200 && res.statusCode !== 206) {
-                            reject(new Error(`Failed to fetch: ${res.statusCode} ${res.statusMessage}`));
-                            return;
-                        }
-
-                        const chunks = [];
-                        res.on('data', (chunk) => chunks.push(chunk));
-                        res.on('end', () => resolve(Buffer.concat(chunks)));
-                        res.on('error', reject);
+                    console.log(`[FLAC Metadata] Request options:`, {
+                        hostname: requestOptions.hostname,
+                        port: requestOptions.port,
+                        family: requestOptions.family,
+                        rejectUnauthorized: requestOptions.rejectUnauthorized
                     });
 
-                    req.on('error', reject);
-                    req.on('timeout', () => {
-                        req.destroy();
-                        reject(new Error('Request timeout'));
-                    });
+                    try {
+                        // Fetch enough data for FLAC metadata (typically in first few MB)
+                        const buffer = await new Promise((resolve, reject) => {
+                            const req = https.request(requestOptions, (res) => {
+                                console.log(`[FLAC Metadata] Response status: ${res.statusCode} ${res.statusMessage}`);
 
-                    req.end();
-                });
+                                if (res.statusCode !== 200) {
+                                    reject(new Error(`Failed to fetch: ${res.statusCode} ${res.statusMessage}`));
+                                    return;
+                                }
 
-                try {
-                    // Determine if this is a FLAC file
-                    const isFlac = url.toLowerCase().endsWith('.flac');
+                                const chunks = [];
+                                let totalSize = 0;
+                                const maxSize = 2 * 1024 * 1024; // 2MB should be enough for metadata + artwork
 
-                    if (isFlac && musicMetadata) {
-                        // Use music-metadata for FLAC files
-                        const metadata = await musicMetadata.parseBuffer(buffer, { mimeType: 'audio/flac' });
+                                res.on('data', (chunk) => {
+                                    chunks.push(chunk);
+                                    totalSize += chunk.length;
+
+                                    // Stop after we have enough data for metadata
+                                    if (totalSize >= maxSize) {
+                                        req.destroy();
+                                        resolve(Buffer.concat(chunks));
+                                    }
+                                });
+
+                                res.on('end', () => {
+                                    resolve(Buffer.concat(chunks));
+                                });
+
+                                res.on('error', reject);
+                            });
+
+                            req.on('error', reject);
+                            req.on('timeout', () => {
+                                req.destroy();
+                                reject(new Error('Request timeout'));
+                            });
+
+                            req.end();
+                        });
+
+                        console.log(`[FLAC Metadata] Fetched ${buffer.length} bytes, first 4 bytes: ${buffer.slice(0, 4).toString('hex')}`);
+
+                        // Parse the buffer with music-metadata
+                        const metadata = await musicMetadata.parseBuffer(buffer);
 
                         // Extract artwork if available
                         let artwork = null;
@@ -372,7 +388,72 @@ app.get('/mp3-metadata', async (req, res) => {
                             album: metadata.common.album || '',
                             artwork: artwork
                         });
-                    } else {
+                    } catch (metadataError) {
+                        console.error('Error parsing FLAC metadata:', metadataError);
+
+                        // Fallback to basic info
+                        const filename = url.split('/').pop().split('.')[0];
+
+                        res.json({
+                            title: decodeURIComponent(filename),
+                            artist: '',
+                            album: '',
+                            artwork: null
+                        });
+                    }
+                } else {
+                    // MP3 handling with range request
+                    const requestOptions = {
+                        hostname: hostname,
+                        port: urlObj.port,
+                        path: urlObj.pathname + urlObj.search,
+                        method: 'GET',
+                        headers: {
+                            'Range': 'bytes=0-524288' // Only fetch first 512KB for ID3 tags
+                        },
+                        timeout: 15000
+                    };
+
+                    // For local domains, bypass SSL verification and force IPv4
+                    if (isLocalDomain) {
+                        console.log(`[MP3 Metadata] Detected local HTTPS domain: ${hostname}, bypassing SSL verification and forcing IPv4`);
+                        requestOptions.rejectUnauthorized = false;
+                        requestOptions.family = 4; // Force IPv4
+                    }
+
+                    console.log(`[MP3 Metadata] Request options:`, {
+                        hostname: requestOptions.hostname,
+                        port: requestOptions.port,
+                        family: requestOptions.family,
+                        rejectUnauthorized: requestOptions.rejectUnauthorized
+                    });
+
+                    // Wrap https.request in a Promise
+                    const buffer = await new Promise((resolve, reject) => {
+                        const req = https.request(requestOptions, (res) => {
+                            console.log(`[MP3 Metadata] Response status: ${res.statusCode} ${res.statusMessage}`);
+
+                            if (res.statusCode !== 200 && res.statusCode !== 206) {
+                                reject(new Error(`Failed to fetch: ${res.statusCode} ${res.statusMessage}`));
+                                return;
+                            }
+
+                            const chunks = [];
+                            res.on('data', (chunk) => chunks.push(chunk));
+                            res.on('end', () => resolve(Buffer.concat(chunks)));
+                            res.on('error', reject);
+                        });
+
+                        req.on('error', reject);
+                        req.on('timeout', () => {
+                            req.destroy();
+                            reject(new Error('Request timeout'));
+                        });
+
+                        req.end();
+                    });
+
+                    try {
                         // Use NodeID3 for MP3 files
                         const tags = NodeID3.read(buffer);
 
@@ -389,19 +470,19 @@ app.get('/mp3-metadata', async (req, res) => {
                             album: tags.album || '',
                             artwork: artwork
                         });
+                    } catch (metadataError) {
+                        console.error('Error parsing MP3 metadata:', metadataError);
+
+                        // Fallback to basic info
+                        const filename = url.split('/').pop().split('.')[0];
+
+                        res.json({
+                            title: decodeURIComponent(filename),
+                            artist: '',
+                            album: '',
+                            artwork: null
+                        });
                     }
-                } catch (metadataError) {
-                    console.error('Error parsing metadata:', metadataError);
-
-                    // Fallback to basic info
-                    const filename = url.split('/').pop().split('.')[0];
-
-                    res.json({
-                        title: decodeURIComponent(filename),
-                        artist: '',
-                        album: '',
-                        artwork: null
-                    });
                 }
             } catch (fetchError) {
                 // If fetch fails (timeout, network error, etc), return filename as fallback
@@ -438,7 +519,10 @@ app.get('/mp3-metadata', async (req, res) => {
 
                 if (isFlac && musicMetadata) {
                     // Use music-metadata for FLAC files
-                    const metadata = await musicMetadata.parseFile(filePath);
+                    const metadata = await musicMetadata.parseFile(filePath, {
+                        skipCovers: false,
+                        includeChapters: false
+                    });
 
                     // Extract artwork if available
                     let artwork = null;
