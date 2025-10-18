@@ -81,12 +81,14 @@ function writeStuffedAnimalWarForm(stuffedAnimalMediaObject){
     document.write("</select>");
     document.write("</td>");
     document.write("<td style=\"width: 100%;\">");
+    document.write("<div style=\"width: 100%; display: flex; justify-content: center;\">");
     // Color picker button (visible by default)
-    document.write("<button type=\"button\" id=\"colorPickerButton\" class=\"color-picker-button\" style=\"width: 100%; height: 32px; padding: 0;\">");
+    document.write("<button type=\"button\" id=\"colorPickerButton\" class=\"color-picker-button\" style=\"width: 200px; height: 32px; padding: 0;\">");
     document.write("<span class=\"color-picker-button-sample\" style=\"width: 100%; height: 100%; margin: 0; border-radius: 4px; display: block;\"></span>");
     document.write("</button>");
     // Custom URL text box (hidden by default)
     document.write("<input style=\"vertical-align:top;text-align:left;display:none;width:100%;height:32px;box-sizing:border-box;\" id=\"imagepathtextbox\" placeholder=\"CUSTOM URL\" />");
+    document.write("</div>");
     document.write("</td>");
     document.write("<td>");
     //CLEAR BUTTON
