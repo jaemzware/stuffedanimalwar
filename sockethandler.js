@@ -260,9 +260,9 @@ function onBaseChatSocketEvent(chatMsgObject){
 
                 img.prependTo("#messagesdiv");
             }
-            else if(chatClientMessage.toLowerCase().endsWith(".mp3") && remoteChatClientUser===masterAlias)
+            else if((chatClientMessage.toLowerCase().endsWith(".mp3") || chatClientMessage.toLowerCase().endsWith(".flac")) && remoteChatClientUser===masterAlias)
             {
-                changeMp3(chatClientMessage);
+                changeAudio(chatClientMessage);
             }
             else if(chatClientMessage.toLowerCase().endsWith(".mp4") && remoteChatClientUser===masterAlias)
             {
@@ -455,7 +455,7 @@ $('#selectsongs').change(function(){
         emitChatMessage(songToPlay);
     }
     else{
-        changeMp3(songToPlay);
+        changeAudio(songToPlay);
     }
 });
 //IMAGE AND VIDEO UPLOAD FORM SUBMISSION

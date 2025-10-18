@@ -15,6 +15,12 @@ const options = {
 //CREATE EXPRESS AND SOCKET.IO SERVERS
 const express = require('express');
 const NodeID3 = require('node-id3');
+let musicMetadata;
+try {
+    musicMetadata = require('music-metadata');
+} catch (e) {
+    console.log('music-metadata not installed - FLAC metadata will not be available');
+}
 const app = express();
 const https = require('https');
 const multer = require('multer');
@@ -238,10 +244,9 @@ stuffedAnimalWarEndpoints.forEach(endpoint => {
     });
 });
 /**
- * mp3 metadata
+ * audio metadata (MP3 and FLAC)
  */
-// MP3 metadata proxy endpoint
-// MP3 metadata proxy endpoint
+// Audio metadata proxy endpoint (supports MP3 and FLAC)
 app.get('/mp3-metadata', async (req, res) => {
     try {
         const url = req.query.url;
@@ -347,22 +352,44 @@ app.get('/mp3-metadata', async (req, res) => {
                 });
 
                 try {
-                    // Read tags using NodeID3
-                    const tags = NodeID3.read(buffer);
+                    // Determine if this is a FLAC file
+                    const isFlac = url.toLowerCase().endsWith('.flac');
 
-                    // Extract artwork if available
-                    let artwork = null;
-                    if (tags.image && tags.image.imageBuffer) {
-                        artwork = tags.image.imageBuffer.toString('base64');
+                    if (isFlac && musicMetadata) {
+                        // Use music-metadata for FLAC files
+                        const metadata = await musicMetadata.parseBuffer(buffer, { mimeType: 'audio/flac' });
+
+                        // Extract artwork if available
+                        let artwork = null;
+                        if (metadata.common.picture && metadata.common.picture.length > 0) {
+                            artwork = metadata.common.picture[0].data.toString('base64');
+                        }
+
+                        // Send metadata as JSON
+                        res.json({
+                            title: metadata.common.title || '',
+                            artist: metadata.common.artist || '',
+                            album: metadata.common.album || '',
+                            artwork: artwork
+                        });
+                    } else {
+                        // Use NodeID3 for MP3 files
+                        const tags = NodeID3.read(buffer);
+
+                        // Extract artwork if available
+                        let artwork = null;
+                        if (tags.image && tags.image.imageBuffer) {
+                            artwork = tags.image.imageBuffer.toString('base64');
+                        }
+
+                        // Send metadata as JSON
+                        res.json({
+                            title: tags.title || '',
+                            artist: tags.artist || '',
+                            album: tags.album || '',
+                            artwork: artwork
+                        });
                     }
-
-                    // Send metadata as JSON
-                    res.json({
-                        title: tags.title || '',
-                        artist: tags.artist || '',
-                        album: tags.album || '',
-                        artwork: artwork
-                    });
                 } catch (metadataError) {
                     console.error('Error parsing metadata:', metadataError);
 
@@ -406,22 +433,44 @@ app.get('/mp3-metadata', async (req, res) => {
             }
 
             try {
-                // Read tags using NodeID3
-                const tags = NodeID3.read(filePath);
+                // Determine if this is a FLAC file
+                const isFlac = filePath.toLowerCase().endsWith('.flac');
 
-                // Extract artwork if available
-                let artwork = null;
-                if (tags.image && tags.image.imageBuffer) {
-                    artwork = tags.image.imageBuffer.toString('base64');
+                if (isFlac && musicMetadata) {
+                    // Use music-metadata for FLAC files
+                    const metadata = await musicMetadata.parseFile(filePath);
+
+                    // Extract artwork if available
+                    let artwork = null;
+                    if (metadata.common.picture && metadata.common.picture.length > 0) {
+                        artwork = metadata.common.picture[0].data.toString('base64');
+                    }
+
+                    // Send metadata as JSON
+                    res.json({
+                        title: metadata.common.title || '',
+                        artist: metadata.common.artist || '',
+                        album: metadata.common.album || '',
+                        artwork: artwork
+                    });
+                } else {
+                    // Use NodeID3 for MP3 files
+                    const tags = NodeID3.read(filePath);
+
+                    // Extract artwork if available
+                    let artwork = null;
+                    if (tags.image && tags.image.imageBuffer) {
+                        artwork = tags.image.imageBuffer.toString('base64');
+                    }
+
+                    // Send metadata as JSON
+                    res.json({
+                        title: tags.title || '',
+                        artist: tags.artist || '',
+                        album: tags.album || '',
+                        artwork: artwork
+                    });
                 }
-
-                // Send metadata as JSON
-                res.json({
-                    title: tags.title || '',
-                    artist: tags.artist || '',
-                    album: tags.album || '',
-                    artwork: artwork
-                });
             } catch (metadataError) {
                 console.error('Error parsing local file metadata:', metadataError);
 
