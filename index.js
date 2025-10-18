@@ -276,10 +276,23 @@ app.get('/mp3-metadata', async (req, res) => {
             try {
                 // Use https.request instead of fetch to properly support IPv4 family option
                 const urlObj = new URL(url);
+
+                // Helper function to check if an IP is in a private range
+                const isPrivateIP = (hostname) => {
+                    const privateRanges = [
+                        /^10\./,                      // 10.0.0.0/8
+                        /^172\.(1[6-9]|2[0-9]|3[0-1])\./, // 172.16.0.0/12
+                        /^192\.168\./,                // 192.168.0.0/16
+                        /^169\.254\./                 // 169.254.0.0/16 (link-local)
+                    ];
+                    return privateRanges.some(range => range.test(hostname));
+                };
+
                 const isLocalDomain = urlObj.hostname === 'localhost' ||
                                      urlObj.hostname === '127.0.0.1' ||
                                      urlObj.hostname === 'host.docker.internal' ||
-                                     urlObj.hostname.endsWith('.local');
+                                     urlObj.hostname.endsWith('.local') ||
+                                     isPrivateIP(urlObj.hostname);
 
                 // In Docker, localhost refers to the container itself, not the host
                 // Check for Docker environment and rewrite localhost to host.docker.internal
