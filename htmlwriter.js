@@ -375,7 +375,7 @@ function writeChatForm(responsesObject) {
     document.write("</tr>");
     document.write("<tr>");
     document.write("<td id=\"chatclientmessagetd\" colspan=\"2\">");
-    document.write("<input id=\"chatClientMessage\" placeholder=\"hit enter to send message text or URL ending with .jpg .gif .png .mp3\" />");
+    document.write("<input id=\"chatClientMessage\" placeholder=\"hit enter to send message text or URL ending with .jpg .gif .png .mp3 .flac\" />");
     document.write("</td>");
     document.write("<td>");
     document.write("<input style=\"vertical-align:top;text-align:left;\" id=\"sendchatbutton\" type=\"button\" value=\"Send\" />");

@@ -94,10 +94,10 @@ function PlayNextTrack(currentFile){
 
     //if the current song is the last song, play the first song
     if(current===last){
-        changeMp3(first);
+        changeAudio(first);
     }
     else{ //otherwise, play the next song
-        changeMp3(next);
+        changeAudio(next);
     }
 }
 function PlayNextVideo(currentFile){
@@ -121,13 +121,13 @@ function PlayNextVideo(currentFile){
         changeMp4(next,nextposter);
     }
 }
-function changeMp3(mp3Url) {
+function changeAudio(audioUrl) {
     let $selectSongs = $('#selectsongs');
     let optionExists = false;
 
     // Check if the song exists in the dropdown
     $selectSongs.find('option').each(function() {
-        if ($(this).val() === mp3Url) {
+        if ($(this).val() === audioUrl) {
             optionExists = true;
             return false; // break the loop
         }
@@ -136,14 +136,14 @@ function changeMp3(mp3Url) {
     // If the option doesn't exist, add it dynamically with the URL as the display text
     if (!optionExists) {
         let newOption = $('<option>')
-            .val(mp3Url)
-            .text(mp3Url); // Just show the URL so we know it's a DJ selection
+            .val(audioUrl)
+            .text(audioUrl); // Just show the URL so we know it's a DJ selection
 
         $selectSongs.append(newOption);
     }
 
     // Select the option
-    $selectSongs.val(mp3Url);
+    $selectSongs.val(audioUrl);
 
     // Clear the metadata display immediately to prevent showing stale data
     const artist = document.getElementById('track-artist');
@@ -160,13 +160,25 @@ function changeMp3(mp3Url) {
     if (artistAlbumSeparator) artistAlbumSeparator.style.display = 'none';
     if (albumTitleSeparator) albumTitleSeparator.style.display = 'none';
 
+    // Determine the MIME type based on file extension
+    let audioType = 'audio/mpeg'; // default for MP3
+    if (audioUrl.toLowerCase().endsWith('.flac')) {
+        audioType = 'audio/flac';
+    }
+
     // Change the source of the AUDIO player
-    $('#jaemzwaredynamicaudiosource').attr("src", mp3Url);
+    $('#jaemzwaredynamicaudiosource').attr("src", audioUrl);
+    $('#jaemzwaredynamicaudiosource').attr("type", audioType);
     document.getElementById("jaemzwaredynamicaudioplayer").load();
     document.getElementById("jaemzwaredynamicaudioplayer").play();
 
     // The existing displayMetadata will be triggered by the loadedmetadata event
     // and will update the metadata display below the player
+}
+
+// Keep backward compatibility
+function changeMp3(mp3Url) {
+    changeAudio(mp3Url);
 }
 
 function changeMp4(mp4Url){
