@@ -134,9 +134,10 @@ nmcli connection add type wifi ifname wlan0 con-name StuffedAnimalWAP autoconnec
 # Configure based on Pi model
 if [ "$PI_TYPE" = "pi5" ]; then
     echo "  - Configuring for Pi 5 WiFi chip..."
-    # Pi 5: Don't specify band, use explicit channel to avoid driver errors
+    # Pi 5: Use explicit channel 6 with band bg to avoid driver errors
     nmcli connection modify StuffedAnimalWAP \
         802-11-wireless.mode ap \
+        802-11-wireless.band bg \
         802-11-wireless.channel 6 \
         ipv4.method shared \
         wifi-sec.key-mgmt wpa-psk \
@@ -155,6 +156,7 @@ else
     # Default config for other models
     nmcli connection modify StuffedAnimalWAP \
         802-11-wireless.mode ap \
+        802-11-wireless.band bg \
         802-11-wireless.channel 6 \
         ipv4.method shared \
         wifi-sec.key-mgmt wpa-psk \
