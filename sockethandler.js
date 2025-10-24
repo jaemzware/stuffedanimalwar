@@ -39,11 +39,23 @@ let currentPath = null;
 let currentDrawColor;
 //cache common jquery selectors
 let SVG = $('#stuffedanimalwarsvg');
+let CANVAS = null; // Will be set when canvas is detected
 let chatTextBox = $('#chatClientMessage');
+let isCanvasMode = false; // Will be set based on which element exists
 //SOCKET EVENTS RECEIVING///////////////////////////////////////////////////////////////////////////SOCKET EVENTS////////////////////////SOCKET EVENTS//
 function initializeSocketHandlers(){
+    // Detect rendering mode (SVG or Canvas)
+    CANVAS = document.getElementById('stuffedanimalwarcanvas');
+    if (CANVAS) {
+        isCanvasMode = true;
+        console.log('Canvas mode detected');
+    } else {
+        isCanvasMode = false;
+        console.log('SVG mode detected');
+    }
+
     //  WHEN A TAP MESSAGE IS RECEIVED FROM THER SERVER
-    //  SEND THE OBJECT RECEIVED TO THE APPROPRIATE FUNCTION THAT HANDLES IT, 
+    //  SEND THE OBJECT RECEIVED TO THE APPROPRIATE FUNCTION THAT HANDLES IT,
     //  DEPENDING ON THE TYPE OF ANIMAL SENT BY $('#stuffedanimalwarsvg').click;
     socket.on(chatSocketEvent, function(chatMsgObject){
         onBaseChatSocketEvent(chatMsgObject);
@@ -66,24 +78,29 @@ function initializeSocketHandlers(){
         }        
     });
     socket.on(pathSocketEvent, function(pathMsgObject){
-        // Create the SVG path element
-        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        if (isCanvasMode) {
+            // Canvas mode: call the canvas path handler
+            onBasePathSocketEvent(pathMsgObject);
+        } else {
+            // SVG mode: create SVG path element
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
 
-        // Construct the "d" attribute for the path
-        const d = `M${pathMsgObject.points[0][0]} ${pathMsgObject.points[0][1]} L${pathMsgObject.points
-            .slice(1)
-            .map((p) => p.join(" "))
-            .join(" ")}`;
+            // Construct the "d" attribute for the path
+            const d = `M${pathMsgObject.points[0][0]} ${pathMsgObject.points[0][1]} L${pathMsgObject.points
+                .slice(1)
+                .map((p) => p.join(" "))
+                .join(" ")}`;
 
-        // Set attributes for the path
-        $(path)
-            .attr("d", d)
-            .attr("stroke", "rgb(" + pathMsgObject.red + "," + pathMsgObject.green + "," + pathMsgObject.blue + ")")
-            .attr("stroke-width", pathMsgObject.width)
-            .attr("fill", "none");
+            // Set attributes for the path
+            $(path)
+                .attr("d", d)
+                .attr("stroke", "rgb(" + pathMsgObject.red + "," + pathMsgObject.green + "," + pathMsgObject.blue + ")")
+                .attr("stroke-width", pathMsgObject.width)
+                .attr("fill", "none");
 
-        // Append the path to the SVG
-        $('#stuffedanimalwarsvg').append(path);
+            // Append the path to the SVG
+            $('#stuffedanimalwarsvg').append(path);
+        }
     });
     socket.on(chatImageSocketEvent, function(chatImageMsgObject){
         let chatServerDate = chatImageMsgObject.CHATSERVERDATE;
@@ -201,7 +218,11 @@ function initializeSocketHandlers(){
     });
     socket.on(presentImageSocketEvent, function(presentImageMsgObject){
         console.log("PRESENTER IMAGE UPDATE:" + JSON.stringify(presentImageMsgObject));
-        $('#stuffedanimalwarsvg').css('background-image', 'url(' + presentImageMsgObject.CHATCLIENTIMAGE + ')');
+        if (isCanvasMode) {
+            $('#stuffedanimalwarcanvas').css('background-image', 'url(' + presentImageMsgObject.CHATCLIENTIMAGE + ')');
+        } else {
+            $('#stuffedanimalwarsvg').css('background-image', 'url(' + presentImageMsgObject.CHATCLIENTIMAGE + ')');
+        }
     });
     socket.on(connectSocketEvent, function(connectMsgObject){
         var span = $("<span/>").text(formatChatServerUserIp(connectMsgObject.CHATSERVERUSER) + " CONNECT - "+ connectMsgObject.CHATSERVERPORT + "/" + connectMsgObject.CHATSERVERENDPOINT +" - Total:" + connectMsgObject.CHATUSERCOUNT);
@@ -300,10 +321,151 @@ function onBaseChatSocketEvent(chatMsgObject){
 }
 //SOCKET EVENTS RECEIVING///////////////////////////////////////////////////////////////////////////SOCKET EVENTS////////////////////////SOCKET EVENTS//
 
-//STUFFED ANIMAL WAR SVG CLICK/TAP AND PATH EVENTS///////////////////////////////////////////////////////////////////////////HTML EVENTS////////////////////////HTML EVENTS//
+//STUFFED ANIMAL WAR SVG/CANVAS CLICK/TAP AND PATH EVENTS///////////////////////////////////////////////////////////////////////////HTML EVENTS////////////////////////HTML EVENTS//
 
-// DESKTOP DRAG
-SVG.on("mousedown", function (e) {
+// Set up event listeners based on rendering mode
+document.addEventListener('DOMContentLoaded', function() {
+    const drawSurface = isCanvasMode ? CANVAS : SVG[0];
+    if (isCanvasMode) {
+        setupCanvasDrawingEvents();
+    } else {
+        setupSVGDrawingEvents();
+    }
+});
+
+// CANVAS DRAWING EVENTS
+function setupCanvasDrawingEvents() {
+    let tempCanvas = null;
+    let tempCtx = null;
+
+    $(CANVAS).on("mousedown", function (e) {
+        let colorPickerButton = $("#colorPickerButton");
+        let color = "rgb(" + colorPickerButton.attr("data-red") + "," + colorPickerButton.attr("data-green") + "," + colorPickerButton.attr("data-blue") + ")";
+        isDrawing = true;
+        points = [[e.offsetX, e.offsetY]];
+        currentDrawColor = color;
+
+        // Create temporary canvas overlay for real-time drawing
+        if (!tempCanvas) {
+            tempCanvas = document.createElement('canvas');
+            tempCanvas.width = CANVAS.width;
+            tempCanvas.height = CANVAS.height;
+            tempCanvas.style.position = 'absolute';
+            tempCanvas.style.top = CANVAS.offsetTop + 'px';
+            tempCanvas.style.left = CANVAS.offsetLeft + 'px';
+            tempCanvas.style.pointerEvents = 'none';
+            CANVAS.parentNode.appendChild(tempCanvas);
+            tempCtx = tempCanvas.getContext('2d');
+        }
+    });
+
+    $(CANVAS).on("mousemove", function (e) {
+        if (!isDrawing) return;
+        points.push([e.offsetX, e.offsetY]);
+
+        // Draw on temporary canvas
+        if (tempCtx) {
+            tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
+            tempCtx.beginPath();
+            tempCtx.moveTo(points[0][0], points[0][1]);
+            for (let i = 1; i < points.length; i++) {
+                tempCtx.lineTo(points[i][0], points[i][1]);
+            }
+            tempCtx.strokeStyle = currentDrawColor;
+            tempCtx.lineWidth = 2;
+            tempCtx.stroke();
+        }
+    });
+
+    $(CANVAS).on("mouseup", function (e) {
+        if (!isDrawing) return;
+        isDrawing = false;
+
+        // Clear temporary canvas
+        if (tempCtx) {
+            tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
+        }
+
+        if (points.length === 1) {
+            emitTapMessage(points[0][0], points[0][1]);
+        } else {
+            emitPathMessage();
+        }
+    });
+
+    // Touch events for canvas
+    $(CANVAS).on("touchstart", function (e) {
+        e.preventDefault();
+        let colorPickerButton = $("#colorPickerButton");
+        let color = "rgb(" + colorPickerButton.attr("data-red") + "," + colorPickerButton.attr("data-green") + "," + colorPickerButton.attr("data-blue") + ")";
+        const touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0];
+        const canvasRect = CANVAS.getBoundingClientRect();
+        const x = touch.clientX - canvasRect.left;
+        const y = touch.clientY - canvasRect.top;
+
+        isDrawing = true;
+        points = [[x, y]];
+        currentDrawColor = color;
+
+        if (!tempCanvas) {
+            tempCanvas = document.createElement('canvas');
+            tempCanvas.width = CANVAS.width;
+            tempCanvas.height = CANVAS.height;
+            tempCanvas.style.position = 'absolute';
+            tempCanvas.style.top = CANVAS.offsetTop + 'px';
+            tempCanvas.style.left = CANVAS.offsetLeft + 'px';
+            tempCanvas.style.pointerEvents = 'none';
+            CANVAS.parentNode.appendChild(tempCanvas);
+            tempCtx = tempCanvas.getContext('2d');
+        }
+    });
+
+    $(CANVAS).on("touchmove", function (e) {
+        e.preventDefault();
+        if (!isDrawing) return;
+        const touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0];
+        const canvasRect = CANVAS.getBoundingClientRect();
+        const x = touch.clientX - canvasRect.left;
+        const y = touch.clientY - canvasRect.top;
+        points.push([x, y]);
+
+        if (tempCtx) {
+            tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
+            tempCtx.beginPath();
+            tempCtx.moveTo(points[0][0], points[0][1]);
+            for (let i = 1; i < points.length; i++) {
+                tempCtx.lineTo(points[i][0], points[i][1]);
+            }
+            tempCtx.strokeStyle = currentDrawColor;
+            tempCtx.lineWidth = 2;
+            tempCtx.stroke();
+        }
+    });
+
+    $(CANVAS).on("touchend", function (e) {
+        e.preventDefault();
+        if (!isDrawing) return;
+        isDrawing = false;
+
+        if (tempCtx) {
+            tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
+        }
+
+        const isActualTap = points.length > 1 && points.every(point =>
+            point[0] === points[0][0] && point[1] === points[0][1]
+        );
+
+        if (points.length === 1 || isActualTap) {
+            emitTapMessage(points[0][0], points[0][1]);
+        } else {
+            emitPathMessage();
+        }
+    });
+}
+
+// SVG DRAWING EVENTS (original code)
+function setupSVGDrawingEvents() {
+    SVG.on("mousedown", function (e) {
     let colorPickerButton = $("#colorPickerButton");
     let color = "rgb(" + colorPickerButton.attr("data-red") + "," + colorPickerButton.attr("data-green") + "," + colorPickerButton.attr("data-blue") + ")";
     isDrawing = true;
@@ -437,8 +599,9 @@ SVG.on("touchend", function (e) {
             currentPath = null;
         }
     }
-});
-//^^^STUFFED ANIMAL WAR SVG CLICK/TAP AND PATH EVENTS^^^//////////////////////////////////////////////////////////////////
+    });
+}
+//^^^STUFFED ANIMAL WAR SVG/CANVAS CLICK/TAP AND PATH EVENTS^^^//////////////////////////////////////////////////////////////////
 
 $('#chatClientAutoResponder').change(function(){
     //GET THE MESSAGE FROM THE AUTORESPONDER
@@ -598,10 +761,16 @@ $('#sendchatbutton').click(function () {
 $('.photosformthumbnail').on("click", function() {
     // Get the src from the clicked thumbnail
     let imageSrc = $(this).attr('src');
-    let SVG = $('#stuffedanimalwarsvg');
 
-    // Set the background image of stuffedanimalwarsvg
-    SVG.css('background-image', 'url(' + imageSrc + ')');
+    // Set the background image based on rendering mode
+    let drawSurface;
+    if (isCanvasMode) {
+        drawSurface = $('#stuffedanimalwarcanvas');
+        drawSurface.css('background-image', 'url(' + imageSrc + ')');
+    } else {
+        drawSurface = $('#stuffedanimalwarsvg');
+        drawSurface.css('background-image', 'url(' + imageSrc + ')');
+    }
 
     // Set the background image for everyone
     let chatClientUser = $("#chatClientUser").val();
@@ -609,9 +778,9 @@ $('.photosformthumbnail').on("click", function() {
         emitPresentImage(imageSrc);
     }
 
-    // Scroll to the SVG element
+    // Scroll to the drawing surface element
     $('html, body').animate({
-        scrollTop: SVG.offset().top
+        scrollTop: drawSurface.offset().top
     }, 500); // 500ms animation duration
 });
 $('#clearboardbutton').on("click", function() {
