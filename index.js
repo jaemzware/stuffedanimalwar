@@ -72,8 +72,9 @@ const stuffedAnimalWarPageCounters = stuffedAnimalWarEndpoints.reduce((acc, page
     return acc;
 }, {});
 
-// Load the template HTML once at startup
+// Load both template HTMLs at startup
 let templateHtml = fs.readFileSync(path.join(__dirname, 'template.html'), 'utf8');
+let templateCanvasHtml = fs.readFileSync(path.join(__dirname, 'template-canvas.html'), 'utf8');
 
 //SERVE INDEX FOR NO ENDPOINT AFTER PORT ADDRESS
 app.get('/', function(req, res){
@@ -108,6 +109,9 @@ stuffedAnimalWarEndpoints.forEach(endpoint => {
     //SERVE THE HTML PAGE ENDPOINT
     app.get('/' + endpoint, function(req, res){
         try {
+            // Check if SVG mode is requested via query parameter (default is Canvas)
+            const useCanvas = req.query.canvas !== 'false';
+
             // Try to read the endpoint-specific JSON configuration
             const configPath = path.join(__dirname, 'endpoints', endpoint + '.json');
             let configData;
@@ -125,8 +129,13 @@ stuffedAnimalWarEndpoints.forEach(endpoint => {
                 configData.masterAlias = endpoint.toUpperCase();
             }
 
+            // Select the appropriate template based on canvas parameter
+            let html = useCanvas ? templateCanvasHtml : templateHtml;
+
+            // Log which mode is being used
+            console.log(`Serving ${endpoint} in ${useCanvas ? 'CANVAS' : 'SVG'} mode`);
+
             // Generate HTML by replacing placeholders in the template
-            let html = templateHtml;
             html = html.replace('{{ENDPOINT}}', configData.endpoint);
             html = html.replace('{{MASTER_ALIAS}}', configData.masterAlias);
             html = html.replace('{{UNSPECIFIED_ALIAS}}', configData.unspecifiedAlias);

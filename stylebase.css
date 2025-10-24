@@ -259,6 +259,18 @@ div.seattlenativelinks{
     touch-action: none;
     max-width: 100%;
 }
+#stuffedanimalwarcanvas{
+    margin:0;
+    padding:0;
+    width:100%;
+    background-size:contain;
+    background-position:center;
+    background-repeat: no-repeat;
+    height:500px;
+    touch-action: none;
+    max-width: 100%;
+    display: block;
+}
 #stuffedanimalwarformtable{
     background-color:black;
     width: 100%;
@@ -500,6 +512,9 @@ a.jaemzwarelogo:active, .skateparkdetail a:active {
         width: 100%;
     }
     #stuffedanimalwarsvg {
+        height: 300px; /* Shorter height for mobile */
+    }
+    #stuffedanimalwarcanvas {
         height: 300px; /* Shorter height for mobile */
     }
     #stuffedanimalwarform{
