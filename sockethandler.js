@@ -121,7 +121,12 @@ function initializeSocketHandlers(){
         });
 
         img.on("click", function () {
-            $('#stuffedanimalwarsvg').css('background-image', 'url(' + chatImageMsgObject.CHATCLIENTIMAGE + ')');
+            if (isCanvasMode) {
+                $('#stuffedanimalwarcanvas').css('background-image', 'url(' + chatImageMsgObject.CHATCLIENTIMAGE + ')');
+                setBackgroundImage(chatImageMsgObject.CHATCLIENTIMAGE);
+            } else {
+                $('#stuffedanimalwarsvg').css('background-image', 'url(' + chatImageMsgObject.CHATCLIENTIMAGE + ')');
+            }
         });
 
         // Prepend the image (or linked image) to the #messagesdiv
@@ -220,6 +225,7 @@ function initializeSocketHandlers(){
         console.log("PRESENTER IMAGE UPDATE:" + JSON.stringify(presentImageMsgObject));
         if (isCanvasMode) {
             $('#stuffedanimalwarcanvas').css('background-image', 'url(' + presentImageMsgObject.CHATCLIENTIMAGE + ')');
+            setBackgroundImage(presentImageMsgObject.CHATCLIENTIMAGE);
         } else {
             $('#stuffedanimalwarsvg').css('background-image', 'url(' + presentImageMsgObject.CHATCLIENTIMAGE + ')');
         }
@@ -276,7 +282,12 @@ function onBaseChatSocketEvent(chatMsgObject){
                  });
 
                 img.on("click", function () {
-                    $('#stuffedanimalwarsvg').css('background-image', 'url(' + chatClientMessage + ')');
+                    if (isCanvasMode) {
+                        $('#stuffedanimalwarcanvas').css('background-image', 'url(' + chatClientMessage + ')');
+                        setBackgroundImage(chatClientMessage);
+                    } else {
+                        $('#stuffedanimalwarsvg').css('background-image', 'url(' + chatClientMessage + ')');
+                    }
                 });
 
                 img.prependTo("#messagesdiv");
@@ -767,6 +778,7 @@ $('.photosformthumbnail').on("click", function() {
     if (isCanvasMode) {
         drawSurface = $('#stuffedanimalwarcanvas');
         drawSurface.css('background-image', 'url(' + imageSrc + ')');
+        setBackgroundImage(imageSrc);
     } else {
         drawSurface = $('#stuffedanimalwarsvg');
         drawSurface.css('background-image', 'url(' + imageSrc + ')');

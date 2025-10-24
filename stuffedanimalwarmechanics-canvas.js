@@ -25,6 +25,8 @@ const imageCache = {};
 let canvas = null;
 let ctx = null;
 let animationFrameId = null;
+let backgroundImage = null;
+let backgroundImageLoaded = false;
 
 // Initialize canvas after DOM loads
 document.addEventListener('DOMContentLoaded', function() {
@@ -35,6 +37,16 @@ document.addEventListener('DOMContentLoaded', function() {
         window.addEventListener('resize', resizeCanvas);
 
         ctx = canvas.getContext('2d');
+
+        // Check for initial background image from CSS
+        const initialBg = $(canvas).css('background-image');
+        if (initialBg && initialBg !== 'none') {
+            // Extract URL from CSS url() format
+            const urlMatch = initialBg.match(/url\(["']?([^"')]+)["']?\)/);
+            if (urlMatch && urlMatch[1]) {
+                setBackgroundImage(urlMatch[1]);
+            }
+        }
 
         // Start the game loop
         startGameLoop();
@@ -73,6 +85,11 @@ function startGameLoop() {
         if (ctx && canvas) {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+            // Draw background image if loaded
+            if (backgroundImageLoaded && backgroundImage) {
+                drawBackgroundImage();
+            }
+
             // Draw paths (static)
             drawPaths();
 
@@ -106,6 +123,53 @@ function stopGameLoop() {
 // ============================================================================
 // DRAWING FUNCTIONS
 // ============================================================================
+
+function drawBackgroundImage() {
+    if (!backgroundImage || !ctx || !canvas) return;
+
+    // Calculate dimensions to maintain aspect ratio and center the image
+    const canvasAspect = canvas.width / canvas.height;
+    const imageAspect = backgroundImage.width / backgroundImage.height;
+
+    let drawWidth, drawHeight, drawX, drawY;
+
+    // Use 'contain' behavior - image fits inside canvas while maintaining aspect ratio
+    if (imageAspect > canvasAspect) {
+        // Image is wider than canvas
+        drawWidth = canvas.width;
+        drawHeight = canvas.width / imageAspect;
+        drawX = 0;
+        drawY = (canvas.height - drawHeight) / 2;
+    } else {
+        // Image is taller than canvas
+        drawWidth = canvas.height * imageAspect;
+        drawHeight = canvas.height;
+        drawX = (canvas.width - drawWidth) / 2;
+        drawY = 0;
+    }
+
+    ctx.drawImage(backgroundImage, drawX, drawY, drawWidth, drawHeight);
+}
+
+function setBackgroundImage(imageUrl) {
+    if (!imageUrl) {
+        backgroundImage = null;
+        backgroundImageLoaded = false;
+        return;
+    }
+
+    const img = new Image();
+    img.onload = function() {
+        backgroundImage = img;
+        backgroundImageLoaded = true;
+    };
+    img.onerror = function() {
+        console.error('Failed to load background image:', imageUrl);
+        backgroundImage = null;
+        backgroundImageLoaded = false;
+    };
+    img.src = imageUrl;
+}
 
 function drawPaths() {
     pathObjects.forEach(pathObj => {
