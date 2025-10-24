@@ -109,8 +109,8 @@ stuffedAnimalWarEndpoints.forEach(endpoint => {
     //SERVE THE HTML PAGE ENDPOINT
     app.get('/' + endpoint, function(req, res){
         try {
-            // Check if canvas mode is requested via query parameter
-            const useCanvas = req.query.canvas === 'true';
+            // Check if SVG mode is requested via query parameter (default is Canvas)
+            const useCanvas = req.query.canvas !== 'false';
 
             // Try to read the endpoint-specific JSON configuration
             const configPath = path.join(__dirname, 'endpoints', endpoint + '.json');
