@@ -1,12 +1,23 @@
-function writeStuffedAnimalWar(stuffedAnimalMediaObject){
-    document.write("<div id='sawflexdiv'>");
-    writeStuffedAnimalWarDiv(stuffedAnimalMediaObject);
-    writeStuffedAnimalWarForm(stuffedAnimalMediaObject);
-    document.write("</div>");
-    document.write("<hr />");
+function writeStuffedAnimalWar(stuffedAnimalMediaObject, readonly = false){
+    if (readonly) {
+        // Readonly mode: only show the canvas div, fullscreen and centered
+        writeStuffedAnimalWarDiv(stuffedAnimalMediaObject, true);
+    } else {
+        // Normal mode: show everything with flexbox layout
+        document.write("<div id='sawflexdiv'>");
+        writeStuffedAnimalWarDiv(stuffedAnimalMediaObject, false);
+        writeStuffedAnimalWarForm(stuffedAnimalMediaObject);
+        document.write("</div>");
+        document.write("<hr />");
+    }
 }
-function writeStuffedAnimalWarDiv(stuffedAnimalMediaObject) {
-    document.write("<div id=\"stuffedanimalwardiv\">");
+function writeStuffedAnimalWarDiv(stuffedAnimalMediaObject, readonly = false) {
+    // Add 'readonly' class when in readonly mode for special styling
+    if (readonly) {
+        document.write("<div id=\"stuffedanimalwardiv\" class=\"readonly\">");
+    } else {
+        document.write("<div id=\"stuffedanimalwardiv\">");
+    }
 
     //IF THE BACKGROUND IMAGE WAS SPECIFIED
     if(stuffedAnimalMediaObject && stuffedAnimalMediaObject.backgroundimage){

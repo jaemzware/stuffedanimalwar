@@ -19,17 +19,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Set initial color if needed
         window.ColorPickerModal.setColor(255, 255, 255);
-    } else {
-        console.error("Color picker button not found!");
     }
 
     //HIDE CUSTOM URL FIELD UNTIL IT IS CHOSEN FROM SELECT
-    $("#imagepathtextbox").css("display", "none");
+    const imagePathTextbox = document.getElementById("imagepathtextbox");
+    if (imagePathTextbox) {
+        $("#imagepathtextbox").css("display", "none");
+    }
 
     //LOAD FIRST FRAME OF VIDEO IF POSTER NOT SPECIFIED
     const video = document.getElementById("jaemzwaredynamicvideoplayer");
 
-    if (!video.hasAttribute("poster") || video.getAttribute("poster") === "") {
+    if (video && (!video.hasAttribute("poster") || video.getAttribute("poster") === "")) {
         // Once the video metadata is loaded, we can seek to the first frame
         video.addEventListener("loadedmetadata", function () {
             // Seek to the first frame (0.1 seconds to ensure we get an actual frame)
@@ -461,12 +462,16 @@ function initSpeedSlider() {
     const speedSlider = document.getElementById('speedSlider');
     const speedValue = document.getElementById('speedValue');
 
-    // Update the displayed value when the slider changes
-    speedSlider.addEventListener('input', function() {
-        speedValue.textContent = this.value;
-    });
+    // Only initialize if elements exist (won't exist in readonly mode)
+    if (speedSlider && speedValue) {
+        // Update the displayed value when the slider changes
+        speedSlider.addEventListener('input', function() {
+            speedValue.textContent = this.value;
+        });
+    }
 }
 // Function to get the current speed value
 function getSpeed() {
-    return parseInt(document.getElementById('speedSlider').value);
+    const speedSlider = document.getElementById('speedSlider');
+    return speedSlider ? parseInt(speedSlider.value) : 50; // Default to 50 if slider doesn't exist
 }
