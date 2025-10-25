@@ -2,11 +2,11 @@
 <html>
     <head>
         <title>Stuffed Animal War (Canvas)</title>
-        <link rel="Stylesheet" href="stylebase.css" />
+        <link rel="Stylesheet" href="/stylebase.css" />
 <!--        FOR MOBILE-->
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
-        <script type="text/javascript" src="htmlwriter-canvas.js"></script>
-        <script src="jquery-3.7.1.min.js"></script>
+        <script type="text/javascript" src="/htmlwriter-canvas.js"></script>
+        <script src="/jquery-3.7.1.min.js"></script>
         <script src="/socket.io/socket.io.js"></script>
     </head>
 <body>
@@ -40,11 +40,11 @@
         writePhotosFromJson(mediaObject);
     }
 </script>
-<script type="text/javascript" src="stuffedanimalwarmechanics-canvas.js"></script>
+<script type="text/javascript" src="/stuffedanimalwarmechanics-canvas.js"></script>
 <!--DOMContentLoaded audio and video programmatic behavior on next song/video, etc and a random color generator-->
-<script type="text/javascript" src="utilities.js"></script>
+<script type="text/javascript" src="/utilities.js"></script>
 <!--emitting and receiving socket events and objects-->
-<script type="text/javascript" src="sockethandler.js"></script>
+<script type="text/javascript" src="/sockethandler.js"></script>
 <!--sockethandler initialization vars-->
 <script type="text/javascript">
     /**
@@ -80,7 +80,7 @@
             document.getElementById('unspecifiedAliasDisplay').textContent = unspecifiedAlias || 'none';
         });
     } else {
-        // Readonly mode: set up mute button functionality
+        // Readonly mode: set up mute button functionality and autoplay
         document.addEventListener('DOMContentLoaded', function() {
             const audioPlayer = document.getElementById('jaemzwaredynamicaudioplayer');
             const muteButton = document.getElementById('readonlyMuteButton');
@@ -89,11 +89,22 @@
                 // Start muted by default
                 audioPlayer.muted = true;
 
+                // Autoplay muted (browsers allow muted autoplay)
+                audioPlayer.play().catch(function(error) {
+                    console.log('Autoplay prevented:', error);
+                    // If autoplay fails, user can still click the mute button to play
+                });
+
                 // Toggle mute/unmute on click
                 muteButton.addEventListener('click', function() {
                     audioPlayer.muted = !audioPlayer.muted;
                     muteButton.textContent = audioPlayer.muted ? '🔇' : '🔊';
                     muteButton.style.background = audioPlayer.muted ? 'rgba(0, 0, 0, 0.5)' : 'rgba(0, 0, 0, 0.7)';
+
+                    // Ensure it's playing when unmuting
+                    if (!audioPlayer.muted && audioPlayer.paused) {
+                        audioPlayer.play();
+                    }
                 });
             }
         });
@@ -101,6 +112,6 @@
     initializeSocketHandlers();
 </script>
 <!--COLOR PICKER-->
-<script src="modal-color-picker.js"></script>
+<script src="/modal-color-picker.js"></script>
 </body>
 </html>
