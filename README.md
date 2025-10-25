@@ -36,6 +36,39 @@ A privacy-focused, real-time chat, game, and media sharing platform built with N
 ### Communication
 - **Real-time Communication**: Instant chat, media sharing, and game interactions via WebSockets
 
+## 🎯 URL Parameters
+
+### Canvas Mode (Default)
+By default, all endpoints use the Canvas rendering engine for better performance and features:
+```
+https://yourserver.com:55556/jim
+```
+
+To switch to legacy SVG mode:
+```
+https://yourserver.com:55556/jim?canvas=false
+```
+
+### Readonly Mode (For Demonstrations)
+Display only the fullscreen canvas without any controls - perfect for presentations, demonstrations, or display screens:
+```
+https://yourserver.com:55556/jim?readonly=true
+```
+
+**Readonly Mode Features:**
+- ✅ Fullscreen canvas that takes up entire viewport
+- ✅ Centered display with black background
+- ✅ View all real-time interactions from other users
+- ✅ No controls, forms, or interactive elements visible
+- ✅ No user interaction allowed (pointer events disabled)
+- ✅ Perfect for demonstrations, presentations, or passive displays
+
+**Use Cases:**
+- Conference presentations (like SeaGL at University of Washington)
+- Public display screens showing live collaborative art
+- Projector displays for group viewing
+- Digital signage showing real-time activity
+
 ## 🚀 Quick Start
 
 ### Prerequisites
