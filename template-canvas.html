@@ -27,6 +27,8 @@
     if (isReadonly) {
         // Readonly mode: only show the canvas for demonstration purposes
         writeStuffedAnimalWar(stuffedAnimalMediaObject, true);
+        writeAudioFromJson(mediaObject);
+        writeMuteButton();
     } else {
         // Normal mode: show all interactive elements
         writeStuffedAnimalWar(stuffedAnimalMediaObject, false);
@@ -76,6 +78,24 @@
             document.getElementById('endpointDisplay').textContent = endpoint || 'none';
             document.getElementById('masterAliasDisplay').textContent = masterAlias || 'none';
             document.getElementById('unspecifiedAliasDisplay').textContent = unspecifiedAlias || 'none';
+        });
+    } else {
+        // Readonly mode: set up mute button functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const audioPlayer = document.getElementById('jaemzwaredynamicaudioplayer');
+            const muteButton = document.getElementById('readonlyMuteButton');
+
+            if (audioPlayer && muteButton) {
+                // Start muted by default
+                audioPlayer.muted = true;
+
+                // Toggle mute/unmute on click
+                muteButton.addEventListener('click', function() {
+                    audioPlayer.muted = !audioPlayer.muted;
+                    muteButton.textContent = audioPlayer.muted ? '🔇' : '🔊';
+                    muteButton.style.background = audioPlayer.muted ? 'rgba(0, 0, 0, 0.5)' : 'rgba(0, 0, 0, 0.7)';
+                });
+            }
         });
     }
     initializeSocketHandlers();
