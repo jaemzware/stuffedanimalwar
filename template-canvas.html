@@ -18,14 +18,25 @@
     let stuffedAnimalMediaObject = {{STUFFED_ANIMAL_MEDIA_OBJECT}};
     let mediaObject = {{MEDIA_OBJECT}};
     let responsesObject = {{RESPONSES_OBJECT}};
+
+    // Check if readonly mode is enabled via URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const isReadonly = urlParams.get('readonly') === 'true';
+
     //write the web page
-    writeStuffedAnimalWar(stuffedAnimalMediaObject);
-    writeChatForm(responsesObject);
-    writeChatFormFileUpload();
-    writeChatFormVideoUpload();
-    writeAudioFromJson(mediaObject);
-    writeVideoFromJson(mediaObject);
-    writePhotosFromJson(mediaObject);
+    if (isReadonly) {
+        // Readonly mode: only show the canvas for demonstration purposes
+        writeStuffedAnimalWar(stuffedAnimalMediaObject, true);
+    } else {
+        // Normal mode: show all interactive elements
+        writeStuffedAnimalWar(stuffedAnimalMediaObject, false);
+        writeChatForm(responsesObject);
+        writeChatFormFileUpload();
+        writeChatFormVideoUpload();
+        writeAudioFromJson(mediaObject);
+        writeVideoFromJson(mediaObject);
+        writePhotosFromJson(mediaObject);
+    }
 </script>
 <script type="text/javascript" src="stuffedanimalwarmechanics-canvas.js"></script>
 <!--DOMContentLoaded audio and video programmatic behavior on next song/video, etc and a random color generator-->
@@ -59,12 +70,14 @@
             endpoint: endpoint
         }
     });
-    // Populate the endpoint info after the DOM is ready
-    document.addEventListener('DOMContentLoaded', function() {
-        document.getElementById('endpointDisplay').textContent = endpoint || 'none';
-        document.getElementById('masterAliasDisplay').textContent = masterAlias || 'none';
-        document.getElementById('unspecifiedAliasDisplay').textContent = unspecifiedAlias || 'none';
-    });
+    // Populate the endpoint info after the DOM is ready (only in normal mode)
+    if (!isReadonly) {
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('endpointDisplay').textContent = endpoint || 'none';
+            document.getElementById('masterAliasDisplay').textContent = masterAlias || 'none';
+            document.getElementById('unspecifiedAliasDisplay').textContent = unspecifiedAlias || 'none';
+        });
+    }
     initializeSocketHandlers();
 </script>
 <!--COLOR PICKER-->
