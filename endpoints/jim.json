@@ -1,9 +1,9 @@
 {
     "endpoint": "jim",
     "masterAlias": "JIM",
-    "unspecifiedAlias": "no name loser",
+    "unspecifiedAlias": "noob the fng",
     "stuffedAnimalMediaObject": {
-        "backgroundimage": "https://seattlerules.com/media/stuffedanimalwar/space.jpg",
+        "backgroundimage": "photos/space.jpg",
         "animals": [
             {
                 "file": "animals/badger.png",
@@ -96,280 +96,42 @@
         ]
     },
     "mediaObject": {
-        "songspath": "https://analogarchive.com/b2proxy/analog/",
-        "videospath": "https://seattlerules.com/media/trump/videos/",
-        "photospath": "https://seattlerules.com/media/stuffedanimalwar/fromkittehwithlove/",
+        "songspath": "songs/",
+        "videospath": "videos/",
+        "photospath": "photos/",
         "videos": [
             {
-                "file": "https://skatecreteordie.com/marg.mp4",
-                "title": "Marg",
-                "poster": "https://skatecreteordie.s3.us-east-005.backblazeb2.com/production/skatecreteordiedeck.png"
-            },
-            {
-                "file": "https://skatecreteordie.s3.us-east-005.backblazeb2.com/content/del.mp4",
-                "title": "Delridge ATV",
-                "poster": "https://skatecreteordie.s3.us-east-005.backblazeb2.com/production/skatecreteordiedeck.png"
-            },
-            {
-                "file": "https://seattlerules.com/media/bobcatbbqrampjam/bobcatrampjamandbbq20240922.mp4",
-                "title": "Bobcat Ramp Jam",
-                "poster": "https://skatecreteordie.s3.us-east-005.backblazeb2.com/production/skatecreteordiedeck.png"
+                "file": "jimskate.mp4",
+                "title": "Jim Skate",
+                "poster": "stuffedanimalmountain.jpg"
             }
         ],
         "photos": [
             {
-                "file": "IMG_0024.JPG",
-                "title": "photo by jim"
+                "file": "boots.jpg",
+                "title": "Boots"
             },
             {
-                "file": "IMG_0168.JPG",
-                "title": "photo by jim"
+                "file": "BZBM8389.JPG",
+                "title": "Skatecreteordie Promo"
             },
             {
-                "file": "IMG_0197.JPG",
-                "title": "photo by jim"
+                "file": "IMG_3512.JPG",
+                "title": "Space Needle at Night"
             },
             {
-                "file": "IMG_0198.JPG",
-                "title": "photo by jim"
+                "file": "IMG_5269.JPG",
+                "title": "Battle Machine"
             },
             {
-                "file": "IMG_0199.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_0334.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_0338.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_0396.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_0397.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_0405.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_0406.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_0407.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_0560.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_0630.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_0632.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_0634.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_0805.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_2392.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_2405.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_2500.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_2538.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_2558.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_2559.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_2560.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_2561.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_2562.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_2563.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_2706.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_2708.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_2711.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_2715.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_2716.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_2720.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_2724.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_2731.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_2735.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_2737.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_2741.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_2771.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_8233.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_8303.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_8311.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_8361.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_8741.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_8765.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_8781.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_8784.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_8893.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_9362.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_9363.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_9376.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_9381.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_9383.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_9386.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_9389.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_9394.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_9538.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_9567.JPG",
-                "title": "photo by jim"
-            },
-            {
-                "file": "IMG_9784.JPG",
-                "title": "photo by jim"
+                "file": "stuffedanimalwarfinal.jpg",
+                "title": "Stuffed Animal War Promo"
             }
         ],
         "songs": [
             {
-                "file": "losthighwaysoundtrack-sidea.mp3",
-                "title": "Lost Highway Soundtrack - Vinyl Side A"
-            },
-            {
-                "file": "losthighwaysoundtrack-sideb.mp3",
-                "title": "Lost Highway Soundtrack - Vinyl Side B"
-            },
-            {
-                "file": "losthighwaysoundtrack-sidec.mp3",
-                "title": "Lost Highway Soundtrack - Vinyl Side C"
-            },
-            {
-                "file": "losthighwaysoundtrack-sided.mp3",
-                "title": "Lost Highway Soundtrack - Vinyl Side D"
+                "file": "pixies-imamazed-brokenface-demo.mp3",
+                "title": "Pixies - I'm Amazed / Broken Face"
             }
         ]
     },
