@@ -3,7 +3,7 @@
     "masterAlias": "MADDIE",
     "unspecifiedAlias": "anonymous",
     "stuffedAnimalMediaObject": {
-        "backgroundimage": "https://seattlerules.com/media/stuffedanimalwar/maddie/snow.jpg",
+        "backgroundimage": "https://jaemzware.com/media/stuffedanimalwar/maddie/snow.jpg",
         "animals": [
             {
                 "file": "animals/badger.png",
@@ -97,8 +97,8 @@
     },
     "mediaObject": {
         "songspath": "https://analogarchive.com/b2proxy/analog/",
-        "videospath": "https://seattlerules.com/media/trump/videos/",
-        "photospath": "https://seattlerules.com/media/stuffedanimalwar/maddie/",
+        "videospath": "https://jaemzware.com/media/trump/videos/",
+        "photospath": "https://jaemzware.com/media/stuffedanimalwar/maddie/",
         "videos": [
             {
                 "file": "https://skatecreteordie.s3.us-east-005.backblazeb2.com/content/del.mp4",
@@ -111,7 +111,7 @@
                 "poster": "https://skatecreteordie.s3.us-east-005.backblazeb2.com/production/skatecreteordiedeck.png"
             },
             {
-                "file": "https://seattlerules.com/media/bobcatbbqrampjam/bobcatrampjamandbbq20240922.mp4",
+                "file": "https://jaemzware.com/media/bobcatbbqrampjam/bobcatrampjamandbbq20240922.mp4",
                 "title": "Bobcat Ramp Jam",
                 "poster": "https://skatecreteordie.s3.us-east-005.backblazeb2.com/production/skatecreteordiedeck.png"
             }
