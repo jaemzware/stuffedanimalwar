@@ -3,7 +3,7 @@
     "masterAlias": "NINA",
     "unspecifiedAlias": "anonymous",
     "stuffedAnimalMediaObject": {
-        "backgroundimage": "https://jaemzware.com/media/stuffedanimalwar/secondbeach.JPG",
+        "backgroundimage": "photos/IMG_5269.JPG",
         "animals": [
             {
                 "file": "animals/badger.png",
@@ -99,21 +99,22 @@
         "songspath": "https://analogarchive.com/b2proxy/analog/",
         "videospath": "https://jaemzware.com/media/trump/videos/",
         "photospath": "https://jaemzware.com/media/stuffedanimalwar/fromkittehwithlove/",
-        "videos": [
+        "songs": [
             {
-                "file": "https://skatecreteordie.s3.us-east-005.backblazeb2.com/content/del.mp4",
-                "title": "Delridge ATV",
-                "poster": "https://skatecreteordie.s3.us-east-005.backblazeb2.com/production/skatecreteordiedeck.png"
+                "file": "losthighwaysoundtrack-sidea.mp3",
+                "title": "Lost Highway Soundtrack - Vinyl Side A"
             },
             {
-                "file": "https://skatecreteordie.com/marg.mp4",
-                "title": "Marg",
-                "poster": "https://skatecreteordie.s3.us-east-005.backblazeb2.com/production/skatecreteordiedeck.png"
+                "file": "losthighwaysoundtrack-sideb.mp3",
+                "title": "Lost Highway Soundtrack - Vinyl Side B"
             },
             {
-                "file": "https://jaemzware.com/media/bobcatbbqrampjam/bobcatrampjamandbbq20240922.mp4",
-                "title": "Bobcat Ramp Jam",
-                "poster": "https://skatecreteordie.s3.us-east-005.backblazeb2.com/production/skatecreteordiedeck.png"
+                "file": "losthighwaysoundtrack-sidec.mp3",
+                "title": "Lost Highway Soundtrack - Vinyl Side C"
+            },
+            {
+                "file": "losthighwaysoundtrack-sided.mp3",
+                "title": "Lost Highway Soundtrack - Vinyl Side D"
             }
         ],
         "photos": [
@@ -354,22 +355,21 @@
                 "title": "photo by jim"
             }
         ],
-        "songs": [
+        "videos": [
             {
-                "file": "losthighwaysoundtrack-sidea.mp3",
-                "title": "Lost Highway Soundtrack - Vinyl Side A"
+                "file": "https://skatecreteordie.s3.us-east-005.backblazeb2.com/content/del.mp4",
+                "title": "Delridge ATV",
+                "poster": "https://skatecreteordie.s3.us-east-005.backblazeb2.com/production/skatecreteordiedeck.png"
             },
             {
-                "file": "losthighwaysoundtrack-sideb.mp3",
-                "title": "Lost Highway Soundtrack - Vinyl Side B"
+                "file": "https://skatecreteordie.com/marg.mp4",
+                "title": "Marg",
+                "poster": "https://skatecreteordie.s3.us-east-005.backblazeb2.com/production/skatecreteordiedeck.png"
             },
             {
-                "file": "losthighwaysoundtrack-sidec.mp3",
-                "title": "Lost Highway Soundtrack - Vinyl Side C"
-            },
-            {
-                "file": "losthighwaysoundtrack-sided.mp3",
-                "title": "Lost Highway Soundtrack - Vinyl Side D"
+                "file": "https://jaemzware.com/media/bobcatbbqrampjam/bobcatrampjamandbbq20240922.mp4",
+                "title": "Bobcat Ramp Jam",
+                "poster": "https://skatecreteordie.s3.us-east-005.backblazeb2.com/production/skatecreteordiedeck.png"
             }
         ]
     },
