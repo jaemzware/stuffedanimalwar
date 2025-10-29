@@ -1,7 +1,7 @@
 {
     "endpoint": "jim",
     "masterAlias": "JIM",
-    "unspecifiedAlias": "your mom in a jar",
+    "unspecifiedAlias": "mr nobody",
     "stuffedAnimalMediaObject": {
         "backgroundimage": "photos/space.jpg",
         "animals": [
@@ -108,23 +108,23 @@
         "photos": [
             {
                 "file": "boots.jpg",
-                "title": "Boots"
+                "title": "Boots the Cat"
             },
             {
                 "file": "BZBM8389.JPG",
-                "title": "Skatecreteordie Promo"
+                "title": "Skatecreteordie Promo Shot"
             },
             {
                 "file": "IMG_3512.JPG",
-                "title": "Space Needle at Night"
+                "title": "Space Needle at Night by Seascape"
             },
             {
                 "file": "IMG_5269.JPG",
-                "title": "Battle Machine"
+                "title": "Battle Machine Look Out!"
             },
             {
                 "file": "stuffedanimalwarfinal.jpg",
-                "title": "Stuffed Animal War Promo"
+                "title": "Stuffed Animal War Promo Photo"
             }
         ],
         "videos": [

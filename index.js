@@ -250,13 +250,63 @@ stuffedAnimalWarEndpoints.forEach(endpoint => {
 /**
  * CRUD MANAGEMENT ENDPOINTS
  */
+// Simple session storage (in production, use proper session management)
+const crudSessions = new Map();
+
 // Serve the CRUD management page
 app.get('/crud', function(req, res){
     res.sendFile(path.join(__dirname, 'crud-manager.html'));
 });
 
+// Authenticate CRUD access
+app.post('/api/crud-auth', function(req, res){
+    const { password } = req.body;
+    const correctPassword = process.env.CRUD_PASSWORD || 'admin';
+
+    if (password === correctPassword) {
+        // Generate a simple session token
+        const token = Math.random().toString(36).substring(2) + Date.now().toString(36);
+        crudSessions.set(token, { timestamp: Date.now() });
+
+        res.json({
+            success: true,
+            token: token,
+            message: 'Authentication successful'
+        });
+    } else {
+        res.json({
+            success: false,
+            message: 'Incorrect password. Please contact the administrator.'
+        });
+    }
+});
+
+// Middleware to check CRUD authentication
+function checkCrudAuth(req, res, next) {
+    const token = req.headers['x-crud-token'];
+
+    if (!token || !crudSessions.has(token)) {
+        return res.status(401).json({
+            success: false,
+            message: 'Unauthorized. Please log in.'
+        });
+    }
+
+    // Check if session is expired (24 hours)
+    const session = crudSessions.get(token);
+    if (Date.now() - session.timestamp > 24 * 60 * 60 * 1000) {
+        crudSessions.delete(token);
+        return res.status(401).json({
+            success: false,
+            message: 'Session expired. Please log in again.'
+        });
+    }
+
+    next();
+}
+
 // GET endpoint configuration (READ)
-app.get('/api/endpoint/:name', function(req, res){
+app.get('/api/endpoint/:name', checkCrudAuth, function(req, res){
     try {
         const endpointName = req.params.name;
         const configPath = path.join(__dirname, 'endpoints', endpointName + '.json');
@@ -280,7 +330,7 @@ app.get('/api/endpoint/:name', function(req, res){
 });
 
 // LIST all endpoints (READ)
-app.get('/api/endpoints', function(req, res){
+app.get('/api/endpoints', checkCrudAuth, function(req, res){
     try {
         const endpointsDir = path.join(__dirname, 'endpoints');
         const files = fs.readdirSync(endpointsDir)
@@ -298,7 +348,7 @@ app.get('/api/endpoints', function(req, res){
 });
 
 // UPDATE endpoint configuration (UPDATE)
-app.post('/api/endpoint/:name', function(req, res){
+app.post('/api/endpoint/:name', checkCrudAuth, function(req, res){
     try {
         const endpointName = req.params.name;
         const configPath = path.join(__dirname, 'endpoints', endpointName + '.json');
@@ -321,7 +371,7 @@ app.post('/api/endpoint/:name', function(req, res){
 });
 
 // VALIDATE resource paths (helper endpoint)
-app.post('/api/validate-resource', async function(req, res){
+app.post('/api/validate-resource', checkCrudAuth, async function(req, res){
     try {
         const { path: resourcePath, type } = req.body;
 

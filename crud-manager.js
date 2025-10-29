@@ -2,16 +2,83 @@
 let currentEndpoint = null;
 let validationPassed = false;
 let validationErrors = [];
+let authToken = null;
 
 // Initialize on page load
 window.addEventListener('DOMContentLoaded', function() {
-    loadEndpointList();
+    // Check if already logged in (token in sessionStorage)
+    authToken = sessionStorage.getItem('crudAuthToken');
+    if (authToken) {
+        showCrudInterface();
+        loadEndpointList();
+    }
+
+    // Allow Enter key to submit login
+    const loginInput = document.getElementById('loginPassword');
+    if (loginInput) {
+        loginInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                login();
+            }
+        });
+    }
 });
+
+// Login function
+async function login() {
+    const password = document.getElementById('loginPassword').value;
+    const errorDiv = document.getElementById('loginError');
+
+    if (!password) {
+        errorDiv.textContent = 'Please enter a password';
+        errorDiv.style.display = 'block';
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/crud-auth', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ password: password })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            authToken = result.token;
+            sessionStorage.setItem('crudAuthToken', authToken);
+            showCrudInterface();
+            loadEndpointList();
+        } else {
+            errorDiv.textContent = result.message;
+            errorDiv.style.display = 'block';
+            document.getElementById('loginPassword').value = '';
+        }
+    } catch (error) {
+        errorDiv.textContent = 'Login failed: ' + error.message;
+        errorDiv.style.display = 'block';
+    }
+}
+
+// Show CRUD interface
+function showCrudInterface() {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('crudInterface').style.display = 'block';
+}
+
+// Helper function to make authenticated API calls
+async function authenticatedFetch(url, options = {}) {
+    options.headers = options.headers || {};
+    options.headers['x-crud-token'] = authToken;
+    return fetch(url, options);
+}
 
 // Load list of available endpoints
 async function loadEndpointList() {
     try {
-        const response = await fetch('/api/endpoints');
+        const response = await authenticatedFetch('/api/endpoints');
         const result = await response.json();
 
         if (result.success) {
@@ -39,7 +106,7 @@ async function loadEndpoint() {
     }
 
     try {
-        const response = await fetch('/api/endpoint/' + endpointName);
+        const response = await authenticatedFetch('/api/endpoint/' + endpointName);
         const result = await response.json();
 
         if (result.success) {
@@ -438,7 +505,7 @@ async function validateResourcePath(fieldOrElement, type, validationId = null) {
     if (value.startsWith('http://') || value.startsWith('https://')) {
         try {
             // Validate HTTP URL via server-side to avoid CORS issues
-            const response = await fetch('/api/validate-resource', {
+            const response = await authenticatedFetch('/api/validate-resource', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -482,7 +549,7 @@ async function validateResourcePath(fieldOrElement, type, validationId = null) {
 
         // Validate with server
         try {
-            const response = await fetch('/api/validate-resource', {
+            const response = await authenticatedFetch('/api/validate-resource', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -548,7 +615,7 @@ async function confirmSave() {
     const data = collectFormData();
 
     try {
-        const response = await fetch('/api/endpoint/' + currentEndpoint, {
+        const response = await authenticatedFetch('/api/endpoint/' + currentEndpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
