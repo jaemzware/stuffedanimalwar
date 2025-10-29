@@ -103,10 +103,6 @@
             {
                 "file": "pixies-imamazed-brokenface-demo.mp3",
                 "title": "Pixies - I'm Amazed / Broken Face"
-            },
-            {
-                "file": "https://analogarchive.com/music/CrackSabbath/September%2017th%2C%202014/ZOOM0002-cracksabbath-owlandthistle-20140917.mp3",
-                "title": "Crack Sabbath"
             }
         ],
         "photos": [
@@ -135,11 +131,6 @@
             {
                 "file": "jimskate.mp4",
                 "title": "Jim Skate",
-                "poster": "stuffedanimalmountain.jpg"
-            },
-            {
-                "file": "https://f005.backblazeb2.com/file/skatecreteordie/content/del.mp4",
-                "title": "Delridge Kids",
                 "poster": "stuffedanimalmountain.jpg"
             }
         ]

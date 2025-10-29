@@ -284,6 +284,16 @@ function addResponseItem(response = '', index) {
 // Remove array item
 function removeArrayItem(button) {
     const item = button.closest('.array-item');
+    const container = item.parentElement;
+
+    // Count remaining items
+    const itemCount = container.querySelectorAll('.array-item').length;
+
+    if (itemCount <= 1) {
+        alert('Cannot remove the last item. At least one entry is required in each array.');
+        return;
+    }
+
     item.remove();
 }
 
