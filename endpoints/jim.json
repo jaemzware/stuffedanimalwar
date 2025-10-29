@@ -1,7 +1,7 @@
 {
     "endpoint": "jim",
     "masterAlias": "JIM",
-    "unspecifiedAlias": "noob the fng",
+    "unspecifiedAlias": "mr nobody",
     "stuffedAnimalMediaObject": {
         "backgroundimage": "photos/space.jpg",
         "animals": [
@@ -99,39 +99,43 @@
         "songspath": "songs/",
         "videospath": "videos/",
         "photospath": "photos/",
-        "videos": [
+        "songs": [
             {
-                "file": "jimskate.mp4",
-                "title": "Jim Skate",
-                "poster": "stuffedanimalmountain.jpg"
+                "file": "pixies-imamazed-brokenface-demo.mp3",
+                "title": "Pixies - I'm Amazed / Broken Face"
+            },
+            {
+                "file": "zeke-cheer.mp3",
+                "title": "Zeke show applause"
             }
         ],
         "photos": [
             {
                 "file": "boots.jpg",
-                "title": "Boots"
+                "title": "Boots the Cat"
             },
             {
-                "file": "BZBM8389.JPG",
-                "title": "Skatecreteordie Promo"
+                "file": "jim-boneless.JPG",
+                "title": "Skatecreteordie Promo Shot"
             },
             {
                 "file": "IMG_3512.JPG",
-                "title": "Space Needle at Night"
+                "title": "Space Needle at Night by Seascape"
             },
             {
                 "file": "IMG_5269.JPG",
-                "title": "Battle Machine"
+                "title": "Battle Machine Look Out!"
             },
             {
                 "file": "stuffedanimalwarfinal.jpg",
-                "title": "Stuffed Animal War Promo"
+                "title": "Stuffed Animal War Promo Photo"
             }
         ],
-        "songs": [
+        "videos": [
             {
-                "file": "pixies-imamazed-brokenface-demo.mp3",
-                "title": "Pixies - I'm Amazed / Broken Face"
+                "file": "jimskate.mp4",
+                "title": "Jim Skate",
+                "poster": "stuffedanimalmountain.jpg"
             }
         ]
     },
@@ -277,6 +281,12 @@
             },
             {
                 "response": "youre wrong"
+            },
+            {
+                "response": "get a life"
+            },
+            {
+                "response": "no, just no"
             }
         ]
     }

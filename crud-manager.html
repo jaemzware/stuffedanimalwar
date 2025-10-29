@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Endpoint CRUD Manager - Stuffed Animal War</title>
+    <link rel="stylesheet" href="stylebase.css" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #000;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #00ff00;
+        }
+
+        .endpoint-selector {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .endpoint-selector select {
+            padding: 10px;
+            font-size: 16px;
+            width: 300px;
+        }
+
+        .endpoint-selector button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+
+        #endpointForm {
+            display: none;
+            background: #222;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+            border: 2px solid #444;
+            padding: 15px;
+            border-radius: 5px;
+        }
+
+        .form-section h2 {
+            color: #00ff00;
+            margin-top: 0;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #0ff;
+        }
+
+        .form-group input[type="text"],
+        .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            font-size: 14px;
+            box-sizing: border-box;
+            background: #333;
+            color: #fff;
+            border: 1px solid #666;
+        }
+
+        .form-group input[readonly] {
+            background: #555;
+            cursor: not-allowed;
+        }
+
+        .array-section {
+            background: #333;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .array-header {
+            background: #444;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .array-header:hover {
+            background: #555;
+        }
+
+        .array-header h3 {
+            margin: 0;
+            color: #0ff;
+            font-size: 16px;
+        }
+
+        .collapse-indicator {
+            font-size: 20px;
+            font-weight: bold;
+            color: #0ff;
+        }
+
+        .array-content {
+            display: block;
+        }
+
+        .array-content.collapsed {
+            display: none;
+        }
+
+        .array-item {
+            background: #444;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            position: relative;
+        }
+
+        .array-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .remove-btn {
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+
+        .add-btn {
+            background: #44ff44;
+            color: black;
+            border: none;
+            padding: 8px 20px;
+            cursor: pointer;
+            border-radius: 3px;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        .validation-status {
+            display: inline-block;
+            margin-left: 10px;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+
+        .validation-success {
+            background: #44ff44;
+            color: #000;
+        }
+
+        .validation-error {
+            background: #ff4444;
+            color: #fff;
+        }
+
+        .validation-pending {
+            background: #ffaa44;
+            color: #000;
+        }
+
+        .button-group {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            background: #111;
+            border-radius: 5px;
+        }
+
+        .button-group button {
+            padding: 15px 30px;
+            font-size: 16px;
+            margin: 0 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            border: none;
+            font-weight: bold;
+        }
+
+        .validate-btn {
+            background: #ffaa44;
+            color: #000;
+        }
+
+        .save-btn {
+            background: #44ff44;
+            color: #000;
+        }
+
+        .save-btn:disabled {
+            background: #666;
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        .cancel-btn {
+            background: #ff4444;
+            color: #fff;
+        }
+
+        .status-message {
+            text-align: center;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .status-success {
+            background: #44ff44;
+            color: #000;
+        }
+
+        .status-error {
+            background: #ff4444;
+            color: #fff;
+        }
+
+        .error-list {
+            list-style: none;
+            padding: 0;
+            margin: 10px 0;
+        }
+
+        .error-list li {
+            padding: 5px 0;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+        }
+
+        .modal-content {
+            background-color: #222;
+            margin: 15% auto;
+            padding: 30px;
+            border: 2px solid #00ff00;
+            width: 400px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .modal-buttons {
+            margin-top: 20px;
+        }
+
+        .modal-buttons button {
+            padding: 10px 30px;
+            margin: 0 10px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            border: none;
+            font-weight: bold;
+        }
+
+        .modal-yes {
+            background: #44ff44;
+            color: #000;
+        }
+
+        .modal-no {
+            background: #ff4444;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="container" style="max-width: 500px; margin-top: 100px;">
+        <h1>🔒 CRUD Manager Login</h1>
+        <div style="background: #222; padding: 30px; border-radius: 10px; text-align: center;">
+            <p style="color: #0ff; margin-bottom: 20px;">Enter password to access the CRUD manager</p>
+            <input type="password" id="loginPassword" placeholder="Password" style="width: 100%; padding: 15px; font-size: 16px; margin-bottom: 20px; background: #333; color: #fff; border: 1px solid #666; box-sizing: border-box;" />
+            <button onclick="login()" style="padding: 15px 40px; font-size: 16px; background: #44ff44; color: #000; border: none; cursor: pointer; border-radius: 5px; font-weight: bold;">Login</button>
+            <div id="loginError" style="color: #ff4444; margin-top: 20px; display: none;"></div>
+        </div>
+    </div>
+
+    <!-- Main CRUD Interface -->
+    <div id="crudInterface" class="container" style="display: none;">
+        <h1>🎮 Endpoint CRUD Manager 🎮</h1>
+
+        <div class="endpoint-selector">
+            <select id="endpointSelect">
+                <option value="">-- Select Endpoint --</option>
+            </select>
+            <button onclick="loadEndpoint()">Load</button>
+        </div>
+
+        <div id="statusMessage" class="status-message"></div>
+
+        <form id="endpointForm">
+            <!-- Basic Info Section -->
+            <div class="form-section">
+                <h2>📋 Basic Information</h2>
+
+                <div class="form-group">
+                    <label>Endpoint (Read-Only):</label>
+                    <input type="text" id="endpoint" readonly />
+                </div>
+
+                <div class="form-group">
+                    <label>Master Alias: <span class="validation-status" id="val-masterAlias"></span></label>
+                    <input type="text" id="masterAlias" placeholder="Master alias" />
+                </div>
+
+                <div class="form-group">
+                    <label>Unspecified Alias (Anonymous): <span class="validation-status" id="val-unspecifiedAlias"></span></label>
+                    <input type="text" id="unspecifiedAlias" placeholder="Default user alias" />
+                </div>
+            </div>
+
+            <!-- Stuffed Animal Media Section -->
+            <div class="form-section">
+                <h2>🐻 Stuffed Animal Media</h2>
+
+                <div class="form-group">
+                    <label>Background Image: <span class="validation-status" id="val-backgroundimage"></span></label>
+                    <input type="text" id="backgroundimage" placeholder="photos/space.jpg" data-validate-type="background" />
+                </div>
+
+                <div class="form-group">
+                    <div class="array-header" onclick="toggleCollapse('animalsSection')">
+                        <h3>🐻 Animals</h3>
+                        <span class="collapse-indicator" id="animalsSection-indicator">▶</span>
+                    </div>
+                    <div id="animalsSection" class="array-content collapsed">
+                        <div id="animalsArray" class="array-section"></div>
+                        <button type="button" class="add-btn" onclick="addAnimal()">➕ Add Animal</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Media Object Section -->
+            <div class="form-section">
+                <h2>🎵 Media Object</h2>
+
+                <div class="form-group">
+                    <label>Songs Path: <span class="validation-status" id="val-songspath"></span></label>
+                    <input type="text" id="songspath" placeholder="songs/" />
+                </div>
+
+                <div class="form-group">
+                    <label>Videos Path: <span class="validation-status" id="val-videospath"></span></label>
+                    <input type="text" id="videospath" placeholder="videos/" />
+                </div>
+
+                <div class="form-group">
+                    <label>Photos Path: <span class="validation-status" id="val-photospath"></span></label>
+                    <input type="text" id="photospath" placeholder="photos/" />
+                </div>
+
+                <div class="form-group">
+                    <div class="array-header" onclick="toggleCollapse('songsSection')">
+                        <h3>🎵 Songs</h3>
+                        <span class="collapse-indicator" id="songsSection-indicator">▶</span>
+                    </div>
+                    <div id="songsSection" class="array-content collapsed">
+                        <div id="songsArray" class="array-section"></div>
+                        <button type="button" class="add-btn" onclick="addSong()">➕ Add Song</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="array-header" onclick="toggleCollapse('photosSection')">
+                        <h3>📷 Photos</h3>
+                        <span class="collapse-indicator" id="photosSection-indicator">▶</span>
+                    </div>
+                    <div id="photosSection" class="array-content collapsed">
+                        <div id="photosArray" class="array-section"></div>
+                        <button type="button" class="add-btn" onclick="addPhoto()">➕ Add Photo</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="array-header" onclick="toggleCollapse('videosSection')">
+                        <h3>🎬 Videos</h3>
+                        <span class="collapse-indicator" id="videosSection-indicator">▶</span>
+                    </div>
+                    <div id="videosSection" class="array-content collapsed">
+                        <div id="videosArray" class="array-section"></div>
+                        <button type="button" class="add-btn" onclick="addVideo()">➕ Add Video</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Responses Section -->
+            <div class="form-section">
+                <h2>💬 Responses Object</h2>
+
+                <div class="form-group">
+                    <div class="array-header" onclick="toggleCollapse('responsesSection')">
+                        <h3>💬 Responses</h3>
+                        <span class="collapse-indicator" id="responsesSection-indicator">▶</span>
+                    </div>
+                    <div id="responsesSection" class="array-content collapsed">
+                        <div id="responsesArray" class="array-section"></div>
+                        <button type="button" class="add-btn" onclick="addResponse()">➕ Add Response</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="button-group">
+                <button type="button" class="validate-btn" onclick="validateForm()">🔍 Validate</button>
+                <button type="button" class="save-btn" id="saveBtn" onclick="showSaveConfirmation()" disabled>💾 Save</button>
+                <button type="button" class="cancel-btn" onclick="cancelEdit()">❌ Cancel</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <h2 style="color: #00ff00;">Confirm Save</h2>
+            <p>All validation passed! Do you want to overwrite the existing endpoint file?</p>
+            <div class="modal-buttons">
+                <button class="modal-yes" onclick="confirmSave()">Yes</button>
+                <button class="modal-no" onclick="closeModal()">No</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="crud-manager.js"></script>
+</body>
+</html>

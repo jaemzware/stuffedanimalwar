@@ -1,9 +1,9 @@
 {
-    "endpoint": "picompat",
-    "masterAlias": "PI",
-    "unspecifiedAlias": "tent camper",
+    "endpoint": "onboard",
+    "masterAlias": "ONBOARD",
+    "unspecifiedAlias": "samsquanch",
     "stuffedAnimalMediaObject": {
-        "backgroundimage": "photos/stuffedanimalwarfinal.jpg",
+        "backgroundimage": "photos/IMG_3512.JPG",
         "animals": [
             {
                 "file": "animals/badger.png",
@@ -99,11 +99,14 @@
         "songspath": "songs/",
         "videospath": "videos/",
         "photospath": "photos/",
-        "videos": [
+        "songs": [
             {
-                "file": "jimskate.mp4",
-                "title": "Jim Skate",
-                "poster": "stuffedanimalmountain.jpg"
+                "file": "pixies-imamazed-brokenface-demo.mp3",
+                "title": "Pixies - I'm Amazed / Broken Face"
+            },
+            {
+                "file": "zeke-cheer.mp3",
+                "title": "Zeke cheer"
             }
         ],
         "photos": [
@@ -112,7 +115,7 @@
                 "title": "Boots"
             },
             {
-                "file": "BZBM8389.JPG",
+                "file": "jim-boneless.JPG",
                 "title": "Skatecreteordie Promo"
             },
             {
@@ -128,10 +131,11 @@
                 "title": "Stuffed Animal War Promo"
             }
         ],
-        "songs": [
+        "videos": [
             {
-                "file": "pixies-imamazed-brokenface-demo.mp3",
-                "title": "Pixies - I'm Amazed / Broken Face"
+                "file": "jimskate.mp4",
+                "title": "Jim Skate",
+                "poster": "stuffedanimalmountain.jpg"
             }
         ]
     },
