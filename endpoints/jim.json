@@ -1,7 +1,7 @@
 {
     "endpoint": "jim",
     "masterAlias": "JIM",
-    "unspecifiedAlias": "noob the fng",
+    "unspecifiedAlias": "your mom in a jar",
     "stuffedAnimalMediaObject": {
         "backgroundimage": "photos/space.jpg",
         "animals": [
@@ -99,11 +99,10 @@
         "songspath": "songs/",
         "videospath": "videos/",
         "photospath": "photos/",
-        "videos": [
+        "songs": [
             {
-                "file": "jimskate.mp4",
-                "title": "Jim Skate",
-                "poster": "stuffedanimalmountain.jpg"
+                "file": "pixies-imamazed-brokenface-demo.mp3",
+                "title": "Pixies - I'm Amazed / Broken Face"
             }
         ],
         "photos": [
@@ -128,10 +127,11 @@
                 "title": "Stuffed Animal War Promo"
             }
         ],
-        "songs": [
+        "videos": [
             {
-                "file": "pixies-imamazed-brokenface-demo.mp3",
-                "title": "Pixies - I'm Amazed / Broken Face"
+                "file": "jimskate.mp4",
+                "title": "Jim Skate",
+                "poster": "stuffedanimalmountain.jpg"
             }
         ]
     },
@@ -277,6 +277,9 @@
             },
             {
                 "response": "youre wrong"
+            },
+            {
+                "response": "get a life"
             }
         ]
     }

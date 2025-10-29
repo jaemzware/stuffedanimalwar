@@ -246,6 +246,133 @@ stuffedAnimalWarEndpoints.forEach(endpoint => {
         res.status(200).json({ success: true, message: 'Video uploaded and broadcasted.' });
     });
 });
+
+/**
+ * CRUD MANAGEMENT ENDPOINTS
+ */
+// Serve the CRUD management page
+app.get('/crud', function(req, res){
+    res.sendFile(path.join(__dirname, 'crud-manager.html'));
+});
+
+// GET endpoint configuration (READ)
+app.get('/api/endpoint/:name', function(req, res){
+    try {
+        const endpointName = req.params.name;
+        const configPath = path.join(__dirname, 'endpoints', endpointName + '.json');
+
+        if (!fs.existsSync(configPath)) {
+            return res.status(404).json({
+                success: false,
+                message: `Endpoint ${endpointName}.json not found`
+            });
+        }
+
+        const configData = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+        res.json({ success: true, data: configData });
+    } catch (error) {
+        console.error('Error reading endpoint:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
+// LIST all endpoints (READ)
+app.get('/api/endpoints', function(req, res){
+    try {
+        const endpointsDir = path.join(__dirname, 'endpoints');
+        const files = fs.readdirSync(endpointsDir)
+            .filter(file => file.endsWith('.json'))
+            .map(file => file.replace('.json', ''));
+
+        res.json({ success: true, endpoints: files });
+    } catch (error) {
+        console.error('Error listing endpoints:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
+// UPDATE endpoint configuration (UPDATE)
+app.post('/api/endpoint/:name', function(req, res){
+    try {
+        const endpointName = req.params.name;
+        const configPath = path.join(__dirname, 'endpoints', endpointName + '.json');
+        const configData = req.body;
+
+        // Write the updated configuration
+        fs.writeFileSync(configPath, JSON.stringify(configData, null, 4));
+
+        res.json({
+            success: true,
+            message: `Endpoint ${endpointName}.json updated successfully`
+        });
+    } catch (error) {
+        console.error('Error updating endpoint:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
+// VALIDATE resource paths (helper endpoint)
+app.post('/api/validate-resource', function(req, res){
+    try {
+        const { path: resourcePath, type } = req.body;
+
+        // If it's an HTTP URL, try to validate it
+        if (resourcePath.startsWith('http://') || resourcePath.startsWith('https://')) {
+            // For HTTP URLs, we'll validate client-side with fetch
+            return res.json({
+                success: true,
+                isHttp: true,
+                message: 'HTTP URL - validate client-side'
+            });
+        }
+
+        // For local files, check if they exist
+        // Note: resourcePath should already include the base path (songs/, photos/, videos/)
+        // The client-side code prepends the appropriate base path before sending
+        let fullPath;
+        if (type === 'animal') {
+            fullPath = path.join(__dirname, resourcePath);
+        } else if (type === 'song') {
+            fullPath = path.join(__dirname, resourcePath);
+        } else if (type === 'photo') {
+            fullPath = path.join(__dirname, resourcePath);
+        } else if (type === 'video') {
+            fullPath = path.join(__dirname, resourcePath);
+        } else if (type === 'poster') {
+            // Poster images are in the videos directory (path already prepended client-side)
+            fullPath = path.join(__dirname, resourcePath);
+        } else if (type === 'background') {
+            fullPath = path.join(__dirname, resourcePath);
+        } else {
+            fullPath = path.join(__dirname, resourcePath);
+        }
+
+        const exists = fs.existsSync(fullPath);
+
+        res.json({
+            success: true,
+            exists: exists,
+            isHttp: false,
+            fullPath: fullPath
+        });
+    } catch (error) {
+        console.error('Error validating resource:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
 /**
  * audio metadata (MP3 and FLAC)
  */
