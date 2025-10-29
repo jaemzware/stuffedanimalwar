@@ -8,4 +8,6 @@ services:
       # SSL certificate paths (defaults to auto-generated certs in container)
       - SSL_KEY_PATH=${SSL_KEY_PATH:-/app/sslcert/key.pem}
       - SSL_CERT_PATH=${SSL_CERT_PATH:-/app/sslcert/cert.pem}
+      # CRUD authentication password
+      - CRUD_PASSWORD=${CRUD_PASSWORD:-admin}
     restart: unless-stopped
