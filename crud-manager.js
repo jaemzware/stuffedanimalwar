@@ -72,7 +72,20 @@ function showCrudInterface() {
 async function authenticatedFetch(url, options = {}) {
     options.headers = options.headers || {};
     options.headers['x-crud-token'] = authToken;
-    return fetch(url, options);
+
+    const response = await fetch(url, options);
+
+    // Check if unauthorized
+    if (response.status === 401) {
+        // Clear token and reload page to show login
+        sessionStorage.removeItem('crudAuthToken');
+        authToken = null;
+        alert('Session expired. Please log in again.');
+        location.reload();
+        throw new Error('Unauthorized');
+    }
+
+    return response;
 }
 
 // Load list of available endpoints
@@ -562,11 +575,23 @@ async function validateResourcePath(fieldOrElement, type, validationId = null) {
 
             const result = await response.json();
 
-            if (result.success && result.exists) {
-                setValidationStatus(valId, 'success', '✓ OK');
+            // Check if it's an HTTP URL response or local file response
+            if (result.isHttp) {
+                // HTTP URL validation response
+                if (result.success && result.httpStatus >= 200 && result.httpStatus < 400) {
+                    setValidationStatus(valId, 'success', `✓ ${result.httpStatus}`);
+                } else {
+                    validationErrors.push(`${resourcePath} returned status ${result.httpStatus || 'Error'}`);
+                    setValidationStatus(valId, 'error', `${result.httpStatus || 'Error'}`);
+                }
             } else {
-                validationErrors.push(`${resourcePath} does not exist on server`);
-                setValidationStatus(valId, 'error', '404');
+                // Local file validation response
+                if (result.success && result.exists) {
+                    setValidationStatus(valId, 'success', '✓ OK');
+                } else {
+                    validationErrors.push(`${resourcePath} does not exist on server`);
+                    setValidationStatus(valId, 'error', '404');
+                }
             }
         } catch (error) {
             validationErrors.push(`Failed to validate ${resourcePath}: ${error.message}`);

@@ -384,11 +384,14 @@ app.post('/api/validate-resource', checkCrudAuth, async function(req, res){
                 // Make HEAD request to check if resource exists
                 const urlResponse = await new Promise((resolve, reject) => {
                     const options = {
+                        hostname: urlObj.hostname,
+                        port: urlObj.port,
+                        path: urlObj.pathname + urlObj.search,
                         method: 'HEAD',
                         timeout: 10000
                     };
 
-                    const req = protocol.request(resourcePath, options, (res) => {
+                    const req = protocol.request(options, (res) => {
                         resolve({ status: res.statusCode });
                     });
 
