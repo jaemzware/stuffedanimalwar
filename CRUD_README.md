@@ -1,23 +1,54 @@
 # Endpoint CRUD Manager
 
-This CRUD manager allows you to update endpoint JSON configuration files through a web interface.
+This CRUD manager allows you to update endpoint JSON configuration files through a web interface with password protection.
 
 ## Features
 
+- **Password Protected** - Secure access with environment variable password
+- **Session Management** - 24-hour token-based authentication
 - **Load** existing endpoint configurations
 - **Edit** all fields in the JSON structure
 - **Validate** all resource paths (local files and HTTP URLs)
 - **Save** changes with confirmation
 - Field-level validation status indicators
 - Supports dynamic arrays (animals, songs, photos, videos, responses)
+- Collapsible sections for better organization
+- Auto-scroll to validation messages
 
-## Access
+## Authentication Setup
+
+### 1. Set Password in Environment
+
+Add `CRUD_PASSWORD` to your `.env` file:
+
+```bash
+CRUD_PASSWORD=your_secure_password_here
+```
+
+If not set, the default password is `admin`.
+
+### 2. Access
 
 Once the server is running, access the CRUD manager at:
 
 ```
 https://localhost:55556/crud
 ```
+
+### 3. Login
+
+1. Enter the password from your `CRUD_PASSWORD` environment variable
+2. Press Enter or click the Login button
+3. Your session will remain active for 24 hours
+4. Session persists in browser until you close it
+
+### Security Notes
+
+- All CRUD API endpoints require authentication
+- Invalid passwords show: "Incorrect password. Please contact the administrator."
+- Sessions expire after 24 hours
+- Session tokens are stored in browser sessionStorage
+- Expired sessions automatically redirect to login
 
 ## Usage
 

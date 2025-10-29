@@ -374,6 +374,11 @@ Apache License 2.0
 - **Issues**: https://github.com/jaemzware/stuffedanimalwar/issues
 - **Discussions**: https://github.com/jaemzware/stuffedanimalwar/discussions
 
+## 📚 Documentation
+
+- **[Endpoint CRUD Manager](CRUD_README.md)** - Password-protected web interface for managing endpoint JSON configurations
+- **[Raspberry Pi Setup Guide](pisetup/README.md)** - Complete guide for IoT/Raspberry Pi deployment with WiFi configuration
+
 ## Support Development
 This project is developed by Jaemzware LLC alongside other open source projects.
 Your support helps maintain and improve all of our tools:
