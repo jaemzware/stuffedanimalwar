@@ -427,16 +427,31 @@ async function validateResourcePath(fieldOrElement, type, validationId = null) {
     // Check if it's an HTTP URL
     if (value.startsWith('http://') || value.startsWith('https://')) {
         try {
-            // Validate HTTP URL by trying to fetch it
-            const response = await fetch(value, { method: 'HEAD' });
-            if (response.ok) {
-                setValidationStatus(valId, 'success', '✓ 200');
+            // Validate HTTP URL via server-side to avoid CORS issues
+            const response = await fetch('/api/validate-resource', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    path: value,
+                    type: type
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.success && result.httpStatus >= 200 && result.httpStatus < 400) {
+                setValidationStatus(valId, 'success', `✓ ${result.httpStatus}`);
+            } else if (result.httpStatus) {
+                validationErrors.push(`${value} returned status ${result.httpStatus}`);
+                setValidationStatus(valId, 'error', `${result.httpStatus}`);
             } else {
-                validationErrors.push(`${value} returned status ${response.status}`);
-                setValidationStatus(valId, 'error', `${response.status}`);
+                validationErrors.push(`${value} is not accessible: ${result.message || 'Unknown error'}`);
+                setValidationStatus(valId, 'error', 'Error');
             }
         } catch (error) {
-            validationErrors.push(`${value} is not accessible: ${error.message}`);
+            validationErrors.push(`${value} validation failed: ${error.message}`);
             setValidationStatus(valId, 'error', 'Error');
         }
     } else {

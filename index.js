@@ -321,18 +321,51 @@ app.post('/api/endpoint/:name', function(req, res){
 });
 
 // VALIDATE resource paths (helper endpoint)
-app.post('/api/validate-resource', function(req, res){
+app.post('/api/validate-resource', async function(req, res){
     try {
         const { path: resourcePath, type } = req.body;
 
-        // If it's an HTTP URL, try to validate it
+        // If it's an HTTP URL, validate it server-side (avoid CORS issues)
         if (resourcePath.startsWith('http://') || resourcePath.startsWith('https://')) {
-            // For HTTP URLs, we'll validate client-side with fetch
-            return res.json({
-                success: true,
-                isHttp: true,
-                message: 'HTTP URL - validate client-side'
-            });
+            try {
+                const urlObj = new URL(resourcePath);
+                const protocol = urlObj.protocol === 'https:' ? https : require('http');
+
+                // Make HEAD request to check if resource exists
+                const urlResponse = await new Promise((resolve, reject) => {
+                    const options = {
+                        method: 'HEAD',
+                        timeout: 10000
+                    };
+
+                    const req = protocol.request(resourcePath, options, (res) => {
+                        resolve({ status: res.statusCode });
+                    });
+
+                    req.on('error', reject);
+                    req.on('timeout', () => {
+                        req.destroy();
+                        reject(new Error('Request timeout'));
+                    });
+
+                    req.end();
+                });
+
+                return res.json({
+                    success: true,
+                    isHttp: true,
+                    httpStatus: urlResponse.status,
+                    message: `HTTP ${urlResponse.status}`
+                });
+            } catch (error) {
+                console.error('Error validating HTTP URL:', error);
+                return res.json({
+                    success: false,
+                    isHttp: true,
+                    httpStatus: 0,
+                    message: error.message
+                });
+            }
         }
 
         // For local files, check if they exist
