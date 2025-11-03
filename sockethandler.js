@@ -626,7 +626,12 @@ $('#selectsongs').change(function(){
     let chatClientUser = $("#chatClientUser").val();
 
     if(chatClientUser===masterAlias){
-        emitChatMessage(songToPlay);
+        // If the song path is relative (doesn't start with http), prepend server origin
+        let songUrl = songToPlay;
+        if (!songToPlay.toLowerCase().startsWith('http://') && !songToPlay.toLowerCase().startsWith('https://')) {
+            songUrl = window.location.origin + '/' + songToPlay.replace(/^\/+/, '');
+        }
+        emitChatMessage(songUrl);
     }
     else{
         changeAudio(songToPlay);
@@ -755,7 +760,12 @@ $('#selectvideos').change(function(){
     changeMp4(videoToPlay,poster);
     let chatClientUser = $("#chatClientUser").val();
     if(chatClientUser===masterAlias){
-        emitChatMessage(videoToPlay);
+        // If the video path is relative (doesn't start with http), prepend server origin
+        let videoUrl = videoToPlay;
+        if (!videoToPlay.toLowerCase().startsWith('http://') && !videoToPlay.toLowerCase().startsWith('https://')) {
+            videoUrl = window.location.origin + '/' + videoToPlay.replace(/^\/+/, '');
+        }
+        emitChatMessage(videoUrl);
     }
 });
 chatTextBox.keypress(function (event) {
