@@ -493,7 +493,7 @@ app.get('/mp3-metadata', async (req, res) => {
         }
 
         if (isRemoteUrl) {
-            console.log(`[MP3 Metadata] Treating as remote URL: ${url}`);
+            // console.log(`[MP3 Metadata] Treating as remote URL: ${url}`);
 
             try {
                 // Use https.request instead of fetch to properly support IPv4 family option
@@ -564,17 +564,17 @@ app.get('/mp3-metadata', async (req, res) => {
                         requestOptions.family = 4; // Force IPv4
                     }
 
-                    console.log(`[MP3 Metadata] Request options:`, {
-                        hostname: requestOptions.hostname,
-                        port: requestOptions.port,
-                        family: requestOptions.family,
-                        rejectUnauthorized: requestOptions.rejectUnauthorized
-                    });
+                    // console.log(`[MP3 Metadata] Request options:`, {
+                    //     hostname: requestOptions.hostname,
+                    //     port: requestOptions.port,
+                    //     family: requestOptions.family,
+                    //     rejectUnauthorized: requestOptions.rejectUnauthorized
+                    // });
 
                     // Wrap https.request in a Promise
                     const buffer = await new Promise((resolve, reject) => {
                         const req = https.request(requestOptions, (res) => {
-                            console.log(`[MP3 Metadata] Response status: ${res.statusCode} ${res.statusMessage}`);
+                            // console.log(`[MP3 Metadata] Response status: ${res.statusCode} ${res.statusMessage}`);
 
                             if (res.statusCode !== 200 && res.statusCode !== 206) {
                                 reject(new Error(`Failed to fetch: ${res.statusCode} ${res.statusMessage}`));
