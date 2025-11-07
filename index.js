@@ -525,9 +525,9 @@ app.get('/mp3-metadata', async (req, res) => {
 
                 if ((hostname === 'localhost' || hostname === '127.0.0.1') && isDocker) {
                     hostname = 'host.docker.internal';
-                    console.log(`[MP3 Metadata] Running in container, rewriting ${urlObj.hostname} to ${hostname}`);
+                    // console.log(`[MP3 Metadata] Running in container, rewriting ${urlObj.hostname} to ${hostname}`);
                 } else if (hostname === 'localhost' || hostname === '127.0.0.1') {
-                    console.log(`[MP3 Metadata] Not in container, using ${hostname} directly`);
+                    // console.log(`[MP3 Metadata] Not in container, using ${hostname} directly`);
                 }
 
                 // Determine if this is a FLAC file
@@ -559,7 +559,7 @@ app.get('/mp3-metadata', async (req, res) => {
 
                     // For local domains, bypass SSL verification and force IPv4
                     if (isLocalDomain) {
-                        console.log(`[MP3 Metadata] Detected local HTTPS domain: ${hostname}, bypassing SSL verification and forcing IPv4`);
+                        // console.log(`[MP3 Metadata] Detected local HTTPS domain: ${hostname}, bypassing SSL verification and forcing IPv4`);
                         requestOptions.rejectUnauthorized = false;
                         requestOptions.family = 4; // Force IPv4
                     }
@@ -641,7 +641,7 @@ app.get('/mp3-metadata', async (req, res) => {
                 });
             }
         } else {
-            console.log(`[MP3 Metadata] Treating as local file: ${url}`);
+            // console.log(`[MP3 Metadata] Treating as local file: ${url}`);
             // Local file - extract path and read from filesystem
             let filePath;
 
