@@ -296,9 +296,57 @@ function onBaseChatSocketEvent(chatMsgObject){
             {
                 changeAudio(chatClientMessage);
             }
-            else if(chatClientMessage.toLowerCase().endsWith(".mp4") && remoteChatClientUser===masterAlias)
+            else if((chatClientMessage.toLowerCase().endsWith(".mp4") || chatClientMessage.toLowerCase().endsWith(".mov")) && remoteChatClientUser===masterAlias)
             {
                 changeMp4(chatClientMessage);
+            }
+            else if(chatClientMessage.toLowerCase().endsWith(".mp3") || chatClientMessage.toLowerCase().endsWith(".flac"))
+            {
+                // Audio link from non-master user - make it clickable
+                //server date and user
+                $("<div>").prependTo("#messagesdiv").attr({
+                    class: "right-aligned-container"
+                }).append(
+                    $("<span>").attr({ class: "remoteChatClientUser" }).text(remoteChatClientUser + "(" + formatChatServerUserIp(chatServerUser) + ")"),
+                    $("<span>").attr({ class: "serverdate" }).text(" " + serverStamp) // Add a space for separation
+                );
+
+                // Create clickable link for audio
+                var audioLink = $("<a/>").attr({
+                    href: "#",
+                    class: "chatclientmessage audio-link"
+                }).text(chatClientMessage);
+
+                audioLink.on("click", function(e) {
+                    e.preventDefault();
+                    changeAudio(chatClientMessage);
+                });
+
+                audioLink.prependTo("#messagesdiv");
+            }
+            else if(chatClientMessage.toLowerCase().endsWith(".mp4") || chatClientMessage.toLowerCase().endsWith(".mov"))
+            {
+                // Video link from non-master user - make it clickable
+                //server date and user
+                $("<div>").prependTo("#messagesdiv").attr({
+                    class: "right-aligned-container"
+                }).append(
+                    $("<span>").attr({ class: "remoteChatClientUser" }).text(remoteChatClientUser + "(" + formatChatServerUserIp(chatServerUser) + ")"),
+                    $("<span>").attr({ class: "serverdate" }).text(" " + serverStamp) // Add a space for separation
+                );
+
+                // Create clickable link for video
+                var videoLink = $("<a/>").attr({
+                    href: "#",
+                    class: "chatclientmessage video-link"
+                }).text(chatClientMessage);
+
+                videoLink.on("click", function(e) {
+                    e.preventDefault();
+                    changeMp4(chatClientMessage);
+                });
+
+                videoLink.prependTo("#messagesdiv");
             }
             else{
                 //server date and user
