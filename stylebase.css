@@ -191,6 +191,14 @@ a.chatclientmessage:hover {
     color: #87ceeb; /* Sky blue on hover */
 }
 
+a.audio-link, a.video-link {
+    font-size: 14px; /* Smaller text for media links */
+    word-break: break-all; /* Break long URLs */
+    overflow-wrap: break-word; /* Wrap to prevent overflow */
+    max-width: 100%; /* Prevent exceeding container width */
+    display: inline-block; /* Allow width constraints */
+}
+
 a.audio-link::before {
     content: "\266B "; /* Musical note symbol */
 }
