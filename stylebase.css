@@ -178,6 +178,26 @@ span.chatclientmessage {
     color: ghostwhite;
     font-size: 16px;
 }
+
+a.chatclientmessage {
+    align-self: flex-start; /* Ensure the message is aligned to the left */
+    color: ghostwhite;
+    font-size: 16px;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+a.chatclientmessage:hover {
+    color: #87ceeb; /* Sky blue on hover */
+}
+
+a.audio-link::before {
+    content: "\266B "; /* Musical note symbol */
+}
+
+a.video-link::before {
+    content: "\25B6 "; /* Play button symbol */
+}
 span.hitclientmessage {
     align-self: flex-start; /* Ensure the message is aligned to the left */
     color: white;

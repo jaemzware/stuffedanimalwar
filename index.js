@@ -493,7 +493,7 @@ app.get('/mp3-metadata', async (req, res) => {
         }
 
         if (isRemoteUrl) {
-            console.log(`[MP3 Metadata] Treating as remote URL: ${url}`);
+            // console.log(`[MP3 Metadata] Treating as remote URL: ${url}`);
 
             try {
                 // Use https.request instead of fetch to properly support IPv4 family option
@@ -525,9 +525,9 @@ app.get('/mp3-metadata', async (req, res) => {
 
                 if ((hostname === 'localhost' || hostname === '127.0.0.1') && isDocker) {
                     hostname = 'host.docker.internal';
-                    console.log(`[MP3 Metadata] Running in container, rewriting ${urlObj.hostname} to ${hostname}`);
+                    // console.log(`[MP3 Metadata] Running in container, rewriting ${urlObj.hostname} to ${hostname}`);
                 } else if (hostname === 'localhost' || hostname === '127.0.0.1') {
-                    console.log(`[MP3 Metadata] Not in container, using ${hostname} directly`);
+                    // console.log(`[MP3 Metadata] Not in container, using ${hostname} directly`);
                 }
 
                 // Determine if this is a FLAC file
@@ -559,22 +559,22 @@ app.get('/mp3-metadata', async (req, res) => {
 
                     // For local domains, bypass SSL verification and force IPv4
                     if (isLocalDomain) {
-                        console.log(`[MP3 Metadata] Detected local HTTPS domain: ${hostname}, bypassing SSL verification and forcing IPv4`);
+                        // console.log(`[MP3 Metadata] Detected local HTTPS domain: ${hostname}, bypassing SSL verification and forcing IPv4`);
                         requestOptions.rejectUnauthorized = false;
                         requestOptions.family = 4; // Force IPv4
                     }
 
-                    console.log(`[MP3 Metadata] Request options:`, {
-                        hostname: requestOptions.hostname,
-                        port: requestOptions.port,
-                        family: requestOptions.family,
-                        rejectUnauthorized: requestOptions.rejectUnauthorized
-                    });
+                    // console.log(`[MP3 Metadata] Request options:`, {
+                    //     hostname: requestOptions.hostname,
+                    //     port: requestOptions.port,
+                    //     family: requestOptions.family,
+                    //     rejectUnauthorized: requestOptions.rejectUnauthorized
+                    // });
 
                     // Wrap https.request in a Promise
                     const buffer = await new Promise((resolve, reject) => {
                         const req = https.request(requestOptions, (res) => {
-                            console.log(`[MP3 Metadata] Response status: ${res.statusCode} ${res.statusMessage}`);
+                            // console.log(`[MP3 Metadata] Response status: ${res.statusCode} ${res.statusMessage}`);
 
                             if (res.statusCode !== 200 && res.statusCode !== 206) {
                                 reject(new Error(`Failed to fetch: ${res.statusCode} ${res.statusMessage}`));
@@ -641,7 +641,7 @@ app.get('/mp3-metadata', async (req, res) => {
                 });
             }
         } else {
-            console.log(`[MP3 Metadata] Treating as local file: ${url}`);
+            // console.log(`[MP3 Metadata] Treating as local file: ${url}`);
             // Local file - extract path and read from filesystem
             let filePath;
 
