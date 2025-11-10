@@ -57,7 +57,13 @@
     socket = io({
         query: {
             endpoint: endpoint
-        }
+        },
+        transports: ['polling', 'websocket'],
+        upgrade: true,
+        reconnection: true,
+        reconnectionDelay: 1000,
+        reconnectionDelayMax: 5000,
+        reconnectionAttempts: 5
     });
     // Populate the endpoint info after the DOM is ready
     document.addEventListener('DOMContentLoaded', function() {

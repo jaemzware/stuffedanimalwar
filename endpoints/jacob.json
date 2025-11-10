@@ -117,82 +117,23 @@
             }
         ],
         "photos": [
-            {
-                "file": "IMG_8604.JPG",
-                "title": "butthole surfers cover 1"
-            },
-            {
-                "file": "IMG_8605.JPG",
-                "title": "butthole surfers cover 2"
-            },
-            {
-                "file": "IMG_8606.JPG",
-                "title": "butthole surfers cover 3"
-            },
-            {
-                "file": "IMG_8607.JPG",
-                "title": "butthole surfers cover 4"
-            },
-            {
-                "file": "IMG_8608.JPG",
-                "title": "butthole surfers cover 5"
-            },
-            {
-                "file": "IMG_8609.JPG",
-                "title": "butthole surfers cover 6"
-            },
-            {
-                "file": "https://jaemzware.com/media/soundgardensuperunknown/IMG_8626.JPG",
-                "title": "soundgarden superunknown"
-            },
-            {
-                "file": "https://jaemzware.com/media/soundgardensuperunknown/IMG_8627.JPG",
-                "title": "soundgarden superunknown"
-            },
-            {
-                "file": "https://jaemzware.com/media/soundgardensuperunknown/IMG_8628.JPG",
-                "title": "soundgarden superunknown"
-            },
-            {
-                "file": "https://jaemzware.com/media/soundgardensuperunknown/IMG_8629.JPG",
-                "title": "soundgarden superunknown"
-            },
-            {
-                "file": "https://jaemzware.com/media/soundgardensuperunknown/IMG_8630.JPG",
-                "title": "soundgarden superunknown"
-            },
-            {
-                "file": "https://jaemzware.com/media/soundgardensuperunknown/IMG_8631.JPG",
-                "title": "soundgarden superunknown"
-            },
-            {
-                "file": "https://jaemzware.com/media/soundgardensuperunknown/IMG_8632.JPG",
-                "title": "soundgarden superunknown"
-            },
-            {
-                "file": "https://jaemzware.com/media/soundgardensuperunknown/IMG_8633.JPG",
-                "title": "soundgarden superunknown"
-            },
-            {
-                "file": "https://jaemzware.com/media/soundgardensuperunknown/IMG_8634.JPG",
-                "title": "soundgarden superunknown"
-            }
+
         ],
         "songs": [
             {
-                "file": "losthighwaysoundtrack-sidea.mp3",
+                "file": "Lost%20Highway/losthighwaysoundtrack-sidea.mp3",
                 "title": "Lost Highway Soundtrack - Vinyl Side A"
             },
             {
-                "file": "losthighwaysoundtrack-sideb.mp3",
+                "file": "Lost%20Highway/losthighwaysoundtrack-sideb.mp3",
                 "title": "Lost Highway Soundtrack - Vinyl Side B"
             },
             {
-                "file": "losthighwaysoundtrack-sidec.mp3",
+                "file": "Lost%20Highway/losthighwaysoundtrack-sidec.mp3",
                 "title": "Lost Highway Soundtrack - Vinyl Side C"
             },
             {
-                "file": "losthighwaysoundtrack-sided.mp3",
+                "file": "Lost%20Highway/losthighwaysoundtrack-sided.mp3",
                 "title": "Lost Highway Soundtrack - Vinyl Side D"
             }
         ]
