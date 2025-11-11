@@ -72,15 +72,21 @@ const stuffedAnimalWarPageCounters = stuffedAnimalWarEndpoints.reduce((acc, page
     return acc;
 }, {});
 
+//add stuffedAnimalWarEndpoints jim000 through jim419
+for (let i = 0; i <= 419; i++) {
+    const paddedNumber = String(i).padStart(3, '0');
+    stuffedAnimalWarEndpoints.push(`jim${paddedNumber}`);
+}
+
 // Load both template HTMLs at startup
 let templateHtml = fs.readFileSync(path.join(__dirname, 'template.html'), 'utf8');
 let templateCanvasHtml = fs.readFileSync(path.join(__dirname, 'template-canvas.html'), 'utf8');
 
 //SERVE INDEX FOR NO ENDPOINT AFTER PORT ADDRESS
 app.get('/', function(req, res){
-    // Generate dynamic HTML with links from stuffedAnimalWarEndpoints
+    // Generate dynamic HTML with links from stuffedAnimalWarEndpoints as buttons
     const linksHtml = stuffedAnimalWarEndpoints.map(endpoint =>
-        `            <h2><a class="jaemzwarelogo" href="${endpoint}">${endpoint}</a></h2>`
+        `            <a class="room-button" href="${endpoint}">${endpoint}</a>`
     ).join('\n');
 
     const html = `<!--STUFFED ANIMAL WAR - jaemzware.org - 20150611 -->
@@ -89,11 +95,117 @@ app.get('/', function(req, res){
 <!DOCTYPE html>
 <html>
     <head>
-        <title>stuffedanimalwar.com</title>
+        <title>Stuffed Animal War Rooms</title>
         <link rel="Stylesheet" href="stylebase.css" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            body {
+                margin: 0;
+                padding: 20px;
+                font-family: Arial, sans-serif;
+                background: #1a1a1a;
+                color: #fff;
+            }
+
+            .header {
+                text-align: center;
+                margin-bottom: 30px;
+                padding: 20px;
+            }
+
+            .header h1 {
+                margin: 0;
+                font-size: 2.5em;
+                color: #fff;
+                text-transform: uppercase;
+                letter-spacing: 2px;
+            }
+
+            .header p {
+                margin: 10px 0 0 0;
+                font-size: 1.2em;
+                color: #aaa;
+            }
+
+            .room-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 15px;
+                max-width: 1400px;
+                margin: 0 auto;
+                padding: 0 20px;
+            }
+
+            .room-button {
+                display: block;
+                padding: 15px 20px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                text-decoration: none;
+                text-align: center;
+                border-radius: 8px;
+                font-weight: bold;
+                font-size: 0.95em;
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+                border: 2px solid transparent;
+            }
+
+            .room-button:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+                background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+                border-color: #fff;
+            }
+
+            .room-button:active {
+                transform: translateY(0);
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            }
+
+            @media (max-width: 768px) {
+                .room-grid {
+                    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+                    gap: 10px;
+                }
+
+                .room-button {
+                    padding: 12px 15px;
+                    font-size: 0.85em;
+                }
+
+                .header h1 {
+                    font-size: 1.8em;
+                }
+
+                .header p {
+                    font-size: 1em;
+                }
+            }
+
+            @media (max-width: 480px) {
+                .room-grid {
+                    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+                    gap: 8px;
+                }
+
+                .room-button {
+                    padding: 10px 12px;
+                    font-size: 0.8em;
+                }
+
+                .header h1 {
+                    font-size: 1.5em;
+                }
+            }
+        </style>
     </head>
     <body>
-        <div class='seattlenativelinks'>
+        <div class="header">
+            <h1>Stuffed Animal War Rooms</h1>
+            <p>Choose a room to enter</p>
+        </div>
+        <div class="room-grid">
 ${linksHtml}
         </div>
     </body>
