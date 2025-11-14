@@ -75,7 +75,9 @@ const stuffedAnimalWarPageCounters = stuffedAnimalWarEndpoints.reduce((acc, page
 //add stuffedAnimalWarEndpoints jim000 through jim419
 for (let i = 0; i <= 419; i++) {
     const paddedNumber = String(i).padStart(3, '0');
-    stuffedAnimalWarEndpoints.push(`jim${paddedNumber}`);
+    const jimEndpoint = `jim${paddedNumber}`;
+    stuffedAnimalWarEndpoints.push(jimEndpoint);
+    stuffedAnimalWarPageCounters[jimEndpoint] = 0; // Initialize counter for this endpoint
 }
 
 // Load both template HTMLs at startup
