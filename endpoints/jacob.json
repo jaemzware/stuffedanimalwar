@@ -99,26 +99,6 @@
         "songspath": "https://analogarchive.com/b2proxy/analog/",
         "videospath": "https://jaemzware.com/media/trump/videos/",
         "photospath": "https://jaemzware.com/media/buttholesurferselectriclarryland/",
-        "videos": [
-            {
-                "file": "https://skatecreteordie.s3.us-east-005.backblazeb2.com/content/del.mp4",
-                "title": "Delridge ATV",
-                "poster": "https://skatecreteordie.s3.us-east-005.backblazeb2.com/production/skatecreteordiedeck.png"
-            },
-            {
-                "file": "https://skatecreteordie.com/marg.mp4",
-                "title": "Marg",
-                "poster": "https://skatecreteordie.s3.us-east-005.backblazeb2.com/production/skatecreteordiedeck.png"
-            },
-            {
-                "file": "https://jaemzware.com/media/bobcatbbqrampjam/bobcatrampjamandbbq20240922.mp4",
-                "title": "Bobcat Ramp Jam",
-                "poster": "https://skatecreteordie.s3.us-east-005.backblazeb2.com/production/skatecreteordiedeck.png"
-            }
-        ],
-        "photos": [
-
-        ],
         "songs": [
             {
                 "file": "Lost%20Highway/losthighwaysoundtrack-sidea.mp3",
@@ -135,6 +115,19 @@
             {
                 "file": "Lost%20Highway/losthighwaysoundtrack-sided.mp3",
                 "title": "Lost Highway Soundtrack - Vinyl Side D"
+            }
+        ],
+        "photos": [],
+        "videos": [
+            {
+                "file": "https://skatecreteordie.s3.us-east-005.backblazeb2.com/content/del.mp4",
+                "title": "Delridge ATV",
+                "poster": "https://skatecreteordie.s3.us-east-005.backblazeb2.com/production/skatecreteordiedeck.png"
+            },
+            {
+                "file": "https://skatecreteordie.com/marg.mp4",
+                "title": "Marg",
+                "poster": "https://skatecreteordie.s3.us-east-005.backblazeb2.com/production/skatecreteordiedeck.png"
             }
         ]
     },
@@ -180,7 +173,7 @@
                 "response": "id rather play with my cat"
             },
             {
-                "response": "it\"s a bust"
+                "response": "it"
             },
             {
                 "response": "LOL"
