@@ -44,7 +44,7 @@ select, input, button {
     flex-direction: column;
     align-items: flex-start;
     height: 100%; /* Fill available height in the table cell */
-    min-height: 350px; /* Maintain minimum height */
+    min-height: 450px; /* Increased from 350px to match canvas height */
     width: 100%;
     background-color: darkslategray;
     border: 8px solid #90ee90;
@@ -302,6 +302,7 @@ div.seattlenativelinks{
     width: 67%;
     display: flex;
     align-items: stretch;
+    min-height: 500px; /* Ensure minimum height matches canvas */
 }
 
 #stuffedanimalwarform{
@@ -319,7 +320,7 @@ div.seattlenativelinks{
         inset -4px -4px 8px rgba(60, 120, 60, 0.5);
     display: flex;
     flex-direction: column;
-    height: 100%; /* Stretch to match the canvas height */
+    min-height: 500px; /* Match the canvas min-height */
 }
 
 #stuffedanimalwarsvg{
