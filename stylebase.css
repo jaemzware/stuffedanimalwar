@@ -46,12 +46,17 @@ select, input, button {
     height: 450px; /* Set a fixed height for the messages div */
     width: 100%;
     background-color: darkslategray;
-    border-width: thin;
-    border-style: ridge;
+    border: 8px solid #90ee90;
+    border-radius: 8px;
+    box-shadow:
+        inset 0 0 10px rgba(0, 0, 0, 0.5),
+        0 0 20px rgba(144, 238, 144, 0.3),
+        inset 4px 4px 8px rgba(160, 238, 160, 0.4),
+        inset -4px -4px 8px rgba(60, 120, 60, 0.5);
     overflow-x: scroll;
     overflow-y: scroll;
     margin: 0%;
-    padding: 0%;
+    padding: 8px;
     text-align: left;
     vertical-align: top;
     font-weight: bold;
@@ -84,9 +89,16 @@ span.remoteChatClientUser{
     max-width: 100%;
     box-sizing: border-box;
     margin: 0;
-    padding: 0;
+    padding: 8px;
     overflow-x: hidden; /* Prevent horizontal scrolling within container */
     justify-content: center; /* Center items horizontally */
+    border: 8px solid #90ee90;
+    border-radius: 8px;
+    box-shadow:
+        inset 0 0 10px rgba(0, 0, 0, 0.5),
+        0 0 20px rgba(144, 238, 144, 0.3),
+        inset 4px 4px 8px rgba(160, 238, 160, 0.4),
+        inset -4px -4px 8px rgba(60, 120, 60, 0.5);
 }
 
 .skatecreteordiephoto {
@@ -135,7 +147,14 @@ span.remoteChatClientUser{
     box-sizing: border-box;
     table-layout: fixed;
     margin: 0;
-    padding: 0;
+    padding: 8px;
+    border: 8px solid #90ee90;
+    border-radius: 8px;
+    box-shadow:
+        inset 0 0 10px rgba(0, 0, 0, 0.5),
+        0 0 20px rgba(144, 238, 144, 0.3),
+        inset 4px 4px 8px rgba(160, 238, 160, 0.4),
+        inset -4px -4px 8px rgba(60, 120, 60, 0.5);
 }
 
 #chattable td {
@@ -228,6 +247,20 @@ div.seattlenativelinks{
 #progressIndicator, #videoProgressIndicator{
     font-size: x-small;
 }
+#chattableuploadform {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 8px;
+    margin: 10px 0;
+    border: 8px solid #90ee90;
+    border-radius: 8px;
+    box-shadow:
+        inset 0 0 10px rgba(0, 0, 0, 0.5),
+        0 0 20px rgba(144, 238, 144, 0.3),
+        inset 4px 4px 8px rgba(160, 238, 160, 0.4),
+        inset -4px -4px 8px rgba(60, 120, 60, 0.5);
+}
 /*VIDEO THUMBNAILS*/
 .video-thumbnail-container {
     position: relative;
@@ -266,6 +299,8 @@ div.seattlenativelinks{
     bottom: 0px;
     left: 0px;
     width: 67%;
+    display: flex;
+    align-items: stretch;
 }
 
 #stuffedanimalwarform{
@@ -273,7 +308,14 @@ div.seattlenativelinks{
     width: 33%;
     box-sizing: border-box; /* Include padding and border in the width */
     margin: 0;
-    padding: 0;
+    padding: 8px;
+    border: 8px solid #90ee90;
+    border-radius: 8px;
+    box-shadow:
+        inset 0 0 10px rgba(0, 0, 0, 0.5),
+        0 0 20px rgba(144, 238, 144, 0.3),
+        inset 4px 4px 8px rgba(160, 238, 160, 0.4),
+        inset -4px -4px 8px rgba(60, 120, 60, 0.5);
 }
 
 #stuffedanimalwarsvg{
@@ -294,10 +336,25 @@ div.seattlenativelinks{
     background-size:contain;
     background-position:center;
     background-repeat: no-repeat;
-    height:500px;
+    height:100%;
+    min-height: 500px;
     touch-action: none;
     max-width: 100%;
     display: block;
+    /* TV-style beveled frame effect */
+    border: 16px solid #90ee90;
+    border-radius: 8px;
+    box-shadow:
+        /* Inner shadow for depth */
+        inset 0 0 20px rgba(0, 0, 0, 0.8),
+        inset 0 0 10px rgba(0, 0, 0, 0.9),
+        /* Outer glow for screen effect */
+        0 0 40px rgba(144, 238, 144, 0.4),
+        /* Beveled edges - light on top-left */
+        inset 8px 8px 12px rgba(160, 238, 160, 0.5),
+        /* Beveled edges - dark on bottom-right */
+        inset -8px -8px 12px rgba(60, 120, 60, 0.6);
+    box-sizing: border-box;
 }
 
 /* Readonly mode: fullscreen canvas for demonstration purposes */
@@ -369,7 +426,14 @@ body:has(.readonly) #audioform {
     background-color: slategray;
     box-sizing: border-box; /* Include padding and border in the width */
     margin: 0;
-    padding: 0;
+    padding: 8px;
+    border: 8px solid #90ee90;
+    border-radius: 8px;
+    box-shadow:
+        inset 0 0 10px rgba(0, 0, 0, 0.5),
+        0 0 20px rgba(144, 238, 144, 0.3),
+        inset 4px 4px 8px rgba(160, 238, 160, 0.4),
+        inset -4px -4px 8px rgba(60, 120, 60, 0.5);
 }
 
 #audiotable td {
@@ -460,9 +524,16 @@ body:has(.readonly) #audioform {
     width: 100%;
     max-width: 100%;
     box-sizing: border-box; /* Include padding and border in the width */
-    padding: 0;
+    padding: 8px;
     margin: 0 auto; /* Center the table */
     text-align: center; /* Center the content inside */
+    border: 8px solid #90ee90;
+    border-radius: 8px;
+    box-shadow:
+        inset 0 0 10px rgba(0, 0, 0, 0.5),
+        0 0 20px rgba(144, 238, 144, 0.3),
+        inset 4px 4px 8px rgba(160, 238, 160, 0.4),
+        inset -4px -4px 8px rgba(60, 120, 60, 0.5);
 }
 #videotable td{
     vertical-align:top;
@@ -580,10 +651,16 @@ a.jaemzwarelogo:active, .skateparkdetail a:active {
     }
     #stuffedanimalwarcanvas {
         height: 300px; /* Shorter height for mobile */
+        /* Slightly thinner border for mobile */
+        border-width: 12px;
+        border-radius: 6px;
     }
     #stuffedanimalwarform{
         background-color:black;
         width:100%;
+        border-width: 6px;
+        border-radius: 6px;
+        padding: 6px;
     }
     #chattable td {
         padding: 3px; /* Reduce padding for smaller screens */
@@ -619,6 +696,34 @@ a.jaemzwarelogo:active, .skateparkdetail a:active {
     }
     #messagesdiv {
         height: 200px;
+        border-width: 6px;
+        border-radius: 6px;
+        padding: 6px;
+    }
+    #chattable {
+        border-width: 6px;
+        border-radius: 6px;
+        padding: 6px;
+    }
+    #audiotable {
+        border-width: 6px;
+        border-radius: 6px;
+        padding: 6px;
+    }
+    #videotable {
+        border-width: 6px;
+        border-radius: 6px;
+        padding: 6px;
+    }
+    #chattableuploadform {
+        border-width: 6px;
+        border-radius: 6px;
+        padding: 6px;
+    }
+    .photo-container {
+        border-width: 6px;
+        border-radius: 6px;
+        padding: 6px;
     }
 }
 
