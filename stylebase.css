@@ -46,7 +46,7 @@ select, input, button {
     height: 100%; /* Fill available height in the table cell */
     min-height: 450px; /* Increased from 350px to match canvas height */
     width: 100%;
-    background-color: darkslategray;
+    background-color: #000080;
     border: 8px solid #ccccff;
     border-radius: 8px;
     box-shadow:
