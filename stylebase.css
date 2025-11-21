@@ -346,19 +346,7 @@ div.seattlenativelinks{
     touch-action: none;
     max-width: 100%;
     display: block;
-    /* TV-style beveled frame effect */
-    border: 16px solid #90ee90;
-    border-radius: 8px;
-    box-shadow:
-        /* Inner shadow for depth */
-        inset 0 0 20px rgba(0, 0, 0, 0.8),
-        inset 0 0 10px rgba(0, 0, 0, 0.9),
-        /* Outer glow for screen effect */
-        0 0 40px rgba(144, 238, 144, 0.4),
-        /* Beveled edges - light on top-left */
-        inset 8px 8px 12px rgba(160, 238, 160, 0.5),
-        /* Beveled edges - dark on bottom-right */
-        inset -8px -8px 12px rgba(60, 120, 60, 0.6);
+    /* Removed border to fix coordinate mismatch */
     box-sizing: border-box;
 }
 
