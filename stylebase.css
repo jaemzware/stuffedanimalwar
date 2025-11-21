@@ -47,13 +47,13 @@ select, input, button {
     min-height: 450px; /* Increased from 350px to match canvas height */
     width: 100%;
     background-color: darkslategray;
-    border: 8px solid #90ee90;
+    border: 8px solid #ccccff;
     border-radius: 8px;
     box-shadow:
         inset 0 0 10px rgba(0, 0, 0, 0.5),
-        0 0 20px rgba(144, 238, 144, 0.3),
-        inset 4px 4px 8px rgba(160, 238, 160, 0.4),
-        inset -4px -4px 8px rgba(60, 120, 60, 0.5);
+        0 0 20px rgba(204, 204, 255, 0.3),
+        inset 4px 4px 8px rgba(214, 214, 255, 0.4),
+        inset -4px -4px 8px rgba(153, 153, 204, 0.5);
     overflow-x: scroll;
     overflow-y: scroll;
     margin: 0%;
@@ -93,13 +93,13 @@ span.remoteChatClientUser{
     padding: 8px;
     overflow-x: hidden; /* Prevent horizontal scrolling within container */
     justify-content: center; /* Center items horizontally */
-    border: 8px solid #90ee90;
+    border: 8px solid #ccccff;
     border-radius: 8px;
     box-shadow:
         inset 0 0 10px rgba(0, 0, 0, 0.5),
-        0 0 20px rgba(144, 238, 144, 0.3),
-        inset 4px 4px 8px rgba(160, 238, 160, 0.4),
-        inset -4px -4px 8px rgba(60, 120, 60, 0.5);
+        0 0 20px rgba(204, 204, 255, 0.3),
+        inset 4px 4px 8px rgba(214, 214, 255, 0.4),
+        inset -4px -4px 8px rgba(153, 153, 204, 0.5);
 }
 
 .skatecreteordiephoto {
@@ -149,13 +149,13 @@ span.remoteChatClientUser{
     table-layout: fixed;
     margin: 0;
     padding: 8px;
-    border: 8px solid #90ee90;
+    border: 8px solid #ccccff;
     border-radius: 8px;
     box-shadow:
         inset 0 0 10px rgba(0, 0, 0, 0.5),
-        0 0 20px rgba(144, 238, 144, 0.3),
-        inset 4px 4px 8px rgba(160, 238, 160, 0.4),
-        inset -4px -4px 8px rgba(60, 120, 60, 0.5);
+        0 0 20px rgba(204, 204, 255, 0.3),
+        inset 4px 4px 8px rgba(214, 214, 255, 0.4),
+        inset -4px -4px 8px rgba(153, 153, 204, 0.5);
 }
 
 #chattable td {
@@ -254,13 +254,13 @@ div.seattlenativelinks{
     box-sizing: border-box;
     padding: 8px;
     margin: 10px 0;
-    border: 8px solid #90ee90;
+    border: 8px solid #ccccff;
     border-radius: 8px;
     box-shadow:
         inset 0 0 10px rgba(0, 0, 0, 0.5),
-        0 0 20px rgba(144, 238, 144, 0.3),
-        inset 4px 4px 8px rgba(160, 238, 160, 0.4),
-        inset -4px -4px 8px rgba(60, 120, 60, 0.5);
+        0 0 20px rgba(204, 204, 255, 0.3),
+        inset 4px 4px 8px rgba(214, 214, 255, 0.4),
+        inset -4px -4px 8px rgba(153, 153, 204, 0.5);
 }
 /*VIDEO THUMBNAILS*/
 .video-thumbnail-container {
@@ -311,13 +311,13 @@ div.seattlenativelinks{
     box-sizing: border-box; /* Include padding and border in the width */
     margin: 0;
     padding: 8px;
-    border: 8px solid #90ee90;
+    border: 8px solid #ccccff;
     border-radius: 8px;
     box-shadow:
         inset 0 0 10px rgba(0, 0, 0, 0.5),
-        0 0 20px rgba(144, 238, 144, 0.3),
-        inset 4px 4px 8px rgba(160, 238, 160, 0.4),
-        inset -4px -4px 8px rgba(60, 120, 60, 0.5);
+        0 0 20px rgba(204, 204, 255, 0.3),
+        inset 4px 4px 8px rgba(214, 214, 255, 0.4),
+        inset -4px -4px 8px rgba(153, 153, 204, 0.5);
     display: flex;
     flex-direction: column;
     min-height: 500px; /* Match the canvas min-height */
@@ -421,13 +421,13 @@ body:has(.readonly) #audioform {
     box-sizing: border-box; /* Include padding and border in the width */
     margin: 0;
     padding: 8px;
-    border: 8px solid #90ee90;
+    border: 8px solid #ccccff;
     border-radius: 8px;
     box-shadow:
         inset 0 0 10px rgba(0, 0, 0, 0.5),
-        0 0 20px rgba(144, 238, 144, 0.3),
-        inset 4px 4px 8px rgba(160, 238, 160, 0.4),
-        inset -4px -4px 8px rgba(60, 120, 60, 0.5);
+        0 0 20px rgba(204, 204, 255, 0.3),
+        inset 4px 4px 8px rgba(214, 214, 255, 0.4),
+        inset -4px -4px 8px rgba(153, 153, 204, 0.5);
 }
 
 #audiotable td {
@@ -521,13 +521,13 @@ body:has(.readonly) #audioform {
     padding: 8px;
     margin: 0 auto; /* Center the table */
     text-align: center; /* Center the content inside */
-    border: 8px solid #90ee90;
+    border: 8px solid #ccccff;
     border-radius: 8px;
     box-shadow:
         inset 0 0 10px rgba(0, 0, 0, 0.5),
-        0 0 20px rgba(144, 238, 144, 0.3),
-        inset 4px 4px 8px rgba(160, 238, 160, 0.4),
-        inset -4px -4px 8px rgba(60, 120, 60, 0.5);
+        0 0 20px rgba(204, 204, 255, 0.3),
+        inset 4px 4px 8px rgba(214, 214, 255, 0.4),
+        inset -4px -4px 8px rgba(153, 153, 204, 0.5);
 }
 #videotable td{
     vertical-align:top;
