@@ -43,7 +43,8 @@ select, input, button {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    height: 450px; /* Set a fixed height for the messages div */
+    height: 100%; /* Fill available height in the table cell */
+    min-height: 350px; /* Maintain minimum height */
     width: 100%;
     background-color: darkslategray;
     border: 8px solid #90ee90;
@@ -316,6 +317,9 @@ div.seattlenativelinks{
         0 0 20px rgba(144, 238, 144, 0.3),
         inset 4px 4px 8px rgba(160, 238, 160, 0.4),
         inset -4px -4px 8px rgba(60, 120, 60, 0.5);
+    display: flex;
+    flex-direction: column;
+    height: 100%; /* Stretch to match the canvas height */
 }
 
 #stuffedanimalwarsvg{
@@ -399,6 +403,7 @@ body:has(.readonly) #audioform {
     box-sizing: border-box; /* Include padding and border in the width */
     margin: 0;
     padding: 0;
+    height: 100%; /* Fill the form height */
 }
 #stuffedanimalwarformtable td{
     text-align: left;
@@ -412,7 +417,7 @@ body:has(.readonly) #audioform {
 }
 #sawflexdiv {
     display: flex;
-    align-items: flex-start;
+    align-items: stretch; /* Changed from flex-start to stretch to make children equal height */
     flex-wrap: wrap;
     width: 100%;
     max-width: 100%;
