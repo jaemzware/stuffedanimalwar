@@ -686,6 +686,17 @@ $('#selectsongs').change(function(){
     }
 });
 //IMAGE AND VIDEO UPLOAD FORM SUBMISSION
+// Handle file selection for image upload
+$('#imageFileInput').on('change', function(e) {
+    const file = e.target.files[0];
+    const fileNameDisplay = document.getElementById('imageFileName');
+    if (file) {
+        fileNameDisplay.textContent = file.name;
+    } else {
+        fileNameDisplay.textContent = 'No file selected';
+    }
+});
+
 $('#uploadForm').on('submit', function (e) {
     e.preventDefault();
     const fileInput = e.target.elements.image;
@@ -720,23 +731,42 @@ $('#uploadForm').on('submit', function (e) {
     xhr.upload.onprogress = (event) => {
         if (event.lengthComputable) {
             const percentComplete = (event.loaded / event.total) * 100;
-            document.getElementById('progressIndicator').textContent = `${percentComplete.toFixed(2)}% uploaded`;
+            document.getElementById('progressIndicator').textContent = `${percentComplete.toFixed(0)}% uploaded`;
+            document.getElementById('imageProgressBar').style.width = `${percentComplete}%`;
         }
     };
 
     xhr.onload = () => {
         if (xhr.status === 200) {
-            document.getElementById('progressIndicator').textContent = 'Image Upload complete!';
-            document.getElementById('uploadForm').reset();
+            document.getElementById('progressIndicator').textContent = 'Upload complete!';
+            document.getElementById('imageProgressBar').style.width = '100%';
+            setTimeout(() => {
+                document.getElementById('uploadForm').reset();
+                document.getElementById('imageFileName').textContent = 'No file selected';
+                document.getElementById('progressIndicator').textContent = 'Ready to upload';
+                document.getElementById('imageProgressBar').style.width = '0%';
+            }, 2000);
         } else {
             console.error('Image Upload failed.');
-            document.getElementById('progressIndicator').textContent = 'Image Upload failed.';
+            document.getElementById('progressIndicator').textContent = 'Upload failed';
+            document.getElementById('imageProgressBar').style.width = '0%';
         }
     };
 
     xhr.open('POST', '/'+chatImageSocketEvent, true);
     xhr.send(formData);
 });
+// Handle file selection for video upload
+$('#videoFileInput').on('change', function(e) {
+    const file = e.target.files[0];
+    const fileNameDisplay = document.getElementById('videoFileName');
+    if (file) {
+        fileNameDisplay.textContent = file.name;
+    } else {
+        fileNameDisplay.textContent = 'No file selected';
+    }
+});
+
 $('#videoUploadForm').on('submit', function (e) {
     e.preventDefault();
     const fileInput = e.target.elements.video;
@@ -770,17 +800,25 @@ $('#videoUploadForm').on('submit', function (e) {
     xhr.upload.onprogress = (event) => {
         if (event.lengthComputable) {
             const percentComplete = (event.loaded / event.total) * 100;
-            document.getElementById('videoProgressIndicator').textContent = `${percentComplete.toFixed(2)}% uploaded`;
+            document.getElementById('videoProgressIndicator').textContent = `${percentComplete.toFixed(0)}% uploaded`;
+            document.getElementById('videoProgressBar').style.width = `${percentComplete}%`;
         }
     };
 
     xhr.onload = () => {
         if (xhr.status === 200) {
-            document.getElementById('videoProgressIndicator').textContent = 'Video Upload complete!';
-            document.getElementById('videoUploadForm').reset();
+            document.getElementById('videoProgressIndicator').textContent = 'Upload complete!';
+            document.getElementById('videoProgressBar').style.width = '100%';
+            setTimeout(() => {
+                document.getElementById('videoUploadForm').reset();
+                document.getElementById('videoFileName').textContent = 'No file selected';
+                document.getElementById('videoProgressIndicator').textContent = 'Ready to upload';
+                document.getElementById('videoProgressBar').style.width = '0%';
+            }, 2000);
         } else {
             console.error('Video Upload failed.');
-            document.getElementById('videoProgressIndicator').textContent = 'Video Upload failed.';
+            document.getElementById('videoProgressIndicator').textContent = 'Upload failed';
+            document.getElementById('videoProgressBar').style.width = '0%';
         }
     };
 
