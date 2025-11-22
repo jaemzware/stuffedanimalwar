@@ -663,6 +663,7 @@ function onBaseTapSocketEventLines(tapMsgObject){
     //get the coordinates emitted
     let newPointX = tapMsgObject.x;
     let newPointY = tapMsgObject.y;
+    let width = tapMsgObject.lineWidth || lineWidth; // Use lineWidth from message or default
 
     //save off these coordinates (for drawing a line)
     if(oldPointForLineToolX === null) {
@@ -681,7 +682,7 @@ function onBaseTapSocketEventLines(tapMsgObject){
     newLine.setAttribute('x2',newPointX); //
     newLine.setAttribute('y2',newPointY); //
 
-    newLine.setAttribute('style','stroke:rgb('+rgbValue+');stroke-width:'+lineWidth+';');
+    newLine.setAttribute('style','stroke:rgb('+rgbValue+');stroke-width:'+width+';');
 
     //ADD LINE TO THE SVG
     $("#stuffedanimalwarsvg").append(newLine);

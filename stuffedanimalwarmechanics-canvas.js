@@ -469,6 +469,7 @@ function onBaseTapSocketEventLines(tapMsgObject) {
 
     const newPointX = tapMsgObject.x;
     const newPointY = tapMsgObject.y;
+    const width = tapMsgObject.lineWidth || lineWidth; // Use lineWidth from message or default
 
     // Save off these coordinates (for drawing a line)
     if (oldPointForLineToolX === null) {
@@ -482,7 +483,7 @@ function onBaseTapSocketEventLines(tapMsgObject) {
         x2: newPointX,
         y2: newPointY,
         color: color,
-        width: lineWidth
+        width: width
     };
 
     lineObjects.push(line);
