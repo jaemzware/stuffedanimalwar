@@ -206,61 +206,58 @@ function writeMuteButton(){
 function writeAudioFromJson(mediaObject){
     //AUDIO
     if(mediaObject.songspath && mediaObject.songs && mediaObject.songs[0]){
-        document.write("<form id='audioform'>");
-        document.write("<div id='audioformdiv'>");
-        document.write("<table id='audiotable'>");
-        //paint the song selection dropdown
-        document.write("<tr>");
-        document.write("<td class='audioplayertd'>");
-        document.write("<select id=\"selectsongs\">");
-        //paint song selection dropdown options (songs)
-        for (let i=0;i<mediaObject.songs.length;i++){
-            let filepath = (mediaObject.songs[i].file.startsWith("http://") || mediaObject.songs[i].file.startsWith("https://")) ? mediaObject.songs[i].file : mediaObject.songspath+mediaObject.songs[i].file;
-            document.write("<option value=\""+filepath+"\">"+mediaObject.songs[i].title+"</option>");
-        }
-        document.write("</select>");
-        document.write("</td>");
-        document.write("</tr>");
+        document.write("<div id='audioPlayerContainer' class='section-container'>");
+        document.write("<form id='audioform' class='modern-form'>");
 
-        //paint the audio player
-        document.write("<tr>");
-        document.write("<td class='audioplayertd' colspan='2'>");
-        document.write("<audio id=\"jaemzwaredynamicaudioplayer\" controls=\"\" preload=\"metadata\">");
-        let filepath = (mediaObject.songs[0].file.startsWith("http://") || mediaObject.songs[0].file.startsWith("https://")) ? mediaObject.songs[0].file : mediaObject.songspath+mediaObject.songs[0].file;
-        document.write("<source id=\"jaemzwaredynamicaudiosource\" src=\""+filepath+"\" type=\"audio/mpeg\">");
-        document.write("HTML5 Audio Tag support not available with your browser. For source type='audio/mpeg'");
-        document.write("</audio>");
-        document.write("</td>");
-        document.write("</tr>");
+            document.write("<div class='section-header'>");
+            document.write("<span class='section-icon'>🎵</span>");
+            document.write("<h3 class='section-title'>Audio Player</h3>");
+            document.write("</div>");
 
-        document.write("<tr>");
+            document.write("<div class='audio-content'>");
+                document.write("<div class='input-group full-width'>");
+                    document.write("<label for='selectsongs' class='input-label'>Select Track</label>");
+                    document.write("<select id=\"selectsongs\" class='modern-select'>");
+                    //paint song selection dropdown options (songs)
+                    for (let i=0;i<mediaObject.songs.length;i++){
+                        let filepath = (mediaObject.songs[i].file.startsWith("http://") || mediaObject.songs[i].file.startsWith("https://")) ? mediaObject.songs[i].file : mediaObject.songspath+mediaObject.songs[i].file;
+                        document.write("<option value=\""+filepath+"\">"+mediaObject.songs[i].title+"</option>");
+                    }
+                    document.write("</select>");
+                document.write("</div>");
 
-        //previous and next buttons with metadata display
-        document.write("<td>");
-        document.write("<div class='audio-controls-container' style='display: flex; align-items: center;'>");
-        document.write("<input type='button' id='nextaudiotrack' value='next' />");
+                //paint the audio player
+                document.write("<div class='audio-player-wrapper'>");
+                    document.write("<audio id=\"jaemzwaredynamicaudioplayer\" controls=\"\" preload=\"metadata\">");
+                    let filepath = (mediaObject.songs[0].file.startsWith("http://") || mediaObject.songs[0].file.startsWith("https://")) ? mediaObject.songs[0].file : mediaObject.songspath+mediaObject.songs[0].file;
+                    document.write("<source id=\"jaemzwaredynamicaudiosource\" src=\""+filepath+"\" type=\"audio/mpeg\">");
+                    document.write("HTML5 Audio Tag support not available with your browser. For source type='audio/mpeg'");
+                    document.write("</audio>");
+                document.write("</div>");
 
-        // Album art thumbnail (right after the next button)
-        document.write("<div id='album-art-container' style='margin-left: 10px; width: 30px; height: 30px; background-color: #333; display: inline-block;'>");
-        document.write("<img id='album-art-img' src='' alt='' style='width: 100%; height: 100%; object-fit: cover; display: none;'>");
-        document.write("</div>");
+                //previous and next buttons with metadata display
+                document.write("<div class='audio-controls-container'>");
+                    document.write("<button type='button' id='nextaudiotrack' class='action-button secondary-button next-track-button'>Next Track</button>");
 
-        // Metadata text (artist, album, song)
-        document.write("<div id='track-metadata' style='margin-left: 5px; font-size: 12px; color: white; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; align-items: center;'>");
-        document.write("<span id='track-artist'></span>");
-        document.write("<span id='artist-album-separator' style='margin: 0 4px;'> - </span>");
-        document.write("<span id='track-album'></span>");
-        document.write("<span id='album-title-separator' style='margin: 0 4px;'> - </span>");
-        document.write("<span id='track-title'></span>");
-        document.write("</div>");
+                    // Album art thumbnail (right after the next button)
+                    document.write("<div id='album-art-container'>");
+                    document.write("<img id='album-art-img' src='' alt=''>");
+                    document.write("</div>");
 
-        document.write("</div>");
-        document.write("</td>");
-        document.write("</tr>");
+                    // Metadata text (artist, album, song)
+                    document.write("<div id='track-metadata'>");
+                    document.write("<span id='track-artist'></span>");
+                    document.write("<span id='artist-album-separator'> - </span>");
+                    document.write("<span id='track-album'></span>");
+                    document.write("<span id='album-title-separator'> - </span>");
+                    document.write("<span id='track-title'></span>");
+                    document.write("</div>");
 
-        document.write("</table>");
-        document.write("</div>");
+                document.write("</div>");
+            document.write("</div>");
+
         document.write("</form>");
+        document.write("</div>");
     }
 }
 function writeVideoFromJson(mediaObject){
@@ -268,136 +265,146 @@ function writeVideoFromJson(mediaObject){
 
     //IF THERES A VIDEO PATH IN THE MEDIAOBJECT, AND THERE IS AT LEAST ONE VIDEO
     if(mediaObject.videos && mediaObject.videos[0]){
-        //WRITE A WEB PAGE FORM FOR THE VIDEOS EMBEDDED IN A DIV
-        document.write("<form id='videoform'>")
-        document.write("<div id='videoformdiv'>");
+        document.write("<div id='videoPlayerContainer' class='section-container'>");
+        document.write("<form id='videoform' class='modern-form'>");
 
-        //PUT A TABLE IN THE DIV
-        document.write("<table id='videotable'>");
+            document.write("<div class='section-header'>");
+            document.write("<span class='section-icon'>🎬</span>");
+            document.write("<h3 class='section-title'>Video Player</h3>");
+            document.write("</div>");
 
-        //WRITE THE FIRST TABLE ROW
-        document.write("<tr>");
+            document.write("<div class='video-content'>");
+                document.write("<div class='input-group full-width'>");
+                    document.write("<label for='selectvideos' class='input-label'>Select Video</label>");
+                    document.write("<select id=\"selectvideos\" class='modern-select'>");
 
-        //WRITE THE FIRST TABLE COLUMN
-        document.write("<td>");
+                    //WRITE A SELECT DROPDOWN OPTION FOR EACH VIDEO PASSED THROUGH THE MEDIA OBJECT
+                    for (let i=0;i<mediaObject.videos.length;i++){
 
-        //WRITE A SELECT DROPDOWN FOR THE VIDEOS PASSED THROUGH THE MEDIA OBJECT
-        document.write("<select id=\"selectvideos\">");
+                        //IF A FILENAME WAS SPECIFIED IN THE MEDIA OBJECT
+                        if(mediaObject.videos[i].file){
 
-        //WRITE A SELECT DROPDOWN OPTION FOR EACH VIDEO PASSED THROUGH THE MEDIA OBJECT
-        for (let i=0;i<mediaObject.videos.length;i++){
+                            //IF THE FULL URL WAS SPECIFIED IN THE FILENAME (DETECTED BY CONTAINING HTTPS OR HTTP IN THE URL, DONT USE THE VIDEOS PREPENDING PATH SPECIFIED
+                            if(mediaObject.videos[i].file.indexOf("http://")!==-1 ||
+                                      mediaObject.videos[i].file.indexOf("https://")!==-1){
 
-            //IF A FILENAME WAS SPECIFIED IN THE MEDIA OBJECT
-            if(mediaObject.videos[i].file){
+                                //MAKE THE VALUE OF THE OPTION THE FULL URL SPECIFIED IN THE FILENAME
+                                //mediaObject.videos[i].file
+                                document.write("<option poster=\""+mediaObject.videos[i].poster+"\" value=\""+mediaObject.videos[i].file+"\">"+mediaObject.videos[i].title+"</option>");
+                            }
+                            //ELSE THE FULL URL WAS NOT SPECIFIED...
+                            else{
+                                //SO WE'LL PREPEND THE VIDEOSPATH TO THE FILENAME PASSED THROUGH THE MEDIAOBJECT
+                                //mediaObject.videospath+mediaObject.videos[i].file
+                                document.write("<option poster=\""+mediaObject.videos[i].poster+"\" value=\""+mediaObject.videospath+mediaObject.videos[i].file+"\">"+mediaObject.videos[i].title+"</option>");
+                            }
+                        }
+                    }
 
-                //IF THE FULL URL WAS SPECIFIED IN THE FILENAME (DETECTED BY CONTAINING HTTPS OR HTTP IN THE URL, DONT USE THE VIDEOS PREPENDING PATH SPECIFIED
-                if(mediaObject.videos[i].file.indexOf("http://")!==-1 ||
-                          mediaObject.videos[i].file.indexOf("https://")!==-1){
+                    document.write("</select>");
+                document.write("</div>");
 
-                    //MAKE THE VALUE OF THE OPTION THE FULL URL SPECIFIED IN THE FILENAME
-                    //mediaObject.videos[i].file
-                    document.write("<option poster=\""+mediaObject.videos[i].poster+"\" value=\""+mediaObject.videos[i].file+"\">"+mediaObject.videos[i].title+"</option>");
-                }
-                //ELSE THE FULL URL WAS NOT SPECIFIED...
-                else{
-                    //SO WE'LL PREPEND THE VIDEOSPATH TO THE FILENAME PASSED THROUGH THE MEDIAOBJECT
-                    //mediaObject.videospath+mediaObject.videos[i].file
-                    document.write("<option poster=\""+mediaObject.videos[i].poster+"\" value=\""+mediaObject.videospath+mediaObject.videos[i].file+"\">"+mediaObject.videos[i].title+"</option>");
-                }
-            }
-        }
+                //PUT A POSTER IMAGE
+                document.write("<div class='video-player-wrapper'>");
+                    //if a poster image was provided in the media object for the video
+                    if(mediaObject.videos[0].poster){
+                        //IF THE FULL URL WAS SPECIFIED, DONT USE THE VIDEOS PREPENDING PATH SPECIFIED
+                        if(mediaObject.videos[0].poster.indexOf("http://")!==-1 ||
+                            mediaObject.videos[0].poster.indexOf("https://")!==-1){
+                            document.write("<video id=\"jaemzwaredynamicvideoplayer\" poster=\""+mediaObject.videos[0].poster+"\" controls=\"controls\" preload=\"metadata\" title=\"stuffedanimalwarTv\">");
+                        }
+                        else{
+                            document.write("<video id=\"jaemzwaredynamicvideoplayer\" poster=\""+mediaObject.videospath+mediaObject.videos[0].poster+"\" controls=\"controls\" preload=\"metadata\" title=\"stuffedanimalwarTv\">");
+                        }
+                    }
+                    else{
+                        //let the utility.js load the first frame of the video by default
+                        document.write("<video id=\"jaemzwaredynamicvideoplayer\" controls=\"controls\" preload=\"metadata\" title=\"stuffedanimalwarTv\">");
+                    }
 
-        //FINISH WRITING THE SELECT DROPDOWN FOR EACH VIDOE PASSED THROUGH THE MEDIA OBJECT
-        document.write("</select>");
-        document.write("</td>");
-        document.write("</tr>");
+                    document.write("mp4 not supported in this browser");
+                    if(mediaObject.videos[0].file.indexOf("http://")!==-1 ||
+                        mediaObject.videos[0].file.indexOf("https://")!==-1) {
+                        document.write("<source src=\"" + mediaObject.videos[0].file + "\" type=\"video/mp4\" id=\"jaemzwaredynamicvideosource\">");
+                    } else {
+                        document.write("<source src=\"" + mediaObject.videospath + mediaObject.videos[0].file + "\" type=\"video/mp4\" id=\"jaemzwaredynamicvideosource\">");
+                    }
+                    document.write("</video>");
+                document.write("</div>");
+            document.write("</div>");
 
-        //PUT A POSTER IMAGE
-        document.write("<tr>");
-        document.write("<td>");
-        //if a poster image was provided in the media object for the video
-        if(mediaObject.videos[0].poster){
-            //IF THE FULL URL WAS SPECIFIED, DONT USE THE VIDEOS PREPENDING PATH SPECIFIED
-            if(mediaObject.videos[0].poster.indexOf("http://")!==-1 ||
-                mediaObject.videos[0].poster.indexOf("https://")!==-1){
-                document.write("<video id=\"jaemzwaredynamicvideoplayer\" poster=\""+mediaObject.videos[0].poster+"\" controls=\"controls\" preload=\"metadata\" title=\"stuffedanimalwarTv\">");
-            }
-            else{
-                document.write("<video id=\"jaemzwaredynamicvideoplayer\" poster=\""+mediaObject.videospath+mediaObject.videos[0].poster+"\" controls=\"controls\" preload=\"metadata\" title=\"stuffedanimalwarTv\">");
-            }
-        }
-        else{
-            //let the utility.js load the first frame of the video by default
-            document.write("<video id=\"jaemzwaredynamicvideoplayer\" controls=\"controls\" preload=\"metadata\" title=\"stuffedanimalwarTv\">");
-        }
-
-        document.write("mp4 not supported in this browser");
-        if(mediaObject.videos[0].file.indexOf("http://")!==-1 ||
-            mediaObject.videos[0].file.indexOf("https://")!==-1) {
-            document.write("<source src=\"" + mediaObject.videos[0].file + "\" type=\"video/mp4\" id=\"jaemzwaredynamicvideosource\">");
-        } else {
-            document.write("<source src=\"" + mediaObject.videospath + mediaObject.videos[0].file + "\" type=\"video/mp4\" id=\"jaemzwaredynamicvideosource\">");
-        }
-        document.write("</video>");
-        document.write("</td>");
-        document.write("</tr>");
-
-        document.write("</table>");
-        document.write("</div>");
         document.write("</form>");
+        document.write("</div>");
     }
 }
 function writePhotosFromJson(mediaObject){
     //PHOTOS
     if(mediaObject.photospath && mediaObject.photos && mediaObject.photos[0]){
-        document.write("<div class=\"photo-container\">");
-        //paint the photos
-        for (let i=0;i<mediaObject.photos.length;i++){
-            let filepath = (mediaObject.photos[i].file.startsWith("http://") || mediaObject.photos[i].file.startsWith("https://")) ? mediaObject.photos[i].file : mediaObject.photospath+mediaObject.photos[i].file;
-            let filetitle=mediaObject.photos[i].title;
-            document.write("<div class=\"skatecreteordiephoto\"><img class=\"photosformthumbnail\" src=\""+filepath+"\" alt=\""+filetitle+"\" /><span class=\"skatecreteordiephototitle\">"+filetitle+"</span></div>");
-        }
+        document.write("<div id='photoGalleryContainer' class='section-container'>");
+            document.write("<div class='section-header'>");
+            document.write("<span class='section-icon'>🖼️</span>");
+            document.write("<h3 class='section-title'>Photo Gallery</h3>");
+            document.write("</div>");
+
+            document.write("<div class=\"photo-gallery\">");
+            //paint the photos
+            for (let i=0;i<mediaObject.photos.length;i++){
+                let filepath = (mediaObject.photos[i].file.startsWith("http://") || mediaObject.photos[i].file.startsWith("https://")) ? mediaObject.photos[i].file : mediaObject.photospath+mediaObject.photos[i].file;
+                let filetitle=mediaObject.photos[i].title;
+                document.write("<div class=\"photo-item\"><img class=\"photo-thumbnail photosformthumbnail\" src=\""+filepath+"\" alt=\""+filetitle+"\" /><span class=\"photo-title\">"+filetitle+"</span></div>");
+            }
+            document.write("</div>");
         document.write("</div>");
     }
 }
 //AUDIOVIDEOPHOTOS//////////////////////////////////////////////AUDIOVIDEOPHOTOS//////////////////////////////////////////////////AUDIOVIDEOPHOTOS
 //CHAT//////////////////////////////////////////////CHAT//////////////////////////////////////////////////CHAT
 function writeChatForm(responsesObject) {
-    document.write("<form id='chatform'>");
-    document.write("<div id='chatformdiv'>");
+    document.write("<div id='chatFormContainer' class='section-container'>");
+    document.write("<form id='chatform' class='modern-form'>");
 
-    // Add endpoint info display above the chat form
-    document.write("<div id='endpointInfo' style='color: white; font-weight: bold; font-size: 12px; margin-bottom: 5px; text-align: left;'>");
-    document.write("Endpoint: <span id='endpointDisplay'></span> | ");
-    document.write("Master: <span id='masterAliasDisplay'></span> | ");
-    document.write("Default: <span id='unspecifiedAliasDisplay'></span>");
-    document.write("</div>");
+        // Add endpoint info display above the chat form
+        document.write("<div id='endpointInfo' class='endpoint-info'>");
+        document.write("Endpoint: <span id='endpointDisplay'></span> | ");
+        document.write("Master: <span id='masterAliasDisplay'></span> | ");
+        document.write("Default: <span id='unspecifiedAliasDisplay'></span>");
+        document.write("</div>");
 
-    document.write("<table id='chattable'>");
-    document.write("<tr>");
-    document.write("<td id=\"chatclientusertd\">");
-    document.write("<input id=\"chatClientUser\" placeholder=\"chat alias\"/>");
-    document.write("</td>");
-    document.write("<td>");
-    document.write("<select id=\"chatClientAutoResponder\" size=1 >");
-    writeDefaultAutoResponderOptions(responsesObject);
-    document.write("</select>");
-    document.write("</td>");
-    document.write("<td>");
-    document.write("<input style=\"vertical-align:top;text-align:left;\" id=\"clearchatbutton\" type=\"button\" value=\"Clear Chat\" />");
-    document.write("</td>");
-    document.write("</tr>");
-    document.write("<tr>");
-    document.write("<td id=\"chatclientmessagetd\" colspan=\"2\">");
-    document.write("<input id=\"chatClientMessage\" placeholder=\"hit enter to send message text or URL ending with .jpg .gif .png .mp3 .flac\" />");
-    document.write("</td>");
-    document.write("<td>");
-    document.write("<input style=\"vertical-align:top;text-align:left;\" id=\"sendchatbutton\" type=\"button\" value=\"Send\" />");
-    document.write("</td>");
-    document.write("</tr>");
-    document.write("</table>");
-    document.write("</div>");
+        document.write("<div class='section-header'>");
+        document.write("<span class='section-icon'>💬</span>");
+        document.write("<h3 class='section-title'>Chat</h3>");
+        document.write("</div>");
+
+        document.write("<div class='chat-controls'>");
+            document.write("<div class='input-group'>");
+                document.write("<label for='chatClientUser' class='input-label'>Alias</label>");
+                document.write("<input id=\"chatClientUser\" class='modern-input' placeholder=\"Enter your alias\"/>");
+            document.write("</div>");
+
+            document.write("<div class='input-group'>");
+                document.write("<label for='chatClientAutoResponder' class='input-label'>Auto Response</label>");
+                document.write("<select id=\"chatClientAutoResponder\" class='modern-select'>");
+                writeDefaultAutoResponderOptions(responsesObject);
+                document.write("</select>");
+            document.write("</div>");
+
+            document.write("<div class='button-group'>");
+                document.write("<button type=\"button\" id=\"clearchatbutton\" class='action-button secondary-button'>Clear Chat</button>");
+            document.write("</div>");
+        document.write("</div>");
+
+        document.write("<div class='chat-message-area'>");
+            document.write("<div class='input-group full-width'>");
+                document.write("<label for='chatClientMessage' class='input-label'>Message</label>");
+                document.write("<input id=\"chatClientMessage\" class='modern-input' placeholder=\"Type message or URL (.jpg .gif .png .mp3 .flac)\" />");
+            document.write("</div>");
+            document.write("<div class='button-group'>");
+                document.write("<button type=\"button\" id=\"sendchatbutton\" class='action-button primary-button'>Send</button>");
+            document.write("</div>");
+        document.write("</div>");
+
     document.write("</form>");
+    document.write("</div>");
 }
 function writeChatFormFileUpload() {
     document.write("<div id='fileUploadContainer' class='upload-container'>");
