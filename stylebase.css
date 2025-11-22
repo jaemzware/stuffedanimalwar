@@ -245,15 +245,14 @@ span.connectnotification {
 div.seattlenativelinks{
     margin-left:10px;
 }
-#progressIndicator, #videoProgressIndicator{
-    font-size: x-small;
-}
-#chattableuploadform {
+/* UPLOAD CONTAINERS */
+.upload-container {
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
-    padding: 8px;
+    padding: 16px;
     margin: 10px 0;
+    background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
     border: 8px solid #ccccff;
     border-radius: 8px;
     box-shadow:
@@ -261,6 +260,165 @@ div.seattlenativelinks{
         0 0 20px rgba(204, 204, 255, 0.3),
         inset 4px 4px 8px rgba(214, 214, 255, 0.4),
         inset -4px -4px 8px rgba(153, 153, 204, 0.5);
+}
+
+.upload-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.upload-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #f4d47c;
+}
+
+.upload-icon {
+    font-size: 28px;
+}
+
+.upload-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #f4d47c;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.upload-content {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.file-input-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.file-input {
+    display: none;
+}
+
+.file-input-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #f4d47c 0%, #e6c56a 100%);
+    border: none;
+    border-radius: 8px;
+    color: #1a1a1a;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(244, 212, 124, 0.3);
+}
+
+.file-input-button:hover {
+    background: linear-gradient(135deg, #fae49a 0%, #f4d47c 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(244, 212, 124, 0.5);
+}
+
+.file-input-icon {
+    font-size: 18px;
+}
+
+.file-input-text {
+    font-size: 15px;
+}
+
+.file-input-label {
+    padding: 8px 12px;
+    background: rgba(244, 212, 124, 0.1);
+    border: 1px solid rgba(244, 212, 124, 0.3);
+    border-radius: 6px;
+    color: #f4d47c;
+    font-size: 13px;
+    text-align: center;
+    min-height: 20px;
+}
+
+.upload-submit-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 24px;
+    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-weight: 700;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 10px rgba(76, 175, 80, 0.4);
+}
+
+.upload-submit-button:hover {
+    background: linear-gradient(135deg, #5cd660 0%, #4CAF50 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(76, 175, 80, 0.6);
+}
+
+.upload-submit-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 5px rgba(76, 175, 80, 0.4);
+}
+
+.upload-submit-icon {
+    font-size: 18px;
+}
+
+.upload-submit-text {
+    font-size: 16px;
+}
+
+.upload-progress {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.progress-text {
+    font-size: 13px;
+    color: #f4d47c;
+    font-weight: 500;
+    text-align: center;
+}
+
+.progress-bar-container {
+    width: 100%;
+    height: 8px;
+    background: rgba(244, 212, 124, 0.2);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #4CAF50 0%, #8BC34A 100%);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+    box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+}
+
+.upload-info {
+    font-size: 12px;
+    color: rgba(244, 212, 124, 0.7);
+    text-align: center;
+    font-style: italic;
 }
 /*VIDEO THUMBNAILS*/
 .video-thumbnail-container {
@@ -709,15 +867,56 @@ a.jaemzwarelogo:active, .skateparkdetail a:active {
         border-radius: 6px;
         padding: 6px;
     }
-    #chattableuploadform {
-        border-width: 6px;
-        border-radius: 6px;
-        padding: 6px;
-    }
     .photo-container {
         border-width: 6px;
         border-radius: 6px;
         padding: 6px;
+    }
+    /* Upload containers for mobile */
+    .upload-container {
+        padding: 12px;
+        margin: 8px 0;
+        border-width: 6px;
+        border-radius: 6px;
+    }
+    .upload-header {
+        padding-bottom: 10px;
+    }
+    .upload-icon {
+        font-size: 24px;
+    }
+    .upload-title {
+        font-size: 16px;
+    }
+    .file-input-button {
+        padding: 10px 16px;
+        font-size: 14px;
+    }
+    .file-input-icon {
+        font-size: 16px;
+    }
+    .file-input-text {
+        font-size: 14px;
+    }
+    .file-input-label {
+        font-size: 12px;
+        padding: 6px 10px;
+    }
+    .upload-submit-button {
+        padding: 12px 20px;
+        font-size: 15px;
+    }
+    .upload-submit-icon {
+        font-size: 16px;
+    }
+    .upload-submit-text {
+        font-size: 15px;
+    }
+    .progress-text {
+        font-size: 12px;
+    }
+    .upload-info {
+        font-size: 11px;
     }
 }
 
