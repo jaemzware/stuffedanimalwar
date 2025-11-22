@@ -439,7 +439,7 @@ function writeChatFormVideoUpload() {
                 document.write("<div id=\"videoProgressIndicator\" class='progress-text'>Ready to upload</div>");
                 document.write("<div class='progress-bar-container'><div id='videoProgressBar' class='progress-bar'></div></div>");
             document.write("</div>");
-            document.write("<div class='upload-info'>Max size: 10MB</div>");
+            document.write("<div class='upload-info'>Max size: 50MB</div>");
         document.write("</form>");
     document.write("</div>");
 }
