@@ -46,7 +46,7 @@ select, input, button {
     height: 100%; /* Fill available height in the table cell */
     min-height: 450px; /* Increased from 350px to match canvas height */
     width: 100%;
-    background-color: #000080;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
     border: 8px solid #ccccff;
     border-radius: 8px;
     box-shadow:
@@ -57,12 +57,12 @@ select, input, button {
     overflow-x: scroll;
     overflow-y: scroll;
     margin: 0%;
-    padding: 8px;
+    padding: 12px;
     text-align: left;
     vertical-align: top;
-    font-weight: bold;
-    font-family: sans-serif;
-    color: black; /* Changed to black for better visibility */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: #e0e0e0;
+    gap: 8px;
 }
 
 #chatclientmessagetd{
@@ -148,7 +148,8 @@ span.remoteChatClientUser{
     box-sizing: border-box;
     table-layout: fixed;
     margin: 0;
-    padding: 8px;
+    padding: 16px;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
     border: 8px solid #ccccff;
     border-radius: 8px;
     box-shadow:
@@ -169,11 +170,67 @@ span.remoteChatClientUser{
     width: 100%;
     box-sizing: border-box; /* Include padding and border in the width */
     margin: 2px 0; /* Add some margin to prevent overlap */
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid #ccccff;
+    border-radius: 6px;
+    color: #1a1a2e;
+    font-size: 14px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    transition: all 0.2s ease;
+}
+
+#chatClientUser:focus, #chatClientAutoResponder:focus {
+    outline: none;
+    border-color: #9999ff;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 0 0 3px rgba(153, 153, 255, 0.2);
+}
+
+#chatClientMessage {
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid #ccccff;
+    border-radius: 6px;
+    color: #1a1a2e;
+    font-size: 14px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    transition: all 0.2s ease;
+}
+
+#chatClientMessage:focus {
+    outline: none;
+    border-color: #9999ff;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 0 0 3px rgba(153, 153, 255, 0.2);
 }
 
 #clearchatbutton, #sendchatbutton {
     width: auto; /* Allow the button to size itself */
     margin: 2px 0; /* Add some margin to prevent overlap */
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-sizing: border-box;
+    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+    color: white;
+    box-shadow: 0 3px 10px rgba(76, 175, 80, 0.4);
+}
+
+#clearchatbutton:hover, #sendchatbutton:hover {
+    background: linear-gradient(135deg, #5cd660 0%, #4CAF50 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(76, 175, 80, 0.6);
+}
+
+#clearchatbutton:active, #sendchatbutton:active {
+    transform: translateY(0);
 }
 /*CHAT MESSAGES FONTS*/
 .right-aligned-container {
@@ -184,31 +241,41 @@ span.remoteChatClientUser{
 }
 
 span.serverdate {
-    color: white;
-    font-size: x-small;
+    color: #a8a8ff;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
 }
 
 span.remoteChatClientUser {
-    color: white;
-    font-size: x-small;
+    color: #ccccff;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
 }
 
 span.chatclientmessage {
     align-self: flex-start; /* Ensure the message is aligned to the left */
-    color: ghostwhite;
-    font-size: 16px;
+    color: #f0f0ff;
+    font-size: 15px;
+    line-height: 1.5;
+    font-weight: 400;
+    letter-spacing: 0.2px;
 }
 
 a.chatclientmessage {
     align-self: flex-start; /* Ensure the message is aligned to the left */
-    color: ghostwhite;
-    font-size: 16px;
+    color: #a8d5ff;
+    font-size: 15px;
+    line-height: 1.5;
+    font-weight: 400;
     text-decoration: underline;
     cursor: pointer;
+    letter-spacing: 0.2px;
 }
 
 a.chatclientmessage:hover {
-    color: #87ceeb; /* Sky blue on hover */
+    color: #6eb8ff; /* Brighter blue on hover */
 }
 
 a.audio-link, a.video-link {
@@ -228,18 +295,24 @@ a.video-link::before {
 }
 span.hitclientmessage {
     align-self: flex-start; /* Ensure the message is aligned to the left */
-    color: white;
-    font-size: xx-small;
+    color: #d0d0ff;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.3px;
 }
 span.disconnectnotification {
     align-self: flex-start; /* Ensure the message is aligned to the left */
-    color: orangered;
-    font-size: xx-small;
+    color: #ff8866;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
 }
 span.connectnotification {
     align-self: flex-start; /* Ensure the message is aligned to the left */
-    color: lime;
-    font-size: xx-small;
+    color: #88ff88;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
 }
 /*LINKS ON INDEX.HTM FOR CONCERT BAND LINKS*/
 div.seattlenativelinks{
@@ -709,11 +782,11 @@ div.seattlenativelinks{
 }
 
 #stuffedanimalwarform{
-    background-color:black;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
     width: 33%;
     box-sizing: border-box; /* Include padding and border in the width */
     margin: 0;
-    padding: 8px;
+    padding: 16px;
     border: 8px solid #ccccff;
     border-radius: 8px;
     box-shadow:
@@ -789,7 +862,7 @@ body:has(.readonly) #audioform {
     border-color: rgba(255, 255, 255, 0.5);
 }
 #stuffedanimalwarformtable{
-    background-color:black;
+    background-color: transparent;
     width: 100%;
     max-width: 100%;
     box-sizing: border-box; /* Include padding and border in the width */
@@ -800,6 +873,101 @@ body:has(.readonly) #audioform {
 #stuffedanimalwarformtable td{
     text-align: left;
     vertical-align:top;
+    color: #e0e0e0;
+}
+
+/* Style the points and speed slider display */
+#stuffedanimalwarformtable #points {
+    color: #ccccff;
+    font-weight: 600;
+    font-size: 15px;
+}
+
+#stuffedanimalwarformtable label {
+    color: #ccccff;
+    font-weight: 500;
+    font-size: 13px;
+}
+
+#stuffedanimalwarformtable #speedValue {
+    color: #ccccff;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+/* Style the animals dropdown */
+#stuffedanimalwarformtable #animals {
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid #ccccff;
+    border-radius: 6px;
+    color: #1a1a2e;
+    font-size: 16px;
+    line-height: 1.6;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    transition: all 0.2s ease;
+    height: auto;
+    min-height: 36px;
+}
+
+#stuffedanimalwarformtable #animals:focus {
+    outline: none;
+    border-color: #9999ff;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 0 0 3px rgba(153, 153, 255, 0.2);
+}
+
+#stuffedanimalwarformtable #animals option {
+    padding: 8px;
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+/* Custom URL input */
+#stuffedanimalwarformtable #imagepathtextbox {
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid #ccccff;
+    border-radius: 6px;
+    color: #1a1a2e;
+    font-size: 14px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    transition: all 0.2s ease;
+}
+
+#stuffedanimalwarformtable #imagepathtextbox:focus {
+    outline: none;
+    border-color: #9999ff;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 0 0 3px rgba(153, 153, 255, 0.2);
+}
+
+/* Animal Preview Box */
+#animalPreview {
+    box-shadow: 0 2px 8px rgba(204, 204, 255, 0.3);
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+#animalPreviewContent img {
+    transition: transform 0.2s ease;
+}
+
+/* Color Picker Button - compact style */
+#colorPickerButton {
+    border: 2px solid #ccccff !important;
+    box-shadow: 0 2px 8px rgba(204, 204, 255, 0.3);
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+#colorPickerButton:hover {
+    box-shadow: 0 3px 12px rgba(204, 204, 255, 0.5);
+    transform: translateY(-1px);
+}
+
+#colorPickerButton:active {
+    transform: translateY(0);
 }
 .photosformthumbnail {
     max-width: 150px; /* Set the maximum width of the thumbnail */
@@ -1025,10 +1193,15 @@ a.jaemzwarelogo:active, .skateparkdetail a:active {
     #animals {
         width: 100%;
         max-width: 100%;
-        font-size: 16px;
+        font-size: 18px;
+        line-height: 1.8;
+        min-height: 44px;
+        padding: 10px 12px;
     }
     #animals option {
-        font-size: 16px;
+        font-size: 18px;
+        line-height: 1.8;
+        padding: 10px;
     }
     #clearboardbutton {
         width: 100%;
@@ -1045,6 +1218,16 @@ a.jaemzwarelogo:active, .skateparkdetail a:active {
         bottom: 0px;
         left: 0px;
         width: 100%;
+    }
+    /* Stack directional buttons and color picker vertically on mobile */
+    #stuffedanimalwarformtable .direction-color-container {
+        grid-template-columns: 1fr !important;
+        gap: 10px !important;
+    }
+    /* Make color picker smaller on mobile */
+    #colorPickerButton {
+        height: 80px !important;
+        max-width: 100% !important;
     }
     #stuffedanimalwarsvg {
         height: 300px; /* Shorter height for mobile */

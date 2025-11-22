@@ -78,8 +78,10 @@ function writeStuffedAnimalWarForm(stuffedAnimalMediaObject){
 
     //ANIMAL CHOICES
     document.write("<tr>");
-    document.write("<td>");
-    document.write("<select id=\"animals\" name=\"sawstyle\" size=1 style=\"height: 32px;\">");
+    document.write("<td colspan='4'>");
+    document.write("<div style=\"display: grid; grid-template-columns: auto auto 1fr auto; gap: 8px; align-items: center; width: 100%;\">");
+    // Dropdown
+    document.write("<select id=\"animals\" name=\"sawstyle\" size=1>");
     document.write("<option value=\"dot\" selected>BULLET</option>");
     document.write("<option value=\"line\">LINE</option>");
     document.write("<option value=\"custom\">CUSTOM URL</option>");
@@ -90,25 +92,23 @@ function writeStuffedAnimalWarForm(stuffedAnimalMediaObject){
         }
     }
     document.write("</select>");
-    document.write("</td>");
-    document.write("<td style=\"width: 100%;\">");
-    document.write("<div style=\"width: 100%; display: flex; justify-content: center;\">");
-    // Color picker button (visible by default)
-    document.write("<button type=\"button\" id=\"colorPickerButton\" class=\"color-picker-button\" style=\"width: 200px; height: 32px; padding: 0;\">");
-    document.write("<span class=\"color-picker-button-sample\" style=\"width: 100%; height: 100%; margin: 0; border-radius: 4px; display: block;\"></span>");
-    document.write("</button>");
-    // Custom URL text box (hidden by default)
-    document.write("<input style=\"vertical-align:top;text-align:left;display:none;width:100%;height:32px;box-sizing:border-box;\" id=\"imagepathtextbox\" placeholder=\"CUSTOM URL\" />");
+    // Add preview image container
+    document.write("<div id=\"animalPreview\" style=\"width: 40px; height: 40px; border: 2px solid #ccccff; border-radius: 6px; background: rgba(255, 255, 255, 0.9); display: flex; align-items: center; justify-content: center; overflow: hidden;\">");
+    document.write("<div id=\"animalPreviewContent\" style=\"width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #1a1a2e;\">•</div>");
     document.write("</div>");
-    document.write("</td>");
-    document.write("<td>");
-    //CLEAR BUTTON
-    document.write("<input style=\"vertical-align:top;text-align:left;height:32px;\" id=\"clearboardbutton\" type=\"button\" value=\"Clean\" />");
+    // Custom URL text box (hidden by default) - takes up the flex space
+    document.write("<input style=\"vertical-align:top;text-align:left;display:none;width:100%;height:40px;box-sizing:border-box;\" id=\"imagepathtextbox\" placeholder=\"CUSTOM URL\" />");
+    //CLEAR BUTTON - takes up remaining space
+    document.write("<input style=\"vertical-align:top;text-align:center;height:40px;width:100%;min-width:80px;\" id=\"clearboardbutton\" type=\"button\" value=\"ERASE\" />");
+    document.write("</div>");
     document.write("</td>");
     document.write("</tr>");
     document.write("<tr>");
     document.write("<td colspan='4'>");
-    //MOVEMENT DIRECTION - 3 ROW LAYOUT
+    // Two column layout: directional buttons on left, color picker on right
+    document.write("<div class=\"direction-color-container\" style=\"display: grid; grid-template-columns: 1fr 1fr; gap: 15px; align-items: center;\">");
+
+    // LEFT COLUMN - MOVEMENT DIRECTION - 3 ROW LAYOUT
     document.write("<div style=\"display: grid; grid-template-columns: auto 80px auto; grid-template-rows: auto auto auto; gap: 5px; justify-items: center; align-items: center; justify-content: center;\">");
 
     // TOP ROW - UPLEFT (grid column 1, row 1)
@@ -169,7 +169,17 @@ function writeStuffedAnimalWarForm(stuffedAnimalMediaObject){
     document.write("<label class=\"direction-label\" for=\"movement-downright\">↘️</label>");
     document.write("</div>");
 
+    document.write("</div>"); // End of directional buttons grid
+
+    // RIGHT COLUMN - COLOR PICKER (big swatch)
+    document.write("<div style=\"display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;\">");
+    document.write("<label style=\"color: #ccccff; font-weight: 600; font-size: 14px; letter-spacing: 0.5px;\">COLOR</label>");
+    document.write("<button type=\"button\" id=\"colorPickerButton\" class=\"color-picker-button\" style=\"width: 100%; height: 150px; padding: 0; border-radius: 8px; max-width: 250px;\">");
+    document.write("<span class=\"color-picker-button-sample\" style=\"width: 100%; height: 100%; margin: 0; border-radius: 6px; display: block;\"></span>");
+    document.write("</button>");
     document.write("</div>");
+
+    document.write("</div>"); // End of two-column layout
     document.write("</td>");
     document.write("</tr>");
     document.write("<tr>");

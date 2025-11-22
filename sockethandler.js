@@ -390,6 +390,10 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         setupSVGDrawingEvents();
     }
+    // Initialize animal preview with the default selected value
+    if ($('#animals').length > 0) {
+        updateAnimalPreview($('#animals').val());
+    }
 });
 
 // CANVAS DRAWING EVENTS
@@ -454,7 +458,9 @@ function setupCanvasDrawingEvents() {
 
     // Touch events for canvas
     $(CANVAS).on("touchstart", function (e) {
-        e.preventDefault();
+        if (e.cancelable) {
+            e.preventDefault();
+        }
         let colorPickerButton = $("#colorPickerButton");
         let color = "rgb(" + colorPickerButton.attr("data-red") + "," + colorPickerButton.attr("data-green") + "," + colorPickerButton.attr("data-blue") + ")";
         const touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0];
@@ -576,7 +582,9 @@ SVG.on("mouseup", function (e) {
 });
 //MOBILE EVENTS
 SVG.on("touchstart", function (e) {
-    e.preventDefault(); //PREVENT SVG FROM SCROLLING WHEN TOUCHED
+    if (e.cancelable) {
+        e.preventDefault(); //PREVENT SVG FROM SCROLLING WHEN TOUCHED
+    }
     let colorPickerButton = $("#colorPickerButton");
     let color = "rgb(" + colorPickerButton.attr("data-red") + "," + colorPickerButton.attr("data-green") + "," + colorPickerButton.attr("data-blue") + ")";
     // Get touch coordinates
@@ -911,6 +919,8 @@ $('#animals').on('change', function() {
         oldPointForLineToolX = null;
         oldPointForLineToolY = null;
     }
+    // Update preview image
+    updateAnimalPreview($(this).val());
 });
 $('#clearchatbutton').on("click", function() {
     clearChat();
@@ -922,6 +932,41 @@ $('#clearchatbutton').on("click", function() {
 
 function clearChat(){
     $('#messagesdiv').empty();
+}
+
+function updateAnimalPreview(value) {
+    const previewContent = $('#animalPreviewContent');
+
+    if (!value) {
+        value = 'dot'; // Default to bullet if no value
+    }
+
+    if (value === 'dot') {
+        // Show a bullet point
+        previewContent.html('•').css({
+            'font-size': '20px',
+            'background': 'none',
+            'color': '#1a1a2e'
+        });
+    } else if (value === 'line') {
+        // Show a line symbol
+        previewContent.html('─').css({
+            'font-size': '20px',
+            'background': 'none',
+            'color': '#1a1a2e'
+        });
+    } else if (value === 'custom') {
+        // Show custom text
+        previewContent.html('?').css({
+            'font-size': '18px',
+            'font-weight': 'bold',
+            'background': 'none',
+            'color': '#1a1a2e'
+        });
+    } else {
+        // Show the actual image (for custom animals with image URLs)
+        previewContent.css('background', 'none').html('<img src="' + value + '" style="max-width: 100%; max-height: 100%; object-fit: contain;" onerror="this.style.display=\'none\'; this.parentElement.innerHTML=\'<span style=\\\'font-size: 16px; color: #1a1a2e;\\\'>🦁</span>\';" />');
+    }
 }
 
 function emitChatMessage(messageString){

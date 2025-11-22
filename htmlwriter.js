@@ -68,7 +68,8 @@ function writeStuffedAnimalWarForm(stuffedAnimalMediaObject){
     //ANIMAL CHOICES
     document.write("<tr>");
     document.write("<td>");
-    document.write("<select id=\"animals\" name=\"sawstyle\" size=1 style=\"height: 32px;\">");
+    document.write("<div style=\"display: flex; align-items: center; gap: 8px;\">");
+    document.write("<select id=\"animals\" name=\"sawstyle\" size=1>");
     document.write("<option value=\"dot\" selected>BULLET</option>");
     document.write("<option value=\"line\">LINE</option>");
     document.write("<option value=\"custom\">CUSTOM URL</option>");
@@ -79,20 +80,19 @@ function writeStuffedAnimalWarForm(stuffedAnimalMediaObject){
         }
     }
     document.write("</select>");
+    // Add preview image container
+    document.write("<div id=\"animalPreview\" style=\"width: 40px; height: 40px; border: 2px solid #ccccff; border-radius: 6px; background: rgba(255, 255, 255, 0.9); display: flex; align-items: center; justify-content: center; overflow: hidden;\">");
+    document.write("<div id=\"animalPreviewContent\" style=\"width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #1a1a2e;\">•</div>");
+    document.write("</div>");
+    document.write("</div>");
     document.write("</td>");
     document.write("<td style=\"width: 100%;\">");
-    document.write("<div style=\"width: 100%; display: flex; justify-content: center;\">");
-    // Color picker button (visible by default)
-    document.write("<button type=\"button\" id=\"colorPickerButton\" class=\"color-picker-button\" style=\"width: 200px; height: 32px; padding: 0;\">");
-    document.write("<span class=\"color-picker-button-sample\" style=\"width: 100%; height: 100%; margin: 0; border-radius: 4px; display: block;\"></span>");
-    document.write("</button>");
-    // Custom URL text box (hidden by default)
-    document.write("<input style=\"vertical-align:top;text-align:left;display:none;width:100%;height:32px;box-sizing:border-box;\" id=\"imagepathtextbox\" placeholder=\"CUSTOM URL\" />");
-    document.write("</div>");
+    // Custom URL text box (hidden by default) - moved here, no color picker
+    document.write("<input style=\"vertical-align:top;text-align:left;display:none;width:100%;height:40px;box-sizing:border-box;\" id=\"imagepathtextbox\" placeholder=\"CUSTOM URL\" />");
     document.write("</td>");
     document.write("<td>");
     //CLEAR BUTTON
-    document.write("<input style=\"vertical-align:top;text-align:left;height:32px;\" id=\"clearboardbutton\" type=\"button\" value=\"Clean\" />");
+    document.write("<input style=\"vertical-align:top;text-align:left;height:40px;\" id=\"clearboardbutton\" type=\"button\" value=\"Clean\" />");
     document.write("</td>");
     document.write("</tr>");
     document.write("<tr>");
@@ -158,6 +158,17 @@ function writeStuffedAnimalWarForm(stuffedAnimalMediaObject){
     document.write("<label class=\"direction-label\" for=\"movement-downright\">DOWNRIGHT</label>");
     document.write("</div>");
 
+    document.write("</div>");
+    document.write("</td>");
+    document.write("</tr>");
+    document.write("<tr>");
+    document.write("<td colspan='4'>");
+    // Color picker - moved here to the right of directional buttons
+    document.write("<div style=\"display: flex; align-items: center; gap: 10px; margin-bottom: 10px;\">");
+    document.write("<label style=\"color: #ccccff; font-weight: 500; font-size: 13px;\">Color:</label>");
+    document.write("<button type=\"button\" id=\"colorPickerButton\" class=\"color-picker-button\" style=\"width: 50px; height: 50px; padding: 0; flex-shrink: 0; border-radius: 8px;\">");
+    document.write("<span class=\"color-picker-button-sample\" style=\"width: 100%; height: 100%; margin: 0; border-radius: 6px; display: block;\"></span>");
+    document.write("</button>");
     document.write("</div>");
     document.write("</td>");
     document.write("</tr>");
@@ -353,7 +364,7 @@ function writeChatForm(responsesObject) {
     document.write("<div id='chatformdiv'>");
 
     // Add endpoint info display above the chat form
-    document.write("<div id='endpointInfo' style='color: white; font-weight: bold; font-size: 12px; margin-bottom: 5px; text-align: left;'>");
+    document.write("<div id='endpointInfo' class='endpoint-info'>");
     document.write("Endpoint: <span id='endpointDisplay'></span> | ");
     document.write("Master: <span id='masterAliasDisplay'></span> | ");
     document.write("Default: <span id='unspecifiedAliasDisplay'></span>");
