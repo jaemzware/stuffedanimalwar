@@ -98,7 +98,7 @@
     "mediaObject": {
         "songspath": "songs/",
         "videospath": "videos/",
-        "photospath": "photos/",
+        "photospath": "animals/",
         "songs": [
             {
                 "file": "pixies-imamazed-brokenface-demo.mp3",
@@ -111,24 +111,92 @@
         ],
         "photos": [
             {
-                "file": "boots.jpg",
-                "title": "Boots the Cat"
+                "file": "badger.png",
+                "title": "Badger"
             },
             {
-                "file": "jim-boneless.JPG",
-                "title": "Skatecreteordie Promo Shot"
+                "file": "bat.png",
+                "title": "Bat"
             },
             {
-                "file": "IMG_3512.JPG",
-                "title": "Space Needle at Night by Seascape"
+                "file": "bear.png",
+                "title": "Bear"
             },
             {
-                "file": "IMG_5269.JPG",
-                "title": "Battle Machine Look Out!"
+                "file": "birds.png",
+                "title": "Birds"
             },
             {
-                "file": "stuffedanimalwarfinal.jpg",
-                "title": "Stuffed Animal War Promo Photo"
+                "file": "bison.png",
+                "title": "Bison"
+            },
+            {
+                "file": "boar.png",
+                "title": "Boar"
+            },
+            {
+                "file": "deer.png",
+                "title": "Buck"
+            },
+            {
+                "file": "cats.png",
+                "title": "Cats"
+            },
+            {
+                "file": "cheetah.png",
+                "title": "Cheetah"
+            },
+            {
+                "file": "chickens.png",
+                "title": "Chickens"
+            },
+            {
+                "file": "crocodiles.png",
+                "title": "Crocodiles"
+            },
+            {
+                "file": "crow.png",
+                "title": "Crow"
+            },
+            {
+                "file": "dogs.png",
+                "title": "Dog"
+            },
+            {
+                "file": "duck.png",
+                "title": "Duck"
+            },
+            {
+                "file": "eagle.png",
+                "title": "Eagle"
+            },
+            {
+                "file": "frog.png",
+                "title": "Frog"
+            },
+            {
+                "file": "giraffe.png",
+                "title": "Giraffe"
+            },
+            {
+                "file": "goldfish.png",
+                "title": "Goldfish"
+            },
+            {
+                "file": "gorilla.png",
+                "title": "Gorilla"
+            },
+            {
+                "file": "monkey.png",
+                "title": "Monkey"
+            },
+            {
+                "file": "moose.png",
+                "title": "Moose"
+            },
+            {
+                "file": "seagull.png",
+                "title": "Seagull"
             }
         ],
         "videos": [
@@ -140,6 +208,27 @@
             {
                 "file": "https://jaemzware.com/media/aoc/aocdogemedical.mp4",
                 "title": "AOC 2028"
+            },
+            {
+                "file": "levi.mp4",
+                "title": "Levi at Delridge 2025"
+            },
+            {
+                "file": "suffering.mp4",
+                "title": "Suffering Fuckheads Lake City 2023"
+            },
+            {
+                "file": "maiden.mp4",
+                "title": "Marginal Maidens Winner Circle 2023"
+            },
+            {
+                "file": "https://jaemzware.com/media/stuffedanimalwar/promo/SAWdjPromo.mp4",
+                "title": "Stuffed Animal War DJ Promo",
+                "poster": "https://jaemzware.com/media/stuffedanimalwar/promo/stuffedanimalwarscreen.jpeg"
+            },
+            {
+                "file": "https://jaemzware.com/media/stuffedanimalwar/promo/toxicavenger.mp4",
+                "title": "Toxic Avenger"
             }
         ]
     },
