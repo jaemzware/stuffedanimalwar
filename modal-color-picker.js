@@ -6,6 +6,7 @@
     let currentRed = 128;
     let currentGreen = 128;
     let currentBlue = 128;
+    let currentLineWidth = 5; // Initial line width
 
     // Custom callback function (replace this with your own)
     let customCallback = function(r, g, b) {
@@ -18,13 +19,15 @@
   <div id="colorPickerModal" class="color-picker-modal">
     <div class="color-picker-content">
       <div class="color-picker-header">
-        <h3>Select Color</h3>
+        <h3>Line Style</h3>
         <button id="closeColorPicker" class="close-button">&times;</button>
       </div>
       
       <div class="color-picker-body">
         <div class="color-display" id="colorDisplay"></div>
-        
+
+        <div class="section-header">Color</div>
+
         <div class="color-controls">
           <div class="color-control">
             <span class="color-label red-label">R:</span>
@@ -44,14 +47,26 @@
             <input type="number" min="0" max="255" value="${currentBlue}" class="color-input" id="blueInput">
           </div>
         </div>
-        
+
+        <div class="section-header">Width</div>
+
+        <div class="line-width-control">
+            <div class="line-width-slider-container">
+              <span class="line-width-icon line-width-icon-small"></span>
+              <input type="range" min="1" max="20" value="${currentLineWidth}" class="line-width-slider" id="lineWidthSlider">
+              <span class="line-width-icon line-width-icon-large"></span>
+              <span class="line-width-value" id="lineWidthValue">${currentLineWidth}px</span>
+            </div>
+          </div>
+
+        <div class="section-header" style="margin-top: 12px;">Presets</div>
         <div class="presets">
           <div class="presets-grid" id="presets"></div>
         </div>
         
         <div class="action-buttons">
           <button id="cancelColorPicker" class="cancel-button">Cancel</button>
-          <button id="confirmColorPicker" class="confirm-button">Select</button>
+          <button id="confirmColorPicker" class="confirm-button">Apply</button>
         </div>
       </div>
     </div>
@@ -118,7 +133,18 @@
     height: 30px; /* Reduced height */
     border: 1px solid #ddd;
     border-radius: 4px;
-    margin-bottom: 10px; /* Reduced margin */
+    margin-bottom: 12px; /* Reduced margin */
+  }
+
+  .section-header {
+    font-weight: 600;
+    font-size: 12px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #eee;
   }
   
   .color-controls {
@@ -156,6 +182,55 @@
     border: 1px solid #ccc;
     border-radius: 4px;
     font-size: 12px; /* Smaller font */
+  }
+
+  .line-width-control {
+    padding: 10px;
+    background-color: #f9f9f9;
+    border-radius: 6px;
+    border: 1px solid #e0e0e0;
+  }
+
+  .line-width-value {
+    min-width: 35px;
+    text-align: center;
+    font-size: 12px;
+    color: #1976d2;
+    font-weight: bold;
+    background: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+  }
+
+  .line-width-slider-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .line-width-slider {
+    flex: 1;
+    min-width: 100px;
+    height: 8px;
+  }
+
+  .line-width-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: #666;
+    flex-shrink: 0;
+  }
+
+  .line-width-icon-small {
+    width: 4px;
+    height: 4px;
+  }
+
+  .line-width-icon-large {
+    width: 16px;
+    height: 16px;
   }
   
   .presets {
@@ -279,6 +354,8 @@
         const redInput = document.getElementById('redInput');
         const greenInput = document.getElementById('greenInput');
         const blueInput = document.getElementById('blueInput');
+        const lineWidthSlider = document.getElementById('lineWidthSlider');
+        const lineWidthValue = document.getElementById('lineWidthValue');
         const presetsContainer = document.getElementById('presets');
         const closeBtn = document.getElementById('closeColorPicker');
         const cancelBtn = document.getElementById('cancelColorPicker');
@@ -342,6 +419,12 @@
             updateColorDisplay();
         });
 
+        // Add event listener for line width slider
+        lineWidthSlider.addEventListener('input', function() {
+            currentLineWidth = parseInt(this.value);
+            lineWidthValue.textContent = currentLineWidth + 'px';
+        });
+
         // Close modal handlers
         closeBtn.addEventListener('click', hideModal);
         cancelBtn.addEventListener('click', hideModal);
@@ -358,16 +441,18 @@
             const red = parseInt(redSlider.value);
             const green = parseInt(greenSlider.value);
             const blue = parseInt(blueSlider.value);
+            const lineWidth = parseInt(lineWidthSlider.value);
 
             // Update current values
             currentRed = red;
             currentGreen = green;
             currentBlue = blue;
+            currentLineWidth = lineWidth;
 
             // Call the custom function
             customCallback(red, green, blue);
 
-            // Update the button color
+            // Update the button color and line width
             updateButtonColor();
 
             // Hide the modal
@@ -430,11 +515,15 @@
                 const r = parseInt(button.getAttribute('data-red'));
                 const g = parseInt(button.getAttribute('data-green'));
                 const b = parseInt(button.getAttribute('data-blue'));
+                const w = parseInt(button.getAttribute('data-line-width'));
 
                 if (!isNaN(r) && !isNaN(g) && !isNaN(b)) {
                     currentRed = r;
                     currentGreen = g;
                     currentBlue = b;
+                }
+                if (!isNaN(w)) {
+                    currentLineWidth = w;
                 }
             }
 
@@ -445,6 +534,8 @@
             redInput.value = currentRed;
             greenInput.value = currentGreen;
             blueInput.value = currentBlue;
+            lineWidthSlider.value = currentLineWidth;
+            lineWidthValue.textContent = currentLineWidth + 'px';
             updateColorDisplay();
 
             // Position modal to show near top of screen for better access to buttons
@@ -474,6 +565,7 @@
                 button.setAttribute('data-red', currentRed);
                 button.setAttribute('data-green', currentGreen);
                 button.setAttribute('data-blue', currentBlue);
+                button.setAttribute('data-line-width', currentLineWidth);
 
                 // Update visual sample
                 const buttonSample = button.querySelector('.color-picker-button-sample');
@@ -490,9 +582,10 @@
             button.setAttribute('data-red', currentRed);
             button.setAttribute('data-green', currentGreen);
             button.setAttribute('data-blue', currentBlue);
+            button.setAttribute('data-line-width', currentLineWidth);
             button.innerHTML = `
         <span class="color-picker-button-sample"></span>
-        Select Color
+        Line Style
       `;
             return button;
         }
@@ -552,6 +645,7 @@
                 button.setAttribute('data-red', currentRed);
                 button.setAttribute('data-green', currentGreen);
                 button.setAttribute('data-blue', currentBlue);
+                button.setAttribute('data-line-width', currentLineWidth);
 
                 // Update visual sample
                 const buttonSample = button.querySelector('.color-picker-button-sample');
@@ -561,7 +655,31 @@
             }
         },
 
-        // Get current color
+        // Set line width
+        setLineWidth: function(width) {
+            const parsed = parseInt(width, 10);
+            if (!isNaN(parsed) && parsed >= 1 && parsed <= 20) {
+                currentLineWidth = parsed;
+
+                // Update slider and display if they exist
+                const lineWidthSlider = document.getElementById('lineWidthSlider');
+                const lineWidthValue = document.getElementById('lineWidthValue');
+                if (lineWidthSlider) {
+                    lineWidthSlider.value = currentLineWidth;
+                }
+                if (lineWidthValue) {
+                    lineWidthValue.textContent = currentLineWidth + 'px';
+                }
+
+                // Update button attribute
+                const button = document.getElementById('colorPickerButton');
+                if (button) {
+                    button.setAttribute('data-line-width', currentLineWidth);
+                }
+            }
+        },
+
+        // Get current color and line width
         getColor: function() {
             // Try to get values from button attributes first
             const button = document.getElementById('colorPickerButton');
@@ -569,15 +687,27 @@
                 const r = parseInt(button.getAttribute('data-red')) || currentRed;
                 const g = parseInt(button.getAttribute('data-green')) || currentGreen;
                 const b = parseInt(button.getAttribute('data-blue')) || currentBlue;
-                return { red: r, green: g, blue: b };
+                const w = parseInt(button.getAttribute('data-line-width')) || currentLineWidth;
+                return { red: r, green: g, blue: b, lineWidth: w };
             }
 
             // Fall back to stored values if button doesn't exist
             return {
                 red: currentRed,
                 green: currentGreen,
-                blue: currentBlue
+                blue: currentBlue,
+                lineWidth: currentLineWidth
             };
+        },
+
+        // Get current line width
+        getLineWidth: function() {
+            const button = document.getElementById('colorPickerButton');
+            if (button) {
+                const w = parseInt(button.getAttribute('data-line-width'));
+                if (!isNaN(w)) return w;
+            }
+            return currentLineWidth;
         }
     };
 

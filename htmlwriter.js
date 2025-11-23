@@ -163,9 +163,9 @@ function writeStuffedAnimalWarForm(stuffedAnimalMediaObject){
     document.write("</tr>");
     document.write("<tr>");
     document.write("<td colspan='4'>");
-    // Color picker - moved here to the right of directional buttons
+    // Line style picker - controls color and width
     document.write("<div style=\"display: flex; align-items: center; gap: 10px; margin-bottom: 10px;\">");
-    document.write("<label style=\"color: #ccccff; font-weight: 500; font-size: 13px;\">Color:</label>");
+    document.write("<label style=\"color: #ccccff; font-weight: 500; font-size: 13px;\">Line Style:</label>");
     document.write("<button type=\"button\" id=\"colorPickerButton\" class=\"color-picker-button\" style=\"width: 50px; height: 50px; padding: 0; flex-shrink: 0; border-radius: 8px;\">");
     document.write("<span class=\"color-picker-button-sample\" style=\"width: 100%; height: 100%; margin: 0; border-radius: 6px; display: block;\"></span>");
     document.write("</button>");
@@ -397,6 +397,7 @@ function writeChatForm(responsesObject) {
     document.write("</form>");
 }
 function writeChatFormFileUpload() {
+    document.write("<div class='uploads-wrapper'>");
     document.write("<div id='fileUploadContainer' class='upload-container'>");
         document.write("<form id=\"uploadForm\" enctype=\"multipart/form-data\" class='upload-form'>");
             document.write("<div class='upload-header'>");
@@ -453,6 +454,7 @@ function writeChatFormVideoUpload() {
             document.write("<div class='upload-info'>Max size: 50MB</div>");
         document.write("</form>");
     document.write("</div>");
+    document.write("</div>"); // Close uploads-wrapper
 }
 function writeDefaultAutoResponderOptions(responsesObject){
     document.write("<option value=\"blank\" selected>--I don't know what to say--</option>");

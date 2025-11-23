@@ -400,10 +400,12 @@ document.addEventListener('DOMContentLoaded', function() {
 function setupCanvasDrawingEvents() {
     let tempCanvas = null;
     let tempCtx = null;
+    let currentDrawLineWidth = 2;
 
     $(CANVAS).on("mousedown", function (e) {
         let colorPickerButton = $("#colorPickerButton");
         let color = "rgb(" + colorPickerButton.attr("data-red") + "," + colorPickerButton.attr("data-green") + "," + colorPickerButton.attr("data-blue") + ")";
+        currentDrawLineWidth = parseInt(colorPickerButton.attr("data-line-width")) || 2;
         isDrawing = true;
         points = [[e.offsetX, e.offsetY]];
         currentDrawColor = color;
@@ -435,7 +437,7 @@ function setupCanvasDrawingEvents() {
                 tempCtx.lineTo(points[i][0], points[i][1]);
             }
             tempCtx.strokeStyle = currentDrawColor;
-            tempCtx.lineWidth = 2;
+            tempCtx.lineWidth = currentDrawLineWidth;
             tempCtx.stroke();
         }
     });
@@ -463,6 +465,7 @@ function setupCanvasDrawingEvents() {
         }
         let colorPickerButton = $("#colorPickerButton");
         let color = "rgb(" + colorPickerButton.attr("data-red") + "," + colorPickerButton.attr("data-green") + "," + colorPickerButton.attr("data-blue") + ")";
+        currentDrawLineWidth = parseInt(colorPickerButton.attr("data-line-width")) || 2;
         const touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0];
         const canvasRect = CANVAS.getBoundingClientRect();
         const x = touch.clientX - canvasRect.left;
@@ -502,7 +505,7 @@ function setupCanvasDrawingEvents() {
                 tempCtx.lineTo(points[i][0], points[i][1]);
             }
             tempCtx.strokeStyle = currentDrawColor;
-            tempCtx.lineWidth = 2;
+            tempCtx.lineWidth = currentDrawLineWidth;
             tempCtx.stroke();
         }
     });
@@ -533,6 +536,7 @@ function setupSVGDrawingEvents() {
     SVG.on("mousedown", function (e) {
     let colorPickerButton = $("#colorPickerButton");
     let color = "rgb(" + colorPickerButton.attr("data-red") + "," + colorPickerButton.attr("data-green") + "," + colorPickerButton.attr("data-blue") + ")";
+    let width = parseInt(colorPickerButton.attr("data-line-width")) || 2;
     isDrawing = true;
     //points array to send path event
     points = [[e.offsetX, e.offsetY]];
@@ -541,7 +545,7 @@ function setupSVGDrawingEvents() {
     $(currentPath)
         .attr("d", `M${points[0][0]} ${points[0][1]}`)
         .attr("stroke", color)
-        .attr("stroke-width", 2)
+        .attr("stroke-width", width)
         .attr("fill", "none")
         .attr("id", `temp-path-${Date.now()}`);
     $('#stuffedanimalwarsvg').append(currentPath);
@@ -587,6 +591,7 @@ SVG.on("touchstart", function (e) {
     }
     let colorPickerButton = $("#colorPickerButton");
     let color = "rgb(" + colorPickerButton.attr("data-red") + "," + colorPickerButton.attr("data-green") + "," + colorPickerButton.attr("data-blue") + ")";
+    let width = parseInt(colorPickerButton.attr("data-line-width")) || 2;
     // Get touch coordinates
     const touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0];
     const svgElement = document.getElementById('stuffedanimalwarsvg');
@@ -608,7 +613,7 @@ SVG.on("touchstart", function (e) {
     $(currentPath)
         .attr("d", `M${points[0][0]} ${points[0][1]}`)
         .attr("stroke", color)
-        .attr("stroke-width", 2)
+        .attr("stroke-width", width)
         .attr("fill", "none")
         .attr("id", `temp-path-${Date.now()}`);
 
@@ -1003,6 +1008,7 @@ function emitTapMessage(xcoord,ycoord) {
         red:colorPickerButton.attr("data-red"),
         green:colorPickerButton.attr("data-green"),
         blue:colorPickerButton.attr("data-blue"),
+        lineWidth:parseInt(colorPickerButton.attr("data-line-width")) || 5,
         speed:getSpeed(),
         CHATCLIENTUSER: chatClientUser
     };
@@ -1023,7 +1029,7 @@ function emitPathMessage() {
         red:colorPickerButton.attr("data-red"),
         green:colorPickerButton.attr("data-green"),
         blue:colorPickerButton.attr("data-blue"),
-        width: 2, // Stroke width
+        width: parseInt(colorPickerButton.attr("data-line-width")) || 2, // Stroke width from slider
         CHATCLIENTUSER: chatClientUser
     };
 

@@ -447,12 +447,13 @@ function checkCollisions() {
 function onBaseTapSocketEventDots(tapMsgObject) {
     const rgbValue = tapMsgObject.red + ',' + tapMsgObject.green + ',' + tapMsgObject.blue;
     const color = 'rgb(' + rgbValue + ')';
+    const bulletRadius = tapMsgObject.lineWidth || radius; // Use lineWidth from message or default
 
     const shape = {
         id: 'circle' + Date.now() + Math.random(),
         x: tapMsgObject.x,
         y: tapMsgObject.y,
-        radius: radius,
+        radius: bulletRadius,
         color: color,
         movement: tapMsgObject.movement,
         speed: tapMsgObject.speed,
@@ -469,6 +470,7 @@ function onBaseTapSocketEventLines(tapMsgObject) {
 
     const newPointX = tapMsgObject.x;
     const newPointY = tapMsgObject.y;
+    const width = tapMsgObject.lineWidth || lineWidth; // Use lineWidth from message or default
 
     // Save off these coordinates (for drawing a line)
     if (oldPointForLineToolX === null) {
@@ -482,7 +484,7 @@ function onBaseTapSocketEventLines(tapMsgObject) {
         x2: newPointX,
         y2: newPointY,
         color: color,
-        width: lineWidth
+        width: width
     };
 
     lineObjects.push(line);

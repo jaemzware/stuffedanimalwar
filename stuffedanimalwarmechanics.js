@@ -600,6 +600,7 @@ function onBaseTapSocketEventDots(tapMsgObject){
     //get the coordinates emitted
     let pointX = tapMsgObject.x;
     let pointY = tapMsgObject.y;
+    let bulletRadius = tapMsgObject.lineWidth || radius; // Use lineWidth from message or default
 
     //draw a circle from the new to the old location
     let newCircle = document.createElementNS('http://www.w3.org/2000/svg','circle');
@@ -608,9 +609,9 @@ function onBaseTapSocketEventDots(tapMsgObject){
     newCircle.setAttribute('id',circleId);
     newCircle.setAttribute('cx',pointX);
     newCircle.setAttribute('cy',pointY);
-    newCircle.setAttribute('r',radius);
+    newCircle.setAttribute('r',bulletRadius);
     newCircle.setAttribute('data-user',tapMsgObject.CHATCLIENTUSER);
-    
+
     newCircle.setAttribute('style','transform=translate(75,25);stroke:rgb('+rgbValue+');fill:rgb('+rgbValue+');'); //WHITE FILL / WHITE STROKE (OUTER CIRCLE)
     
     $("#stuffedanimalwarsvg").append(newCircle);
@@ -663,6 +664,7 @@ function onBaseTapSocketEventLines(tapMsgObject){
     //get the coordinates emitted
     let newPointX = tapMsgObject.x;
     let newPointY = tapMsgObject.y;
+    let width = tapMsgObject.lineWidth || lineWidth; // Use lineWidth from message or default
 
     //save off these coordinates (for drawing a line)
     if(oldPointForLineToolX === null) {
@@ -681,7 +683,7 @@ function onBaseTapSocketEventLines(tapMsgObject){
     newLine.setAttribute('x2',newPointX); //
     newLine.setAttribute('y2',newPointY); //
 
-    newLine.setAttribute('style','stroke:rgb('+rgbValue+');stroke-width:'+lineWidth+';');
+    newLine.setAttribute('style','stroke:rgb('+rgbValue+');stroke-width:'+width+';');
 
     //ADD LINE TO THE SVG
     $("#stuffedanimalwarsvg").append(newLine);
