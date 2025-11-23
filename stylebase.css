@@ -1181,6 +1181,18 @@ a.jaemzwarelogo:active, .skateparkdetail a:active {
         font-size: 16px; /* Prevent iOS zoom on focus */
         max-width: 100%;
     }
+    /* Make all select dropdowns readable on mobile */
+    select {
+        font-size: 18px !important;
+        line-height: 1.8;
+        min-height: 44px;
+        padding: 10px 12px !important;
+    }
+    select option {
+        font-size: 18px !important;
+        line-height: 1.8;
+        padding: 10px;
+    }
     /* Fix table cell widths for mobile portrait */
     #stuffedanimalwarformtable tr:first-child td:nth-child(1) {
         width: 45% !important; /* Animals dropdown */
@@ -1281,6 +1293,28 @@ a.jaemzwarelogo:active, .skateparkdetail a:active {
     #selectsongs {
         width: 100%;
         max-width: 100%;
+        font-size: 18px !important;
+        line-height: 1.8;
+        min-height: 44px;
+        padding: 10px 12px !important;
+    }
+    #selectsongs option {
+        font-size: 18px !important;
+        line-height: 1.8;
+        padding: 10px;
+    }
+    #selectvideos {
+        width: 100%;
+        max-width: 100%;
+        font-size: 18px !important;
+        line-height: 1.8;
+        min-height: 44px;
+        padding: 10px 12px !important;
+    }
+    #selectvideos option {
+        font-size: 18px !important;
+        line-height: 1.8;
+        padding: 10px;
     }
     #messagesdiv {
         height: 200px;
@@ -1384,8 +1418,15 @@ a.jaemzwarelogo:active, .skateparkdetail a:active {
         font-size: 11px;
     }
     .modern-input, .modern-select {
-        padding: 8px 10px;
-        font-size: 13px;
+        padding: 10px 12px;
+        font-size: 18px;
+        line-height: 1.8;
+        min-height: 44px;
+    }
+    .modern-select option {
+        font-size: 18px;
+        line-height: 1.8;
+        padding: 10px;
     }
     .action-button {
         padding: 8px 16px;
