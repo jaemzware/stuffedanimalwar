@@ -564,12 +564,17 @@ div.seattlenativelinks{
     font-weight: 500;
 }
 /* UPLOAD CONTAINERS */
+.uploads-wrapper {
+    display: flex;
+    gap: 12px;
+    margin: 10px 0;
+}
+
 .upload-container {
-    width: 100%;
-    max-width: 100%;
+    flex: 1;
+    min-width: 0;
     box-sizing: border-box;
     padding: 16px;
-    margin: 10px 0;
     background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
     border: 8px solid #ccccff;
     border-radius: 8px;
@@ -1304,9 +1309,13 @@ a.jaemzwarelogo:active, .skateparkdetail a:active {
         padding: 6px;
     }
     /* Upload containers for mobile */
+    .uploads-wrapper {
+        gap: 8px;
+        margin: 8px 0;
+    }
+
     .upload-container {
         padding: 12px;
-        margin: 8px 0;
         border-width: 6px;
         border-radius: 6px;
     }

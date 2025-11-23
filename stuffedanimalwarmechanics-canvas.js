@@ -447,12 +447,13 @@ function checkCollisions() {
 function onBaseTapSocketEventDots(tapMsgObject) {
     const rgbValue = tapMsgObject.red + ',' + tapMsgObject.green + ',' + tapMsgObject.blue;
     const color = 'rgb(' + rgbValue + ')';
+    const bulletRadius = tapMsgObject.lineWidth || radius; // Use lineWidth from message or default
 
     const shape = {
         id: 'circle' + Date.now() + Math.random(),
         x: tapMsgObject.x,
         y: tapMsgObject.y,
-        radius: radius,
+        radius: bulletRadius,
         color: color,
         movement: tapMsgObject.movement,
         speed: tapMsgObject.speed,

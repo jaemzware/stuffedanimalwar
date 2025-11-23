@@ -397,6 +397,7 @@ function writeChatForm(responsesObject) {
     document.write("</form>");
 }
 function writeChatFormFileUpload() {
+    document.write("<div class='uploads-wrapper'>");
     document.write("<div id='fileUploadContainer' class='upload-container'>");
         document.write("<form id=\"uploadForm\" enctype=\"multipart/form-data\" class='upload-form'>");
             document.write("<div class='upload-header'>");
@@ -453,6 +454,7 @@ function writeChatFormVideoUpload() {
             document.write("<div class='upload-info'>Max size: 50MB</div>");
         document.write("</form>");
     document.write("</div>");
+    document.write("</div>"); // Close uploads-wrapper
 }
 function writeDefaultAutoResponderOptions(responsesObject){
     document.write("<option value=\"blank\" selected>--I don't know what to say--</option>");
