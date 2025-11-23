@@ -400,10 +400,12 @@ document.addEventListener('DOMContentLoaded', function() {
 function setupCanvasDrawingEvents() {
     let tempCanvas = null;
     let tempCtx = null;
+    let currentDrawLineWidth = 2;
 
     $(CANVAS).on("mousedown", function (e) {
         let colorPickerButton = $("#colorPickerButton");
         let color = "rgb(" + colorPickerButton.attr("data-red") + "," + colorPickerButton.attr("data-green") + "," + colorPickerButton.attr("data-blue") + ")";
+        currentDrawLineWidth = parseInt(colorPickerButton.attr("data-line-width")) || 2;
         isDrawing = true;
         points = [[e.offsetX, e.offsetY]];
         currentDrawColor = color;
@@ -435,8 +437,7 @@ function setupCanvasDrawingEvents() {
                 tempCtx.lineTo(points[i][0], points[i][1]);
             }
             tempCtx.strokeStyle = currentDrawColor;
-            let colorPickerButton = $("#colorPickerButton");
-            tempCtx.lineWidth = parseInt(colorPickerButton.attr("data-line-width")) || 2;
+            tempCtx.lineWidth = currentDrawLineWidth;
             tempCtx.stroke();
         }
     });
@@ -464,6 +465,7 @@ function setupCanvasDrawingEvents() {
         }
         let colorPickerButton = $("#colorPickerButton");
         let color = "rgb(" + colorPickerButton.attr("data-red") + "," + colorPickerButton.attr("data-green") + "," + colorPickerButton.attr("data-blue") + ")";
+        currentDrawLineWidth = parseInt(colorPickerButton.attr("data-line-width")) || 2;
         const touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0];
         const canvasRect = CANVAS.getBoundingClientRect();
         const x = touch.clientX - canvasRect.left;
@@ -503,8 +505,7 @@ function setupCanvasDrawingEvents() {
                 tempCtx.lineTo(points[i][0], points[i][1]);
             }
             tempCtx.strokeStyle = currentDrawColor;
-            let colorPickerButton = $("#colorPickerButton");
-            tempCtx.lineWidth = parseInt(colorPickerButton.attr("data-line-width")) || 2;
+            tempCtx.lineWidth = currentDrawLineWidth;
             tempCtx.stroke();
         }
     });

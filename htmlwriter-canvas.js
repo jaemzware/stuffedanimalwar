@@ -171,9 +171,9 @@ function writeStuffedAnimalWarForm(stuffedAnimalMediaObject){
 
     document.write("</div>"); // End of directional buttons grid
 
-    // RIGHT COLUMN - COLOR PICKER (big swatch)
+    // RIGHT COLUMN - LINE STYLE PICKER (color and width)
     document.write("<div style=\"display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;\">");
-    document.write("<label style=\"color: #ccccff; font-weight: 600; font-size: 14px; letter-spacing: 0.5px;\">COLOR</label>");
+    document.write("<label style=\"color: #ccccff; font-weight: 600; font-size: 14px; letter-spacing: 0.5px;\">LINE STYLE</label>");
     document.write("<button type=\"button\" id=\"colorPickerButton\" class=\"color-picker-button\" style=\"width: 100%; height: 150px; padding: 0; border-radius: 8px; max-width: 250px;\">");
     document.write("<span class=\"color-picker-button-sample\" style=\"width: 100%; height: 100%; margin: 0; border-radius: 6px; display: block;\"></span>");
     document.write("</button>");

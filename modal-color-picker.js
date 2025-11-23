@@ -19,13 +19,15 @@
   <div id="colorPickerModal" class="color-picker-modal">
     <div class="color-picker-content">
       <div class="color-picker-header">
-        <h3>Select Color</h3>
+        <h3>Line Style</h3>
         <button id="closeColorPicker" class="close-button">&times;</button>
       </div>
       
       <div class="color-picker-body">
         <div class="color-display" id="colorDisplay"></div>
-        
+
+        <div class="section-header">Color</div>
+
         <div class="color-controls">
           <div class="color-control">
             <span class="color-label red-label">R:</span>
@@ -44,27 +46,27 @@
             <input type="range" min="0" max="255" value="${currentBlue}" class="color-slider" id="blueSlider">
             <input type="number" min="0" max="255" value="${currentBlue}" class="color-input" id="blueInput">
           </div>
+        </div>
 
-          <div class="line-width-control">
-            <div class="line-width-header">
-              <span class="line-width-label">Line Width:</span>
-              <span class="line-width-value" id="lineWidthValue">${currentLineWidth}</span>
-            </div>
+        <div class="section-header">Width</div>
+
+        <div class="line-width-control">
             <div class="line-width-slider-container">
               <span class="line-width-icon line-width-icon-small"></span>
               <input type="range" min="1" max="20" value="${currentLineWidth}" class="line-width-slider" id="lineWidthSlider">
               <span class="line-width-icon line-width-icon-large"></span>
+              <span class="line-width-value" id="lineWidthValue">${currentLineWidth}px</span>
             </div>
           </div>
-        </div>
-        
+
+        <div class="section-header" style="margin-top: 12px;">Presets</div>
         <div class="presets">
           <div class="presets-grid" id="presets"></div>
         </div>
         
         <div class="action-buttons">
           <button id="cancelColorPicker" class="cancel-button">Cancel</button>
-          <button id="confirmColorPicker" class="confirm-button">Select</button>
+          <button id="confirmColorPicker" class="confirm-button">Apply</button>
         </div>
       </div>
     </div>
@@ -131,7 +133,18 @@
     height: 30px; /* Reduced height */
     border: 1px solid #ddd;
     border-radius: 4px;
-    margin-bottom: 10px; /* Reduced margin */
+    margin-bottom: 12px; /* Reduced margin */
+  }
+
+  .section-header {
+    font-weight: 600;
+    font-size: 12px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #eee;
   }
   
   .color-controls {
@@ -172,30 +185,22 @@
   }
 
   .line-width-control {
-    margin-top: 12px;
     padding: 10px;
     background-color: #f9f9f9;
     border-radius: 6px;
     border: 1px solid #e0e0e0;
   }
 
-  .line-width-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-  }
-
-  .line-width-label {
-    font-weight: bold;
-    font-size: 12px;
-    color: #333;
-  }
-
   .line-width-value {
+    min-width: 35px;
+    text-align: center;
     font-size: 12px;
-    color: #666;
+    color: #1976d2;
     font-weight: bold;
+    background: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
   }
 
   .line-width-slider-container {
@@ -417,7 +422,7 @@
         // Add event listener for line width slider
         lineWidthSlider.addEventListener('input', function() {
             currentLineWidth = parseInt(this.value);
-            lineWidthValue.textContent = currentLineWidth;
+            lineWidthValue.textContent = currentLineWidth + 'px';
         });
 
         // Close modal handlers
@@ -530,7 +535,7 @@
             greenInput.value = currentGreen;
             blueInput.value = currentBlue;
             lineWidthSlider.value = currentLineWidth;
-            lineWidthValue.textContent = currentLineWidth;
+            lineWidthValue.textContent = currentLineWidth + 'px';
             updateColorDisplay();
 
             // Position modal to show near top of screen for better access to buttons
@@ -580,7 +585,7 @@
             button.setAttribute('data-line-width', currentLineWidth);
             button.innerHTML = `
         <span class="color-picker-button-sample"></span>
-        Select Color
+        Line Style
       `;
             return button;
         }
@@ -663,7 +668,7 @@
                     lineWidthSlider.value = currentLineWidth;
                 }
                 if (lineWidthValue) {
-                    lineWidthValue.textContent = currentLineWidth;
+                    lineWidthValue.textContent = currentLineWidth + 'px';
                 }
 
                 // Update button attribute
