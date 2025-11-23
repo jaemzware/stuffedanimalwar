@@ -67,6 +67,9 @@ const stuffedAnimalWarChatImageSocketEvent = 'uploadchatimage';
 const stuffedAnimalWarChatVideoSocketEvent = 'uploadchatvideo';
 const stuffedAnimalWarConnectSocketEvent = 'connect';
 const stuffedAnimalWarDisconnectSocketEvent = 'disconnect';
+const stuffedAnimalWarVoiceOfferSocketEvent = 'voiceoffer';
+const stuffedAnimalWarVoiceAnswerSocketEvent = 'voiceanswer';
+const stuffedAnimalWarVoiceIceCandidateSocketEvent = 'voiceicecandidate';
 const stuffedAnimalWarPageCounters = stuffedAnimalWarEndpoints.reduce((acc, page) => {
     acc[page] = 0; // Set each page name as a key with an initial value of 0
     return acc;
@@ -908,6 +911,41 @@ io.on('connection', function(socket){
         socket.on(endpoint + stuffedAnimalWarPresentImageSocketEvent, (presentImageMsgObject) => {
             //emit to everyone else
             sendPresentImageMessage(endpoint + stuffedAnimalWarPresentImageSocketEvent,presentImageMsgObject);
+        });
+        socket.on(endpoint + stuffedAnimalWarVoiceOfferSocketEvent, (offerMsgObject) => {
+            //send voice offer to specific peer or broadcast to all in this endpoint
+            if (offerMsgObject.to) {
+                io.to(offerMsgObject.to).emit(endpoint + stuffedAnimalWarVoiceOfferSocketEvent, {
+                    offer: offerMsgObject.offer,
+                    from: socket.id
+                });
+            } else {
+                io.emit(endpoint + stuffedAnimalWarVoiceOfferSocketEvent, {
+                    offer: offerMsgObject.offer,
+                    from: socket.id
+                });
+            }
+        });
+        socket.on(endpoint + stuffedAnimalWarVoiceAnswerSocketEvent, (answerMsgObject) => {
+            //send voice answer to the specific peer
+            io.to(answerMsgObject.to).emit(endpoint + stuffedAnimalWarVoiceAnswerSocketEvent, {
+                answer: answerMsgObject.answer,
+                from: socket.id
+            });
+        });
+        socket.on(endpoint + stuffedAnimalWarVoiceIceCandidateSocketEvent, (iceMsgObject) => {
+            //send ICE candidate to specific peer or broadcast to all in this endpoint
+            if (iceMsgObject.to) {
+                io.to(iceMsgObject.to).emit(endpoint + stuffedAnimalWarVoiceIceCandidateSocketEvent, {
+                    candidate: iceMsgObject.candidate,
+                    from: socket.id
+                });
+            } else {
+                io.emit(endpoint + stuffedAnimalWarVoiceIceCandidateSocketEvent, {
+                    candidate: iceMsgObject.candidate,
+                    from: socket.id
+                });
+            }
         });
     });
 

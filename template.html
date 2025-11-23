@@ -54,6 +54,9 @@
     chatVideoSocketEvent = endpoint + 'uploadchatvideo';
     connectSocketEvent = endpoint + 'connect';
     disconnectSocketEvent = endpoint + 'disconnect';
+    voiceOfferSocketEvent = endpoint + 'voiceoffer';
+    voiceAnswerSocketEvent = endpoint + 'voiceanswer';
+    voiceIceCandidateSocketEvent = endpoint + 'voiceicecandidate';
     socket = io({
         query: {
             endpoint: endpoint

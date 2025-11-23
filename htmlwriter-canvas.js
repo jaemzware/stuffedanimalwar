@@ -264,6 +264,7 @@ function writeAudioFromJson(mediaObject){
                     document.write("</div>");
 
                 document.write("</div>");
+
             document.write("</div>");
 
         document.write("</form>");
@@ -411,6 +412,42 @@ function writeChatForm(responsesObject) {
             document.write("<div class='button-group'>");
                 document.write("<button type=\"button\" id=\"sendchatbutton\" class='action-button primary-button'>Send</button>");
             document.write("</div>");
+        document.write("</div>");
+
+        // Voice chat controls
+        document.write("<div class='voice-chat-controls' style='display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 15px; padding: 10px; background: rgba(0, 0, 0, 0.3); border-radius: 8px;'>");
+
+        // Microphone button
+        document.write("<button id='micToggleButton' type='button' style='padding: 6px 12px; background: #666; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 5px; transition: all 0.3s; flex: 1 1 auto; min-width: 120px;'>");
+        document.write("<span id='micIcon'>🎤</span>");
+        document.write("<span id='micLabel'>Enable Mic</span>");
+        document.write("</button>");
+
+        // Audio chat mute button
+        document.write("<button id='voiceChatMuteButton' type='button' style='padding: 6px 12px; background: #666; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 5px; transition: all 0.3s; flex: 1 1 auto; min-width: 120px;'>");
+        document.write("<span id='voiceChatMuteIcon'>🔊</span>");
+        document.write("<span id='voiceChatMuteLabel'>Mute Voice Chat</span>");
+        document.write("</button>");
+
+        // Click here prompt for autoplay
+        document.write("<button id='resumeAudioButton' type='button' style='padding: 6px 12px; background: #ffa500; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; display: none; animation: pulse 2s infinite; flex: 1 1 100%; min-width: 200px;'>");
+        document.write("👆 Click to hear incoming audio");
+        document.write("</button>");
+
+        // Test speakers button
+        document.write("<button id='testSpeakersButton' type='button' style='padding: 6px 12px; background: #17a2b8; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; flex: 1 1 auto; min-width: 120px;'>");
+        document.write("🔊 Test Speakers");
+        document.write("</button>");
+
+        // Status indicator
+        document.write("<span id='voiceChatStatus' style='color: #999; font-size: 11px; flex: 1 1 100%; margin-top: 5px;'>Voice chat ready</span>");
+
+        // Peers counter
+        document.write("<span id='voiceChatPeers' style='color: #999; font-size: 11px;'>Peers: 0</span>");
+
+        // Add CSS animation for pulse
+        document.write("<style>@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }</style>");
+
         document.write("</div>");
 
     document.write("</form>");
