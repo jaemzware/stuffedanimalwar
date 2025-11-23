@@ -1087,32 +1087,45 @@ document.addEventListener('DOMContentLoaded', function() {
     let audioResumeAttempted = false;
 
     function resumeBlockedAudio() {
-        if (!audioResumeAttempted && window._pendingAudioElements && window._pendingAudioElements.length > 0) {
-            console.log('🔊 User clicked - attempting to resume', window._pendingAudioElements.length, 'blocked audio elements');
+        if (!audioResumeAttempted) {
             audioResumeAttempted = true;
+            console.log('🔊 User clicked - attempting to resume all remote audio elements');
 
-            window._pendingAudioElements.forEach((audioElement, index) => {
-                audioElement.play().then(() => {
-                    console.log('✅ Successfully resumed audio element', index);
-
-                    // Hide the orange button
-                    const resumeButton = document.getElementById('resumeAudioButton');
-                    if (resumeButton) {
-                        resumeButton.style.display = 'none';
-                    }
-
-                    const statusText = document.getElementById('voiceChatStatus');
-                    if (statusText && !isMicEnabled) {
-                        statusText.textContent = 'Listening to remote audio';
-                        statusText.style.color = '#28a745';
-                    }
-                }).catch(err => {
-                    console.error('❌ Still could not play audio element', index, ':', err);
+            // Resume pending audio elements
+            if (window._pendingAudioElements && window._pendingAudioElements.length > 0) {
+                window._pendingAudioElements.forEach((audioElement, index) => {
+                    audioElement.play().then(() => {
+                        console.log('✅ Successfully resumed pending audio element', index);
+                    }).catch(err => {
+                        console.error('❌ Still could not play audio element', index, ':', err);
+                    });
                 });
+                window._pendingAudioElements = [];
+            }
+
+            // Also ensure ALL remote audio elements are unmuted and playing
+            Object.keys(peerConnections).forEach(peerId => {
+                const audioElement = document.getElementById('remoteAudio_' + peerId);
+                if (audioElement) {
+                    console.log('🔊 Unmuting and playing audio for peer:', peerId);
+                    audioElement.muted = false;
+                    audioElement.play().catch(err => {
+                        console.warn('Could not play audio for peer', peerId, ':', err);
+                    });
+                }
             });
 
-            // Clear the array
-            window._pendingAudioElements = [];
+            // Hide the orange button
+            const resumeButton = document.getElementById('resumeAudioButton');
+            if (resumeButton) {
+                resumeButton.style.display = 'none';
+            }
+
+            const statusText = document.getElementById('voiceChatStatus');
+            if (statusText && !isMicEnabled) {
+                statusText.textContent = 'Listening to remote audio';
+                statusText.style.color = '#28a745';
+            }
         }
     }
 
@@ -1193,16 +1206,35 @@ function initializeVoiceChatSocketHandlers() {
             return;
         }
 
-        // Check if we already have a stable connection with this peer
-        if (peerConnections[data.from]) {
-            const state = peerConnections[data.from].connectionState;
-            if (state === 'connected') {
-                console.log('Already connected to', data.from, '- ignoring offer');
+        // Check if we already have a connection with this peer
+        let peerConnection = peerConnections[data.from];
+        let isRenegotiation = false;
+
+        if (peerConnection) {
+            const state = peerConnection.connectionState;
+            const signalingState = peerConnection.signalingState;
+
+            // If connection is stable, this might be a renegotiation (e.g., peer added their mic)
+            if (state === 'connected' && signalingState === 'stable') {
+                console.log('Accepting renegotiation offer from', data.from);
+                isRenegotiation = true;
+            }
+            // If already negotiating, ignore to avoid conflicts
+            else if (signalingState !== 'stable') {
+                console.log('Already negotiating with', data.from, '- ignoring offer to avoid conflict');
+                return;
+            }
+            // If connecting but not negotiating, might be recovering from failure
+            else if (state === 'connecting') {
+                console.log('Connection in progress with', data.from, '- ignoring offer');
                 return;
             }
         }
 
-        const peerConnection = createPeerConnection(data.from);
+        // Create new connection if needed
+        if (!isRenegotiation) {
+            peerConnection = createPeerConnection(data.from);
+        }
 
         try {
             await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
@@ -1415,11 +1447,10 @@ async function toggleMicrophone() {
                     const checkMicLevel = setInterval(() => {
                         analyser.getByteFrequencyData(dataArray);
                         const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
-                        if (average > 0) {
-                            console.log('🎤 LOCAL mic is capturing audio, level:', average.toFixed(2));
-                        } else {
-                            console.log('⚠️ LOCAL mic is NOT capturing audio (level: 0) - speak into mic!');
-                        }
+                        // Only log occasionally for debugging
+                        // if (average > 0) {
+                        //     console.log('🎤 LOCAL mic is capturing audio, level:', average.toFixed(2));
+                        // }
                     }, 2000);
 
                     // Store so we can clear it later
@@ -1427,7 +1458,47 @@ async function toggleMicrophone() {
                 }
             });
 
-            // Create offers to all other clients
+            // Add tracks to existing peer connections and force renegotiation
+            Object.keys(peerConnections).forEach(peerId => {
+                const pc = peerConnections[peerId];
+                if (pc && (pc.connectionState === 'connected' || pc.connectionState === 'connecting')) {
+                    console.log('📤 Adding track and renegotiating with existing peer:', peerId);
+
+                    try {
+                        // Check if we've already added a track to this connection
+                        const senders = pc.getSenders();
+                        const hasAudioTrack = senders.some(sender => sender.track && sender.track.kind === 'audio');
+
+                        if (!hasAudioTrack) {
+                            // Add the audio track
+                            localStream.getTracks().forEach(track => {
+                                console.log('➕ Adding track to existing connection:', peerId, 'track:', track.kind, track.label);
+                                const sender = pc.addTrack(track, localStream);
+                                console.log('   Sender added:', sender.track ? sender.track.kind : 'no track');
+                            });
+
+                            console.log('📊 After adding track, connection', peerId, 'has', pc.getSenders().length, 'senders');
+
+                            // Now renegotiate by creating a new offer
+                            pc.createOffer().then(offer => {
+                                return pc.setLocalDescription(offer);
+                            }).then(() => {
+                                socket.emit(voiceOfferSocketEvent, {
+                                    offer: pc.localDescription,
+                                    to: peerId  // Send to specific peer
+                                });
+                                console.log('📤 Sent renegotiation offer to:', peerId);
+                            }).catch(err => {
+                                console.error('Error renegotiating with', peerId, ':', err);
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Error adding track to peer', peerId, ':', error);
+                    }
+                }
+            });
+
+            // Also broadcast offer for any new peers that might join
             createOfferForNewPeer();
 
         } catch (error) {
@@ -1571,10 +1642,19 @@ function createPeerConnection(peerId) {
     // Add local stream tracks if microphone is enabled
     if (localStream) {
         localStream.getTracks().forEach(track => {
-            console.log('Adding local track to peer connection:', peerId);
-            peerConnection.addTrack(track, localStream);
+            console.log('➕ Adding local track to peer connection:', peerId, 'track:', track.kind, track.label);
+            const sender = peerConnection.addTrack(track, localStream);
+            console.log('   Sender added:', sender.track ? sender.track.kind : 'no track');
         });
     }
+
+    // Log current senders for this connection
+    console.log('📊 Peer connection', peerId, 'now has', peerConnection.getSenders().length, 'senders');
+    peerConnection.getSenders().forEach((sender, idx) => {
+        if (sender.track) {
+            console.log('   Sender', idx, ':', sender.track.kind, sender.track.label, 'enabled:', sender.track.enabled);
+        }
+    });
 
     // Handle ICE candidates
     peerConnection.onicecandidate = function(event) {
@@ -1613,6 +1693,7 @@ function createPeerConnection(peerId) {
 
         // Log stream info
         console.log('Audio element ID:', audioElement.id);
+        console.log('Audio element muted:', audioElement.muted, 'volume:', audioElement.volume);
         console.log('Stream has', remoteStream.getAudioTracks().length, 'audio tracks');
         remoteStream.getAudioTracks().forEach((track, index) => {
             console.log('Audio track', index, '- enabled:', track.enabled, 'muted:', track.muted, 'readyState:', track.readyState);
@@ -1663,12 +1744,13 @@ function createPeerConnection(peerId) {
                     const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
 
                     if (average > 0) {
-                        console.log('🔊 Audio level from peer', peerId, ':', average.toFixed(2));
+                        // console.log('🔊 Audio level from peer', peerId, ':', average.toFixed(2));
                         silenceCount = 0;
                     } else {
                         silenceCount++;
-                        if (silenceCount === 10) {
-                            console.warn('⚠️ No audio detected from peer', peerId, 'for 10 seconds');
+                        if (silenceCount === 30) {
+                            console.warn('⚠️ No audio detected from peer', peerId, 'for 30 seconds');
+                            silenceCount = 0; // Reset to avoid repeated warnings
                         }
                     }
                 }, 1000);
