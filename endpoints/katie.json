@@ -3,7 +3,7 @@
     "masterAlias": "KATIE",
     "unspecifiedAlias": "anonymous",
     "stuffedAnimalMediaObject": {
-        "backgroundimage": "photos/boots.jpg",
+        "backgroundimage": "https://jaemzware.com/media/stuffedanimalwar/katie/helluva.jpeg",
         "animals": [
             {
                 "file": "animals/badger.png",
@@ -98,7 +98,7 @@
     "mediaObject": {
         "songspath": "https://analogarchive.com/b2proxy/analog/",
         "videospath": "https://jaemzware.com/media/trump/videos/",
-        "photospath": "https://jaemzware.com/media/stuffedanimalwar/",
+        "photospath": "https://jaemzware.com/media/stuffedanimalwar/katie/",
         "songs": [
             {
                 "file": "Lost%20Highway/losthighwaysoundtrack-sidea.mp3",
@@ -118,154 +118,59 @@
             }
         ],
         "photos": [
-            {
-                "file": "badger.png",
-                "title": "badger.png"
-            },
-            {
-                "file": "bat.png",
-                "title": "bat.png"
-            },
-            {
-                "file": "bear.png",
-                "title": "bear.png"
-            },
-            {
-                "file": "birds.png",
-                "title": "birds.png"
-            },
-            {
-                "file": "bison.png",
-                "title": "bison.png"
-            },
-            {
-                "file": "boar.png",
-                "title": "boar.png"
-            },
-            {
-                "file": "cats.png",
-                "title": "cats.png"
-            },
-            {
-                "file": "cheetah.png",
-                "title": "cheetah.png"
-            },
-            {
-                "file": "chickens.png",
-                "title": "chickens.png"
-            },
-            {
-                "file": "crocodiles.png",
-                "title": "crocodiles.png"
-            },
-            {
-                "file": "crow.png",
-                "title": "crow.png"
-            },
-            {
-                "file": "darthvader.png",
-                "title": "darthvader.png"
-            },
-            {
-                "file": "deck.png",
-                "title": "deck.png"
-            },
-            {
-                "file": "deer.png",
-                "title": "deer.png"
-            },
-            {
-                "file": "dogs.png",
-                "title": "dogs.png"
-            },
-            {
-                "file": "duck.png",
-                "title": "duck.png"
-            },
-            {
-                "file": "eagle.png",
-                "title": "eagle.png"
-            },
-            {
-                "file": "frog.png",
-                "title": "frog.png"
-            },
-            {
-                "file": "giraffe.png",
-                "title": "giraffe.png"
-            },
-            {
-                "file": "goldfish.png",
-                "title": "goldfish.png"
-            },
-            {
-                "file": "gorilla.png",
-                "title": "gorilla.png"
-            },
-            {
-                "file": "lamblambs.png",
-                "title": "lamblambs.png"
-            },
-            {
-                "file": "lions.png",
-                "title": "lions.png"
-            },
-            {
-                "file": "monkey.png",
-                "title": "monkey.png"
-            },
-            {
-                "file": "moose.png",
-                "title": "moose.png"
-            },
-            {
-                "file": "pinkelephant.png",
-                "title": "pinkelephant.png"
-            },
-            {
-                "file": "queen.png",
-                "title": "queen.png"
-            },
-            {
-                "file": "r2d2.png",
-                "title": "r2d2.png"
-            },
-            {
-                "file": "rainier.png",
-                "title": "rainier.png"
-            },
-            {
-                "file": "seagull.png",
-                "title": "seagull.png"
-            },
-            {
-                "file": "spaceneedle.png",
-                "title": "spaceneedle.png"
-            },
-            {
-                "file": "stormtrooper.png",
-                "title": "stormtrooper.png"
-            },
-            {
-                "file": "thechosenone.png",
-                "title": "thechosenone.png"
-            },
-            {
-                "file": "truck.png",
-                "title": "truck.png"
-            },
-            {
-                "file": "whale.png",
-                "title": "whale.png"
-            },
-            {
-                "file": "wheel.png",
-                "title": "wheel.png"
-            },
-            {
-                "file": "yoda.png",
-                "title": "yoda.png"
-            }
+            {"file":"IMG_0845.JPG","title":"IMG_0845.JPG"},
+            {"file":"IMG_0848.JPG","title":"IMG_0848.JPG"},
+            {"file":"IMG_0854.JPG","title":"IMG_0854.JPG"},
+            {"file":"IMG_0855.JPG","title":"IMG_0855.JPG"},
+            {"file":"IMG_0857.JPG","title":"IMG_0857.JPG"},
+            {"file":"IMG_0865.JPG","title":"IMG_0865.JPG"},
+            {"file":"IMG_0900.JPG","title":"IMG_0900.JPG"},
+            {"file":"IMG_1842.JPG","title":"IMG_1842.JPG"},
+            {"file":"IMG_1843.JPG","title":"IMG_1843.JPG"},
+            {"file":"IMG_1844.JPG","title":"IMG_1844.JPG"},
+            {"file":"IMG_1845.JPG","title":"IMG_1845.JPG"},
+            {"file":"IMG_1846.JPG","title":"IMG_1846.JPG"},
+            {"file":"IMG_1847.JPG","title":"IMG_1847.JPG"},
+            {"file":"IMG_1850.JPG","title":"IMG_1850.JPG"},
+            {"file":"IMG_1852.JPG","title":"IMG_1852.JPG"},
+            {"file":"IMG_1853.JPG","title":"IMG_1853.JPG"},
+            {"file":"IMG_1854.JPG","title":"IMG_1854.JPG"},
+            {"file":"IMG_1855.JPG","title":"IMG_1855.JPG"},
+            {"file":"IMG_1856.JPG","title":"IMG_1856.JPG"},
+            {"file":"IMG_1857.JPG","title":"IMG_1857.JPG"},
+            {"file":"IMG_1858.JPG","title":"IMG_1858.JPG"},
+            {"file":"IMG_1859.JPG","title":"IMG_1859.JPG"},
+            {"file":"IMG_1860.JPG","title":"IMG_1860.JPG"},
+            {"file":"IMG_1861.JPG","title":"IMG_1861.JPG"},
+            {"file":"IMG_1862.JPG","title":"IMG_1862.JPG"},
+            {"file":"IMG_1873.JPG","title":"IMG_1873.JPG"},
+            {"file":"IMG_1874.JPG","title":"IMG_1874.JPG"},
+            {"file":"IMG_1875.JPG","title":"IMG_1875.JPG"},
+            {"file":"IMG_1876.JPG","title":"IMG_1876.JPG"},
+            {"file":"IMG_1881.JPG","title":"IMG_1881.JPG"},
+            {"file":"IMG_1883.JPG","title":"IMG_1883.JPG"},
+            {"file":"IMG_1885 2.JPG'","title":"IMG_1885 2.JPG'"},
+            {"file":"IMG_1885.JPG","title":"IMG_1885.JPG"},
+            {"file":"IMG_1886.JPG","title":"IMG_1886.JPG"},
+            {"file":"IMG_1887.JPG","title":"IMG_1887.JPG"},
+            {"file":"IMG_1889.JPG","title":"IMG_1889.JPG"},
+            {"file":"IMG_1890.JPG","title":"IMG_1890.JPG"},
+            {"file":"IMG_1891.JPG","title":"IMG_1891.JPG"},
+            {"file":"IMG_1892.JPG","title":"IMG_1892.JPG"},
+            {"file":"IMG_1893.JPG","title":"IMG_1893.JPG"},
+            {"file":"IMG_1894.JPG","title":"IMG_1894.JPG"},
+            {"file":"IMG_1895.JPG","title":"IMG_1895.JPG"},
+            {"file":"IMG_1896.JPG","title":"IMG_1896.JPG"},
+            {"file":"IMG_1897.JPG","title":"IMG_1897.JPG"},
+            {"file":"IMG_1898.JPG","title":"IMG_1898.JPG"},
+            {"file":"IMG_1899.JPG","title":"IMG_1899.JPG"},
+            {"file":"IMG_1900.JPG","title":"IMG_1900.JPG"},
+            {"file":"IMG_1901.JPG","title":"IMG_1901.JPG"},
+            {"file":"IMG_1902.JPG","title":"IMG_1902.JPG"},
+            {"file":"IMG_1903.JPG","title":"IMG_1903.JPG"},
+            {"file":"IMG_1904.JPG","title":"IMG_1904.JPG"},
+            {"file":"IMG_3014.JPG","title":"IMG_3014.JPG"},
+            {"file":"helluva.jpeg","title":"helluva.jpeg"}
         ],
         "videos": [
             {
