@@ -67,6 +67,9 @@ const stuffedAnimalWarChatImageSocketEvent = 'uploadchatimage';
 const stuffedAnimalWarChatVideoSocketEvent = 'uploadchatvideo';
 const stuffedAnimalWarConnectSocketEvent = 'connect';
 const stuffedAnimalWarDisconnectSocketEvent = 'disconnect';
+const stuffedAnimalWarVoiceOfferSocketEvent = 'voiceoffer';
+const stuffedAnimalWarVoiceAnswerSocketEvent = 'voiceanswer';
+const stuffedAnimalWarVoiceIceCandidateSocketEvent = 'voiceicecandidate';
 const stuffedAnimalWarPageCounters = stuffedAnimalWarEndpoints.reduce((acc, page) => {
     acc[page] = 0; // Set each page name as a key with an initial value of 0
     return acc;
@@ -908,6 +911,92 @@ io.on('connection', function(socket){
         socket.on(endpoint + stuffedAnimalWarPresentImageSocketEvent, (presentImageMsgObject) => {
             //emit to everyone else
             sendPresentImageMessage(endpoint + stuffedAnimalWarPresentImageSocketEvent,presentImageMsgObject);
+        });
+        socket.on(endpoint + stuffedAnimalWarVoiceOfferSocketEvent, (offerMsgObject) => {
+            //send voice offer to specific peer or broadcast to all in this endpoint
+            let voiceClientAddress = socket.handshake.address;
+            let voiceServerDate = new Date();
+            let voicePstString = voiceServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
+
+            const reorderedOfferMsgObject = {
+                VOICESERVERENDPOINT: endpoint,
+                VOICESERVERPORT: listenPort,
+                VOICESERVERUSER: voiceClientAddress,
+                VOICESERVERDATE: voicePstString,
+                VOICEUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
+                offer: offerMsgObject.offer,
+                from: socket.id,
+                to: offerMsgObject.to || 'broadcast'
+            };
+
+            console.log('VOICE OFFER:', JSON.stringify({
+                endpoint: endpoint,
+                from: socket.id,
+                to: offerMsgObject.to || 'broadcast',
+                userCount: stuffedAnimalWarPageCounters[endpoint]
+            }));
+
+            if (offerMsgObject.to) {
+                io.to(offerMsgObject.to).emit(endpoint + stuffedAnimalWarVoiceOfferSocketEvent, reorderedOfferMsgObject);
+            } else {
+                io.emit(endpoint + stuffedAnimalWarVoiceOfferSocketEvent, reorderedOfferMsgObject);
+            }
+        });
+        socket.on(endpoint + stuffedAnimalWarVoiceAnswerSocketEvent, (answerMsgObject) => {
+            //send voice answer to the specific peer
+            let voiceClientAddress = socket.handshake.address;
+            let voiceServerDate = new Date();
+            let voicePstString = voiceServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
+
+            const reorderedAnswerMsgObject = {
+                VOICESERVERENDPOINT: endpoint,
+                VOICESERVERPORT: listenPort,
+                VOICESERVERUSER: voiceClientAddress,
+                VOICESERVERDATE: voicePstString,
+                VOICEUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
+                answer: answerMsgObject.answer,
+                from: socket.id,
+                to: answerMsgObject.to
+            };
+
+            console.log('VOICE ANSWER:', JSON.stringify({
+                endpoint: endpoint,
+                from: socket.id,
+                to: answerMsgObject.to,
+                userCount: stuffedAnimalWarPageCounters[endpoint]
+            }));
+
+            io.to(answerMsgObject.to).emit(endpoint + stuffedAnimalWarVoiceAnswerSocketEvent, reorderedAnswerMsgObject);
+        });
+        socket.on(endpoint + stuffedAnimalWarVoiceIceCandidateSocketEvent, (iceMsgObject) => {
+            //send ICE candidate to specific peer or broadcast to all in this endpoint
+            let voiceClientAddress = socket.handshake.address;
+            let voiceServerDate = new Date();
+            let voicePstString = voiceServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
+
+            const reorderedIceMsgObject = {
+                VOICESERVERENDPOINT: endpoint,
+                VOICESERVERPORT: listenPort,
+                VOICESERVERUSER: voiceClientAddress,
+                VOICESERVERDATE: voicePstString,
+                VOICEUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
+                candidate: iceMsgObject.candidate,
+                from: socket.id,
+                to: iceMsgObject.to || 'broadcast'
+            };
+
+            console.log('VOICE ICE:', JSON.stringify({
+                endpoint: endpoint,
+                from: socket.id,
+                to: iceMsgObject.to || 'broadcast',
+                userCount: stuffedAnimalWarPageCounters[endpoint]
+            }));
+
+            if (iceMsgObject.to) {
+                io.to(iceMsgObject.to).emit(endpoint + stuffedAnimalWarVoiceIceCandidateSocketEvent, reorderedIceMsgObject);
+            } else {
+                io.emit(endpoint + stuffedAnimalWarVoiceIceCandidateSocketEvent, reorderedIceMsgObject);
+            }
         });
     });
 
