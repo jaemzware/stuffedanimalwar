@@ -317,10 +317,10 @@ function writeVideoFromJson(mediaObject){
             //IF THE FULL URL WAS SPECIFIED, DONT USE THE VIDEOS PREPENDING PATH SPECIFIED
             if(mediaObject.videos[0].poster.indexOf("http://")!==-1 ||
                 mediaObject.videos[0].poster.indexOf("https://")!==-1){
-                document.write("<video id=\"jaemzwaredynamicvideoplayer\" poster=\""+mediaObject.videos[0].poster+"\" controls=\"controls\" preload=\"metadata\" title=\"stuffedanimalwarTv\">");
+                document.write("<video id=\"jaemzwaredynamicvideoplayer\" poster=\""+mediaObject.videos[0].poster+"\" controls=\"controls\" preload=\"metadata\">");
             }
             else{
-                document.write("<video id=\"jaemzwaredynamicvideoplayer\" poster=\""+mediaObject.videospath+mediaObject.videos[0].poster+"\" controls=\"controls\" preload=\"metadata\" title=\"stuffedanimalwarTv\">");
+                document.write("<video id=\"jaemzwaredynamicvideoplayer\" poster=\""+mediaObject.videospath+mediaObject.videos[0].poster+"\" controls=\"controls\" preload=\"metadata\">");
             }
         }
         else{
