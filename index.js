@@ -836,6 +836,20 @@ app.get('/mp3-metadata', async (req, res) => {
     }
 });
 /**
+ * Helper function to get the real client IP address
+ * Handles x-forwarded-for header (which may contain multiple IPs) and falls back to socket address
+ */
+function getClientIp(socket) {
+    const forwardedFor = socket.handshake.headers['x-forwarded-for'];
+    if (forwardedFor) {
+        // x-forwarded-for can contain multiple IPs (client, proxy1, proxy2, ...)
+        // The first IP is the original client
+        return forwardedFor.split(',')[0].trim();
+    }
+    return socket.handshake.address;
+}
+
+/**
  *  ON PERSISTENT CONNECTION
  *  handler for incoming socket connections
  *  curl https://ipinfo.io/71.212.60.26 for ip address info (replace ip with desired ip)
@@ -843,7 +857,7 @@ app.get('/mp3-metadata', async (req, res) => {
 io.on('connection', function(socket){
     //Get endpoint that made the connection (passed in .html io() instantiation)
     const endpoint =  socket.handshake.query.endpoint;
-    let chatClientAddress = socket.handshake.address;
+    let chatClientAddress = getClientIp(socket);
     let chatServerDate = new Date();
     let connectChatPstString = chatServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
     stuffedAnimalWarPageCounters[endpoint]++;
@@ -861,7 +875,7 @@ io.on('connection', function(socket){
 
     //COMMON--------------------------------------------------------------------------------------
     socket.on('disconnect', function(){
-        let chatClientAddress = socket.handshake.address;
+        let chatClientAddress = getClientIp(socket);
         let chatServerDate = new Date();
         let chatPstString = chatServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
         stuffedAnimalWarPageCounters[endpoint]--;
@@ -880,7 +894,7 @@ io.on('connection', function(socket){
          
     //ON ERROR
     socket.on('error', function(errorMsgObject){
-        let chatClientAddress = socket.handshake.address;
+        let chatClientAddress = getClientIp(socket);
         let chatPstString = chatServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
         errorMsgObject.CHATSERVERENDPOINT = endpoint;
         errorMsgObject.CHATSERVERPORT = listenPort;
@@ -914,7 +928,7 @@ io.on('connection', function(socket){
         });
         socket.on(endpoint + stuffedAnimalWarVoiceOfferSocketEvent, (offerMsgObject) => {
             //send voice offer to specific peer or broadcast to all in this endpoint
-            let voiceClientAddress = socket.handshake.address;
+            let voiceClientAddress = getClientIp(socket);
             let voiceServerDate = new Date();
             let voicePstString = voiceServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
 
@@ -944,7 +958,7 @@ io.on('connection', function(socket){
         });
         socket.on(endpoint + stuffedAnimalWarVoiceAnswerSocketEvent, (answerMsgObject) => {
             //send voice answer to the specific peer
-            let voiceClientAddress = socket.handshake.address;
+            let voiceClientAddress = getClientIp(socket);
             let voiceServerDate = new Date();
             let voicePstString = voiceServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
 
@@ -970,7 +984,7 @@ io.on('connection', function(socket){
         });
         socket.on(endpoint + stuffedAnimalWarVoiceIceCandidateSocketEvent, (iceMsgObject) => {
             //send ICE candidate to specific peer or broadcast to all in this endpoint
-            let voiceClientAddress = socket.handshake.address;
+            let voiceClientAddress = getClientIp(socket);
             let voiceServerDate = new Date();
             let voicePstString = voiceServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
 
@@ -1003,7 +1017,7 @@ io.on('connection', function(socket){
     //GENERIC CHATMESSAGE SENDER, FOR MULTIPLE, INDEPENDENT CHAT CHANNELS
     function sendChatMessage(chatSocketEvent,chatMsgObject){
         //GET THE ADDRESS AND DATE
-        let chatClientAddress = socket.handshake.address;
+        let chatClientAddress = getClientIp(socket);
         let chatServerDate = new Date();
         let chatPstString = chatServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
 
@@ -1026,7 +1040,7 @@ io.on('connection', function(socket){
     function sendTapMessage(tapSocketEvent,tapMsgObject){
 
         //GET THE ADDRESS AND DATE
-        let tapClientAddress = socket.handshake.address;
+        let tapClientAddress = getClientIp(socket);
         let tapServerDate = new Date();
         let tapPstString = tapServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
 
@@ -1048,7 +1062,7 @@ io.on('connection', function(socket){
     }
     //GENERIC PATHMESSAGE SENDER, FOR MULTIPLE, INDEPENDENT CHAT CHANNELS
     function sendPathMessage(pathSocketEvent,pathMsgObject){
-        let pathClientAddress = socket.handshake.address;
+        let pathClientAddress = getClientIp(socket);
         let pathServerDate = new Date();
         let pathPstString = pathServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
 
@@ -1069,7 +1083,7 @@ io.on('connection', function(socket){
     }
     //GENERIC PRESENTATION IMAGE SENDER, FOR MULTIPLE, INDEPENDENT CHAT CHANNELS
     function sendPresentImageMessage(presentImageSocketEvent,presentImageMsgObject){
-        let presentImageClientAddress = socket.handshake.address;
+        let presentImageClientAddress = getClientIp(socket);
         let presentImageServerDate = new Date();
         let presentImagePstString = presentImageServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
 
