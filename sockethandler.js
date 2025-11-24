@@ -37,22 +37,14 @@ let isDrawing = false;
 let points = [];
 let currentPath = null;
 let currentDrawColor;
-//cache common jquery selectors
-let SVG = $('#stuffedanimalwarsvg');
-let CANVAS = null; // Will be set when canvas is detected
+//cache common jquery selectors (RIP SVG)
+let CANVAS = null; // Canvas element, initialized in initializeSocketHandlers
 let chatTextBox = $('#chatClientMessage');
-let isCanvasMode = false; // Will be set based on which element exists
 //SOCKET EVENTS RECEIVING///////////////////////////////////////////////////////////////////////////SOCKET EVENTS////////////////////////SOCKET EVENTS//
 function initializeSocketHandlers(){
-    // Detect rendering mode (SVG or Canvas)
+    // Get canvas element (we're canvas-only now)
     CANVAS = document.getElementById('stuffedanimalwarcanvas');
-    if (CANVAS) {
-        isCanvasMode = true;
-        console.log('Canvas mode detected');
-    } else {
-        isCanvasMode = false;
-        console.log('SVG mode detected');
-    }
+    console.log('Canvas mode initialized');
 
     //  WHEN A TAP MESSAGE IS RECEIVED FROM THER SERVER
     //  SEND THE OBJECT RECEIVED TO THE APPROPRIATE FUNCTION THAT HANDLES IT,
@@ -78,29 +70,8 @@ function initializeSocketHandlers(){
         }        
     });
     socket.on(pathSocketEvent, function(pathMsgObject){
-        if (isCanvasMode) {
-            // Canvas mode: call the canvas path handler
-            onBasePathSocketEvent(pathMsgObject);
-        } else {
-            // SVG mode: create SVG path element
-            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-
-            // Construct the "d" attribute for the path
-            const d = `M${pathMsgObject.points[0][0]} ${pathMsgObject.points[0][1]} L${pathMsgObject.points
-                .slice(1)
-                .map((p) => p.join(" "))
-                .join(" ")}`;
-
-            // Set attributes for the path
-            $(path)
-                .attr("d", d)
-                .attr("stroke", "rgb(" + pathMsgObject.red + "," + pathMsgObject.green + "," + pathMsgObject.blue + ")")
-                .attr("stroke-width", pathMsgObject.width)
-                .attr("fill", "none");
-
-            // Append the path to the SVG
-            $('#stuffedanimalwarsvg').append(path);
-        }
+        // Canvas-only now (RIP SVG path rendering)
+        onBasePathSocketEvent(pathMsgObject);
     });
     socket.on(chatImageSocketEvent, function(chatImageMsgObject){
         let chatServerDate = chatImageMsgObject.CHATSERVERDATE;
@@ -121,12 +92,9 @@ function initializeSocketHandlers(){
         });
 
         img.on("click", function () {
-            if (isCanvasMode) {
-                $('#stuffedanimalwarcanvas').css('background-image', 'url(' + chatImageMsgObject.CHATCLIENTIMAGE + ')');
-                setBackgroundImage(chatImageMsgObject.CHATCLIENTIMAGE);
-            } else {
-                $('#stuffedanimalwarsvg').css('background-image', 'url(' + chatImageMsgObject.CHATCLIENTIMAGE + ')');
-            }
+            // Canvas-only (RIP SVG background)
+            $('#stuffedanimalwarcanvas').css('background-image', 'url(' + chatImageMsgObject.CHATCLIENTIMAGE + ')');
+            setBackgroundImage(chatImageMsgObject.CHATCLIENTIMAGE);
         });
 
         // Prepend the image (or linked image) to the #messagesdiv
@@ -223,12 +191,9 @@ function initializeSocketHandlers(){
     });
     socket.on(presentImageSocketEvent, function(presentImageMsgObject){
         console.log("PRESENTER IMAGE UPDATE:" + JSON.stringify(presentImageMsgObject));
-        if (isCanvasMode) {
-            $('#stuffedanimalwarcanvas').css('background-image', 'url(' + presentImageMsgObject.CHATCLIENTIMAGE + ')');
-            setBackgroundImage(presentImageMsgObject.CHATCLIENTIMAGE);
-        } else {
-            $('#stuffedanimalwarsvg').css('background-image', 'url(' + presentImageMsgObject.CHATCLIENTIMAGE + ')');
-        }
+        // Canvas-only (RIP SVG presenter)
+        $('#stuffedanimalwarcanvas').css('background-image', 'url(' + presentImageMsgObject.CHATCLIENTIMAGE + ')');
+        setBackgroundImage(presentImageMsgObject.CHATCLIENTIMAGE);
     });
     socket.on(connectSocketEvent, function(connectMsgObject){
         var span = $("<span/>").text(formatChatServerUserIp(connectMsgObject.CHATSERVERUSER) + " CONNECT - "+ connectMsgObject.CHATSERVERPORT + "/" + connectMsgObject.CHATSERVERENDPOINT +" - Total:" + connectMsgObject.CHATUSERCOUNT);
@@ -282,12 +247,9 @@ function onBaseChatSocketEvent(chatMsgObject){
                  });
 
                 img.on("click", function () {
-                    if (isCanvasMode) {
-                        $('#stuffedanimalwarcanvas').css('background-image', 'url(' + chatClientMessage + ')');
-                        setBackgroundImage(chatClientMessage);
-                    } else {
-                        $('#stuffedanimalwarsvg').css('background-image', 'url(' + chatClientMessage + ')');
-                    }
+                    // Canvas-only (RIP SVG)
+                    $('#stuffedanimalwarcanvas').css('background-image', 'url(' + chatClientMessage + ')');
+                    setBackgroundImage(chatClientMessage);
                 });
 
                 img.prependTo("#messagesdiv");
@@ -382,14 +344,9 @@ function onBaseChatSocketEvent(chatMsgObject){
 
 //STUFFED ANIMAL WAR SVG/CANVAS CLICK/TAP AND PATH EVENTS///////////////////////////////////////////////////////////////////////////HTML EVENTS////////////////////////HTML EVENTS//
 
-// Set up event listeners based on rendering mode
+// Set up event listeners (canvas-only now, RIP SVG)
 document.addEventListener('DOMContentLoaded', function() {
-    const drawSurface = isCanvasMode ? CANVAS : SVG[0];
-    if (isCanvasMode) {
-        setupCanvasDrawingEvents();
-    } else {
-        setupSVGDrawingEvents();
-    }
+    setupCanvasDrawingEvents();
     // Initialize animal preview with the default selected value
     if ($('#animals').length > 0) {
         updateAnimalPreview($('#animals').val());
@@ -530,150 +487,7 @@ function setupCanvasDrawingEvents() {
         }
     });
 }
-
-// SVG DRAWING EVENTS (original code)
-function setupSVGDrawingEvents() {
-    SVG.on("mousedown", function (e) {
-    let colorPickerButton = $("#colorPickerButton");
-    let color = "rgb(" + colorPickerButton.attr("data-red") + "," + colorPickerButton.attr("data-green") + "," + colorPickerButton.attr("data-blue") + ")";
-    let width = parseInt(colorPickerButton.attr("data-line-width")) || 2;
-    isDrawing = true;
-    //points array to send path event
-    points = [[e.offsetX, e.offsetY]];
-    //current line before sending path event / real-time drawing
-    currentPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    $(currentPath)
-        .attr("d", `M${points[0][0]} ${points[0][1]}`)
-        .attr("stroke", color)
-        .attr("stroke-width", width)
-        .attr("fill", "none")
-        .attr("id", `temp-path-${Date.now()}`);
-    $('#stuffedanimalwarsvg').append(currentPath);
-});
-// Continue drawing
-SVG.on("mousemove", function (e) {
-    if (!isDrawing) return;
-    //more points for array to send path event
-    points.push([e.offsetX, e.offsetY]);
-    //update current line real-time drawing before sending path event
-    const d = `M${points[0][0]} ${points[0][1]} L${points
-        .slice(1)
-        .map((p) => p.join(" "))
-        .join(" ")}`;
-    $(currentPath).attr("d", d);
-});
-// Finish drawing
-SVG.on("mouseup", function (e) {
-    if (!isDrawing) return;
-    isDrawing = false;
-    if (points.length === 1) {
-        // Remove the temporary path which is just a dot that we dont want to see
-        if (currentPath) {
-            currentPath.remove();
-            currentPath = null;
-        }
-        // just send a dot
-        emitTapMessage(points[0][0],points[0][1]);
-    } else {
-        emitPathMessage();
-
-        //remove real time path because the server will send a broadcasted one
-        if (currentPath) {
-            currentPath.remove();
-            currentPath = null;
-        }
-    }
-});
-//MOBILE EVENTS
-SVG.on("touchstart", function (e) {
-    if (e.cancelable) {
-        e.preventDefault(); //PREVENT SVG FROM SCROLLING WHEN TOUCHED
-    }
-    let colorPickerButton = $("#colorPickerButton");
-    let color = "rgb(" + colorPickerButton.attr("data-red") + "," + colorPickerButton.attr("data-green") + "," + colorPickerButton.attr("data-blue") + ")";
-    let width = parseInt(colorPickerButton.attr("data-line-width")) || 2;
-    // Get touch coordinates
-    const touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0];
-    const svgElement = document.getElementById('stuffedanimalwarsvg');
-    const svgRect = svgElement.getBoundingClientRect();
-
-    // Calculate position relative to SVG
-    const x = touch.clientX - svgRect.left;
-    const y = touch.clientY - svgRect.top;
-
-    isDrawing = true;
-    //points array for path event to be emitted when line is complete
-    points = [[x, y]];
-
-    //real time path before event of path is emitted
-    // Create the path when starting to draw
-    currentPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-
-    // Set initial attributes
-    $(currentPath)
-        .attr("d", `M${points[0][0]} ${points[0][1]}`)
-        .attr("stroke", color)
-        .attr("stroke-width", width)
-        .attr("fill", "none")
-        .attr("id", `temp-path-${Date.now()}`);
-
-    // Append the path to the SVG
-    $('#stuffedanimalwarsvg').append(currentPath);
-});
-// Continue drawing
-SVG.on("touchmove", function (e) {
-    e.preventDefault(); //PREVENT SVG FROM SCROLLING WHEN TOUCHED
-    if (!isDrawing) return;
-    const touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0];
-    const svgElement = document.getElementById('stuffedanimalwarsvg');
-    const svgRect = svgElement.getBoundingClientRect();
-
-    // Calculate position relative to SVG
-    const x = touch.clientX - svgRect.left;
-    const y = touch.clientY - svgRect.top;
-    //push more points for paths event when touchend
-    points.push([x, y]);
-
-    //update realtime path
-    // Update the path's d attribute in real-time
-    const d = `M${points[0][0]} ${points[0][1]} L${points
-        .slice(1)
-        .map((p) => p.join(" "))
-        .join(" ")}`;
-
-    $(currentPath).attr("d", d);
-});
-// Finish drawing
-SVG.on("touchend", function (e) {
-    e.preventDefault(); //PREVENT SVG FROM SCROLLING WHEN TOUCHED
-    if (!isDrawing) return;
-    isDrawing = false;
-
-    // Check if all points are identical (indicates a tap, not a drag)
-    const isActualTap = points.length > 1 && points.every(point =>
-        point[0] === points[0][0] && point[1] === points[0][1]
-    );
-
-    // If only one point exists, duplicate it to avoid the SVG path error
-    if (points.length === 1 || isActualTap) {
-        // Remove the temporary path
-        if (currentPath) {
-            currentPath.remove();
-            currentPath = null;
-        }
-        emitTapMessage(points[0][0],points[0][1]);
-    } else {
-        emitPathMessage();
-
-        //remove real time path because the server will send a broadcasted one
-        if (currentPath) {
-            currentPath.remove();
-            currentPath = null;
-        }
-    }
-    });
-}
-//^^^STUFFED ANIMAL WAR SVG/CANVAS CLICK/TAP AND PATH EVENTS^^^//////////////////////////////////////////////////////////////////
+//^^^STUFFED ANIMAL WAR CANVAS CLICK/TAP AND PATH EVENTS (RIP SVG)^^^//////////////////////////////////////////////////////////////////
 
 $('#chatClientAutoResponder').change(function(){
     //GET THE MESSAGE FROM THE AUTORESPONDER
@@ -882,16 +696,10 @@ $('.photosformthumbnail').on("click", function() {
     // Get the src from the clicked thumbnail
     let imageSrc = $(this).attr('src');
 
-    // Set the background image based on rendering mode
-    let drawSurface;
-    if (isCanvasMode) {
-        drawSurface = $('#stuffedanimalwarcanvas');
-        drawSurface.css('background-image', 'url(' + imageSrc + ')');
-        setBackgroundImage(imageSrc);
-    } else {
-        drawSurface = $('#stuffedanimalwarsvg');
-        drawSurface.css('background-image', 'url(' + imageSrc + ')');
-    }
+    // Canvas-only (RIP SVG)
+    let drawSurface = $('#stuffedanimalwarcanvas');
+    drawSurface.css('background-image', 'url(' + imageSrc + ')');
+    setBackgroundImage(imageSrc);
 
     // Set the background image for everyone
     let chatClientUser = $("#chatClientUser").val();
