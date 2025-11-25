@@ -1076,19 +1076,31 @@ function initializeVoiceChatSocketHandlers() {
     socket.on(voiceAnswerSocketEvent, async function(data) {
         console.log('📨 Received voice answer from:', data.from);
 
-        // The answering peer created their connection, now we create ours
         let peerConnection = peerConnections[data.from];
 
+        // If we don't have a peer connection, it means this answer is for a broadcast offer
+        // that we already closed. We need to create a new targeted connection.
         if (!peerConnection) {
-            console.log('Creating peer connection for answer from:', data.from);
+            console.log('No peer connection exists for answer from:', data.from);
+            console.log('Creating new peer connection and sending targeted offer');
+
             peerConnection = createPeerConnection(data.from);
 
-            // Create a new offer for this specific peer
+            // Create and send a new targeted offer to this specific peer
             try {
                 const offer = await peerConnection.createOffer();
                 await peerConnection.setLocalDescription(offer);
+
+                socket.emit(voiceOfferSocketEvent, {
+                    offer: offer,
+                    to: data.from  // Send to specific peer
+                });
+
+                console.log('📤 Sent targeted offer to:', data.from);
+                // Don't process the old answer - wait for answer to our new offer
+                return;
             } catch (error) {
-                console.error('Error creating offer for answer:', error);
+                console.error('Error creating targeted offer:', error);
                 return;
             }
         }
