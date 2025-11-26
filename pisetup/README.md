@@ -48,6 +48,17 @@ This variant:
 - ✅ Uses `nginx-marginalway.conf` for proper hostname routing
 - ✅ Access services at `https://marginalway.local/`
 
+**Suggested Credentials:**
+
+These are the recommended credentials for this installation (based on the initial setup):
+
+- **Username:** `jaemzware`
+- **SSH Password:** `marginal`
+- **Hostname:** `marginalway`
+- **SMB Password:** `marginalway`
+- **WiFi SSID:** `StuffedAnimalWAP`
+- **WiFi Password:** `stuffedanimal`
+
 After installation, the Pi will boot into AP mode. Connect to **StuffedAnimalWAP** (password: **stuffedanimal**) and configure your home WiFi at `https://marginalway.local/setup`.
 
 ---
