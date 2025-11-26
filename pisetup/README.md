@@ -24,6 +24,36 @@ The Pi automatically falls back to AP mode if it can't connect to your saved WiF
 
 ## Installation
 
+**Choose your installation path:**
+
+- **Pi Zero 2 W with Raspberry Pi OS Lite (32-bit)**: Follow the standard installation below
+- **Pi 5 with hostname `marginalway` and full Raspberry Pi OS (64-bit)**: Use `install-marginalway.sh` (see Alternative Installation below)
+
+---
+
+### Alternative Installation: Pi 5 with Full OS and Custom Hostname
+
+If you have a **Raspberry Pi 5** with the **full 64-bit Raspberry Pi OS** and want to keep the hostname **`marginalway`** (instead of `stuffedanimalwar`), use this installer:
+
+```bash
+cd /home/jaemzware/stuffedanimalwar/pisetup
+chmod +x install-marginalway.sh
+sudo ./install-marginalway.sh
+```
+
+This variant:
+- ✅ Works with Raspberry Pi 5 and full OS (64-bit)
+- ✅ Keeps your `marginalway` hostname (does not change it)
+- ✅ Includes all dual WiFi setup features
+- ✅ Uses `nginx-marginalway.conf` for proper hostname routing
+- ✅ Access services at `https://marginalway.local/`
+
+After installation, the Pi will boot into AP mode. Connect to **StuffedAnimalWAP** (password: **stuffedanimal**) and configure your home WiFi at `https://marginalway.local/setup`.
+
+---
+
+### Standard Installation: Pi Zero 2 W with OS Lite
+
 ### 1. Prepare SD Card
 
 Flash Raspberry Pi OS Lite (32-bit) to your SD card using Raspberry Pi Imager.
@@ -204,14 +234,16 @@ sudo tail -f /var/log/nginx/error.log
 /home/jaemzware/
 ├── stuffedanimalwar/
 │   ├── pisetup/
-│   │   ├── install.sh                    # Master installation script
+│   │   ├── install.sh                    # Master installation script (Pi Zero 2 W)
+│   │   ├── install-marginalway.sh        # Installation script for Pi 5 with marginalway hostname
 │   │   ├── wifi-manager.sh               # WiFi fallback logic
 │   │   ├── wifi-manager.service          # Systemd service for WiFi
 │   │   ├── generate-certs.sh             # SSL certificate generation
 │   │   ├── setup-endpoint.js             # WiFi setup web interface
 │   │   ├── stuffedanimalwar.service      # App service file
 │   │   ├── analogarchive.service         # AnalogArchive service file
-│   │   ├── nginx-stuffedanimalwar.conf   # Nginx reverse proxy
+│   │   ├── nginx-stuffedanimalwar.conf   # Nginx reverse proxy (stuffedanimalwar hostname)
+│   │   ├── nginx-marginalway.conf        # Nginx reverse proxy (marginalway hostname)
 │   │   └── README.md                     # This file
 │   ├── sslcert/                          # Generated SSL certificates
 │   │   ├── cert.pem
