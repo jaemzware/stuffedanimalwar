@@ -133,6 +133,39 @@ echo "[8/12] Generating SSL certificates..."
 cd "$SCRIPT_DIR"
 sudo -u jaemzware bash "$SCRIPT_DIR/generate-certs.sh"
 
+echo "[8.5/12] Creating .env files for services..."
+# Create .env for StuffedAnimalWar if it doesn't exist
+if [ ! -f "$SAW_DIR/.env" ]; then
+    echo "  - Creating .env for StuffedAnimalWar..."
+    cat > "$SAW_DIR/.env" << 'EOF'
+# StuffedAnimalWar Environment Configuration
+SSL_KEY_PATH=./sslcert/key.pem
+SSL_CERT_PATH=./sslcert/cert.pem
+CRUD_PASSWORD=stuffedanimal
+EOF
+    chown jaemzware:jaemzware "$SAW_DIR/.env"
+    chmod 600 "$SAW_DIR/.env"
+else
+    echo "  - .env already exists for StuffedAnimalWar, skipping"
+fi
+
+# Create .env for AnalogArchive if the directory exists and .env doesn't
+if [ -n "$AA_DIR" ] && [ -d "$AA_DIR" ]; then
+    if [ ! -f "$AA_DIR/.env" ]; then
+        echo "  - Creating .env for AnalogArchive..."
+        cat > "$AA_DIR/.env" << EOF
+MUSIC_DIRECTORY=./music
+PORT=55557
+SSL_KEY_PATH=/home/jaemzware/stuffedanimalwar/sslcert/key.pem
+SSL_CERT_PATH=/home/jaemzware/stuffedanimalwar/sslcert/cert.pem
+EOF
+        chown jaemzware:jaemzware "$AA_DIR/.env"
+        chmod 600 "$AA_DIR/.env"
+    else
+        echo "  - .env already exists for AnalogArchive, skipping"
+    fi
+fi
+
 echo "[9/12] Configuring NetworkManager AP connection..."
 echo "  - Detected Pi model: $PI_TYPE"
 
@@ -192,6 +225,7 @@ cp "$SCRIPT_DIR/stuffedanimalwar.service" /etc/systemd/system/
 if [ -n "$AA_DIR" ] && [ -d "$AA_DIR" ]; then
     echo "  - Installing AnalogArchive service for: $AA_DIR"
     # Create a custom service file with the correct directory
+    # Note: AnalogArchive runs directly on port 55557 with HTTPS (no nginx proxy)
     cat > /etc/systemd/system/analogarchive.service << EOF
 [Unit]
 Description=AnalogArchive Music Server
