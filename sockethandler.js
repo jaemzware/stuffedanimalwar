@@ -863,7 +863,7 @@ function formatChatServerUserIp(chatServerUser) {
 let localStream = null;
 let peerConnections = {};
 let isMicEnabled = false;
-let isVoiceChatMuted = false;
+let isVoiceChatMuted = true; // Start muted by default
 let connectedPeers = new Set();
 let pendingIceCandidates = {}; // Store ICE candidates that arrive before remote description
 
@@ -878,72 +878,18 @@ const iceServers = {
 // Initialize voice chat event listeners
 document.addEventListener('DOMContentLoaded', function() {
     const micButton = document.getElementById('micToggleButton');
-    const voiceChatMuteButton = document.getElementById('voiceChatMuteButton');
+    const acceptMicChatCheckbox = document.getElementById('acceptMicChatCheckbox');
 
     if (micButton) {
         micButton.addEventListener('click', toggleMicrophone);
     }
 
-    if (voiceChatMuteButton) {
-        voiceChatMuteButton.addEventListener('click', toggleVoiceChatMute);
+    if (acceptMicChatCheckbox) {
+        acceptMicChatCheckbox.addEventListener('change', handleAcceptMicChatChange);
     }
 
     // Set up WebRTC socket listeners
     initializeVoiceChatSocketHandlers();
-
-    // Set up click handler to resume blocked audio (Chrome autoplay policy)
-    let audioResumeAttempted = false;
-
-    function resumeBlockedAudio() {
-        if (!audioResumeAttempted) {
-            audioResumeAttempted = true;
-            console.log('🔊 User clicked - attempting to resume all remote audio elements');
-
-            // Resume pending audio elements
-            if (window._pendingAudioElements && window._pendingAudioElements.length > 0) {
-                window._pendingAudioElements.forEach((audioElement, index) => {
-                    audioElement.play().then(() => {
-                        console.log('✅ Successfully resumed pending audio element', index);
-                    }).catch(err => {
-                        console.error('❌ Still could not play audio element', index, ':', err);
-                    });
-                });
-                window._pendingAudioElements = [];
-            }
-
-            // Also ensure ALL remote audio elements are unmuted and playing
-            Object.keys(peerConnections).forEach(peerId => {
-                const audioElement = document.getElementById('remoteAudio_' + peerId);
-                if (audioElement) {
-                    console.log('🔊 Unmuting and playing audio for peer:', peerId);
-                    audioElement.muted = false;
-                    audioElement.play().catch(err => {
-                        console.warn('Could not play audio for peer', peerId, ':', err);
-                    });
-                }
-            });
-
-            // Hide the orange button
-            const resumeButton = document.getElementById('resumeAudioButton');
-            if (resumeButton) {
-                resumeButton.style.display = 'none';
-            }
-
-            const statusText = document.getElementById('voiceChatStatus');
-            if (statusText && !isMicEnabled) {
-                statusText.textContent = 'Listening to remote audio';
-                statusText.style.color = '#28a745';
-            }
-        }
-    }
-
-    document.addEventListener('click', resumeBlockedAudio, true);
-
-    // Also attach to the specific button
-    const resumeButton = document.getElementById('resumeAudioButton');
-    if (resumeButton) {
-        resumeButton.addEventListener('click', resumeBlockedAudio);
-    }
 
     // Test speakers button
     const testSpeakersButton = document.getElementById('testSpeakersButton');
@@ -1027,20 +973,33 @@ function initializeVoiceChatSocketHandlers() {
                 console.log('Accepting renegotiation offer from', data.from);
                 isRenegotiation = true;
             }
-            // If already negotiating, ignore to avoid conflicts
+            // If already negotiating, use tie-breaker to avoid glare
             else if (signalingState !== 'stable') {
-                console.log('Already negotiating with', data.from, '- ignoring offer to avoid conflict');
-                return;
+                console.log('Already negotiating with', data.from, '- using tie-breaker');
+
+                // Use socket IDs as tie-breaker: "polite" peer (lower ID) accepts remote offer
+                // "impolite" peer (higher ID) ignores remote offer
+                const isPolite = socket.id < data.from;
+
+                if (isPolite) {
+                    console.log('We are polite peer - accepting remote offer and rolling back');
+                    // Rollback to stable state by setting remote offer
+                    // This will implicitly rollback our local offer
+                    isRenegotiation = false; // Treat as new negotiation
+                } else {
+                    console.log('We are impolite peer - ignoring remote offer');
+                    return;
+                }
             }
             // If connecting but not negotiating, might be recovering from failure
             else if (state === 'connecting') {
-                console.log('Connection in progress with', data.from, '- ignoring offer');
-                return;
+                console.log('Connection in progress with', data.from, '- accepting offer to help recovery');
+                isRenegotiation = false;
             }
         }
 
         // Create new connection if needed
-        if (!isRenegotiation) {
+        if (!isRenegotiation && !peerConnection) {
             peerConnection = createPeerConnection(data.from);
         }
 
@@ -1076,19 +1035,33 @@ function initializeVoiceChatSocketHandlers() {
     socket.on(voiceAnswerSocketEvent, async function(data) {
         console.log('📨 Received voice answer from:', data.from);
 
-        // The answering peer created their connection, now we create ours
         let peerConnection = peerConnections[data.from];
 
+        // If we don't have a peer connection, this answer is for a broadcast offer we closed.
+        // Create a real peer connection and send a targeted offer to establish the connection.
         if (!peerConnection) {
-            console.log('Creating peer connection for answer from:', data.from);
+            console.log('No peer connection exists for answer from:', data.from);
+            console.log('Creating peer connection and sending targeted offer to establish connection');
+
+            // Create a real peer connection for this peer
             peerConnection = createPeerConnection(data.from);
 
-            // Create a new offer for this specific peer
+            // Send a new targeted offer to this peer
             try {
                 const offer = await peerConnection.createOffer();
                 await peerConnection.setLocalDescription(offer);
+
+                console.log('📤 Sending targeted offer to:', data.from);
+                socket.emit(voiceOfferSocketEvent, {
+                    offer: offer,
+                    to: data.from
+                });
+
+                // The remote peer will receive our offer and send a new answer
+                // We'll receive that answer and process it normally
+                return;
             } catch (error) {
-                console.error('Error creating offer for answer:', error);
+                console.error('❌ Error creating targeted offer:', error);
                 return;
             }
         }
@@ -1165,6 +1138,39 @@ function initializeVoiceChatSocketHandlers() {
         // Note: We can't reliably map socket IDs here, so we rely on connection state changes
         console.log('User disconnected');
     });
+}
+
+function handleAcceptMicChatChange(event) {
+    const isChecked = event.target.checked;
+    const statusText = document.getElementById('voiceChatStatus');
+
+    // Update the muted state
+    isVoiceChatMuted = !isChecked;
+
+    console.log('🔊 Accept Mic Chat checkbox changed to:', isChecked, '(muted:', isVoiceChatMuted, ')');
+
+    // Mute/unmute all existing remote audio elements
+    document.querySelectorAll('audio[id^="remoteAudio_"]').forEach(audioElement => {
+        audioElement.muted = isVoiceChatMuted;
+
+        // If enabling, try to play
+        if (!isVoiceChatMuted) {
+            audioElement.play().catch(err => {
+                console.warn('Could not play audio:', err);
+            });
+        }
+    });
+
+    // Update status text
+    if (statusText && !isMicEnabled) {
+        if (isChecked) {
+            statusText.textContent = 'Ready to receive mic audio';
+            statusText.style.color = '#28a745';
+        } else {
+            statusText.textContent = 'Mic chat disabled';
+            statusText.style.color = '#dc3545';
+        }
+    }
 }
 
 async function toggleMicrophone() {
@@ -1364,38 +1370,6 @@ async function toggleMicrophone() {
     }
 }
 
-function toggleVoiceChatMute() {
-    const muteButton = document.getElementById('voiceChatMuteButton');
-    const muteIcon = document.getElementById('voiceChatMuteIcon');
-    const muteLabel = document.getElementById('voiceChatMuteLabel');
-    const statusText = document.getElementById('voiceChatStatus');
-
-    isVoiceChatMuted = !isVoiceChatMuted;
-
-    // Mute/unmute all remote audio elements
-    document.querySelectorAll('audio[id^="remoteAudio_"]').forEach(audioElement => {
-        audioElement.muted = isVoiceChatMuted;
-    });
-
-    if (isVoiceChatMuted) {
-        muteButton.style.background = '#dc3545';
-        muteIcon.textContent = '🔇';
-        muteLabel.textContent = 'Unmute Voice Chat';
-        if (!isMicEnabled) {
-            statusText.textContent = 'Voice chat muted';
-            statusText.style.color = '#dc3545';
-        }
-    } else {
-        muteButton.style.background = '#666';
-        muteIcon.textContent = '🔊';
-        muteLabel.textContent = 'Mute Voice Chat';
-        if (!isMicEnabled) {
-            statusText.textContent = 'Voice chat ready';
-            statusText.style.color = '#999';
-        }
-    }
-}
-
 function updatePeerCount() {
     const peerCountElement = document.getElementById('voiceChatPeers');
     if (peerCountElement) {
@@ -1443,17 +1417,20 @@ function createPeerConnection(peerId) {
         delete peerConnections[peerId];
     }
 
-    console.log('Creating new peer connection for:', peerId);
+    console.log('🆕🆕🆕 Creating NEW peer connection for:', peerId, '🆕🆕🆕');
     const peerConnection = new RTCPeerConnection(iceServers);
     peerConnections[peerId] = peerConnection;
 
     // Add local stream tracks if microphone is enabled
     if (localStream) {
+        console.log('   Local stream has', localStream.getTracks().length, 'tracks');
         localStream.getTracks().forEach(track => {
-            console.log('➕ Adding local track to peer connection:', peerId, 'track:', track.kind, track.label);
+            console.log('   ➕ Adding local track:', track.kind, track.label, 'enabled:', track.enabled);
             const sender = peerConnection.addTrack(track, localStream);
-            console.log('   Sender added:', sender.track ? sender.track.kind : 'no track');
+            console.log('      Sender added:', sender.track ? sender.track.kind : 'no track');
         });
+    } else {
+        console.log('   ⚠️ No local stream - creating receive-only connection');
     }
 
     // Log current senders for this connection
@@ -1477,10 +1454,12 @@ function createPeerConnection(peerId) {
 
     // Handle remote tracks (incoming audio from other users)
     peerConnection.ontrack = function(event) {
-        console.log('🎵 Received remote track from peer:', peerId);
-        console.log('Track kind:', event.track.kind);
-        console.log('Track enabled:', event.track.enabled);
-        console.log('Streams:', event.streams);
+        console.log('🎵🎵🎵 RECEIVED REMOTE TRACK from peer:', peerId, '🎵🎵🎵');
+        console.log('   Track kind:', event.track.kind);
+        console.log('   Track enabled:', event.track.enabled);
+        console.log('   Track muted:', event.track.muted);
+        console.log('   Track readyState:', event.track.readyState);
+        console.log('   Streams:', event.streams.length);
 
         const remoteStream = event.streams[0];
 
@@ -1494,18 +1473,13 @@ function createPeerConnection(peerId) {
             audioElement.volume = 1.0;
             audioElement.style.display = 'none';
             document.body.appendChild(audioElement);
-            console.log('✅ Created audio element for peer:', peerId);
+            console.log('   ✅ Created audio element:', audioElement.id, 'muted:', audioElement.muted);
+        } else {
+            console.log('   ♻️ Reusing existing audio element:', audioElement.id);
         }
 
         audioElement.srcObject = remoteStream;
-
-        // Log stream info
-        console.log('Audio element ID:', audioElement.id);
-        console.log('Audio element muted:', audioElement.muted, 'volume:', audioElement.volume);
-        console.log('Stream has', remoteStream.getAudioTracks().length, 'audio tracks');
-        remoteStream.getAudioTracks().forEach((track, index) => {
-            console.log('Audio track', index, '- enabled:', track.enabled, 'muted:', track.muted, 'readyState:', track.readyState);
-        });
+        console.log('   📡 Set srcObject with', remoteStream.getAudioTracks().length, 'audio tracks');
 
         // Try to play audio - Chrome may block this until user interaction
         const playPromise = audioElement.play();
@@ -1513,26 +1487,8 @@ function createPeerConnection(peerId) {
             playPromise.then(() => {
                 console.log('✅ Audio playback started for peer:', peerId);
             }).catch(err => {
-                console.warn('⚠️ Autoplay blocked - will retry on next user interaction:', err.message);
-
-                // Store this audio element to retry later
-                if (!window._pendingAudioElements) {
-                    window._pendingAudioElements = [];
-                }
-                window._pendingAudioElements.push(audioElement);
-
-                // Show the orange "Click to hear" button
-                const resumeButton = document.getElementById('resumeAudioButton');
-                if (resumeButton) {
-                    resumeButton.style.display = 'block';
-                }
-
-                // Update status to inform user
-                const statusText = document.getElementById('voiceChatStatus');
-                if (statusText && !isMicEnabled) {
-                    statusText.textContent = 'Incoming audio ready - click orange button';
-                    statusText.style.color = '#ffa500';
-                }
+                console.warn('⚠️ Autoplay blocked:', err.message);
+                console.log('💡 User should check the "Accept Mic Chat" checkbox to enable audio');
             });
         }
 
@@ -1573,7 +1529,7 @@ function createPeerConnection(peerId) {
 
     // Handle connection state changes
     peerConnection.onconnectionstatechange = function() {
-        console.log('Peer connection state for', peerId, ':', peerConnection.connectionState);
+        console.log('🔄 Peer connection state for', peerId, ':', peerConnection.connectionState);
         if (peerConnection.connectionState === 'disconnected' ||
             peerConnection.connectionState === 'failed' ||
             peerConnection.connectionState === 'closed') {
@@ -1588,11 +1544,13 @@ function createPeerConnection(peerId) {
             }
             delete peerConnections[peerId];
             connectedPeers.delete(peerId);
-            console.log('Cleaned up peer connection:', peerId);
+            console.log('❌ Cleaned up peer connection:', peerId);
             updatePeerCount();
         } else if (peerConnection.connectionState === 'connected') {
             connectedPeers.add(peerId);
-            console.log('✅ Peer CONNECTED:', peerId);
+            console.log('✅✅✅ Peer CONNECTED:', peerId, '✅✅✅');
+            console.log('   Remote tracks:', peerConnection.getReceivers().length);
+            console.log('   Local tracks:', peerConnection.getSenders().length);
             updatePeerCount();
         }
     };
