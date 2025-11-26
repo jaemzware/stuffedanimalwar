@@ -429,9 +429,9 @@ function writeChatForm(responsesObject) {
         document.write("<span id='voiceChatMuteLabel'>Unmute Voice Chat</span>");
         document.write("</button>");
 
-        // Click here prompt for autoplay
-        document.write("<button id='resumeAudioButton' type='button' style='padding: 6px 12px; background: #ffa500; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; display: none; animation: pulse 2s infinite; flex: 1 1 100%; min-width: 200px;'>");
-        document.write("👆 Click to hear incoming audio");
+        // Click here prompt for autoplay (visible by default)
+        document.write("<button id='resumeAudioButton' type='button' style='padding: 6px 12px; background: #ffa500; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; display: block; animation: pulse 2s infinite; flex: 1 1 100%; min-width: 200px;'>");
+        document.write("👆 Click to enable incoming audio");
         document.write("</button>");
 
         // Test speakers button
