@@ -863,7 +863,7 @@ function formatChatServerUserIp(chatServerUser) {
 let localStream = null;
 let peerConnections = {};
 let isMicEnabled = false;
-let isVoiceChatMuted = false;
+let isVoiceChatMuted = true; // Start muted by default
 let connectedPeers = new Set();
 let pendingIceCandidates = {}; // Store ICE candidates that arrive before remote description
 
@@ -1027,20 +1027,33 @@ function initializeVoiceChatSocketHandlers() {
                 console.log('Accepting renegotiation offer from', data.from);
                 isRenegotiation = true;
             }
-            // If already negotiating, ignore to avoid conflicts
+            // If already negotiating, use tie-breaker to avoid glare
             else if (signalingState !== 'stable') {
-                console.log('Already negotiating with', data.from, '- ignoring offer to avoid conflict');
-                return;
+                console.log('Already negotiating with', data.from, '- using tie-breaker');
+
+                // Use socket IDs as tie-breaker: "polite" peer (lower ID) accepts remote offer
+                // "impolite" peer (higher ID) ignores remote offer
+                const isPolite = socket.id < data.from;
+
+                if (isPolite) {
+                    console.log('We are polite peer - accepting remote offer and rolling back');
+                    // Rollback to stable state by setting remote offer
+                    // This will implicitly rollback our local offer
+                    isRenegotiation = false; // Treat as new negotiation
+                } else {
+                    console.log('We are impolite peer - ignoring remote offer');
+                    return;
+                }
             }
             // If connecting but not negotiating, might be recovering from failure
             else if (state === 'connecting') {
-                console.log('Connection in progress with', data.from, '- ignoring offer');
-                return;
+                console.log('Connection in progress with', data.from, '- accepting offer to help recovery');
+                isRenegotiation = false;
             }
         }
 
         // Create new connection if needed
-        if (!isRenegotiation) {
+        if (!isRenegotiation && !peerConnection) {
             peerConnection = createPeerConnection(data.from);
         }
 
@@ -1079,30 +1092,11 @@ function initializeVoiceChatSocketHandlers() {
         let peerConnection = peerConnections[data.from];
 
         // If we don't have a peer connection, it means this answer is for a broadcast offer
-        // that we already closed. We need to create a new targeted connection.
+        // that we already closed. The other peer will send us an offer, so just wait for it.
         if (!peerConnection) {
             console.log('No peer connection exists for answer from:', data.from);
-            console.log('Creating new peer connection and sending targeted offer');
-
-            peerConnection = createPeerConnection(data.from);
-
-            // Create and send a new targeted offer to this specific peer
-            try {
-                const offer = await peerConnection.createOffer();
-                await peerConnection.setLocalDescription(offer);
-
-                socket.emit(voiceOfferSocketEvent, {
-                    offer: offer,
-                    to: data.from  // Send to specific peer
-                });
-
-                console.log('📤 Sent targeted offer to:', data.from);
-                // Don't process the old answer - wait for answer to our new offer
-                return;
-            } catch (error) {
-                console.error('Error creating targeted offer:', error);
-                return;
-            }
+            console.log('This is likely from a broadcast offer - ignoring, will connect when we receive their offer');
+            return;
         }
 
         // Check the signaling state before trying to set remote description

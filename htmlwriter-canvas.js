@@ -423,10 +423,10 @@ function writeChatForm(responsesObject) {
         document.write("<span id='micLabel'>Enable Mic</span>");
         document.write("</button>");
 
-        // Audio chat mute button
-        document.write("<button id='voiceChatMuteButton' type='button' style='padding: 6px 12px; background: #666; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 5px; transition: all 0.3s; flex: 1 1 auto; min-width: 120px;'>");
-        document.write("<span id='voiceChatMuteIcon'>🔊</span>");
-        document.write("<span id='voiceChatMuteLabel'>Mute Voice Chat</span>");
+        // Audio chat mute button (starts muted by default)
+        document.write("<button id='voiceChatMuteButton' type='button' style='padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 5px; transition: all 0.3s; flex: 1 1 auto; min-width: 120px;'>");
+        document.write("<span id='voiceChatMuteIcon'>🔇</span>");
+        document.write("<span id='voiceChatMuteLabel'>Unmute Voice Chat</span>");
         document.write("</button>");
 
         // Click here prompt for autoplay
