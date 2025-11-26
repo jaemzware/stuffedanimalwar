@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Generate self-signed SSL certificate for Jaemzware LLC
-# Valid for both stuffedanimalwar.local and analogarchive.local
+# Valid for marginalway.local and analogarchive.local
 
 CERT_DIR="/home/jaemzware/stuffedanimalwar/sslcert"
 
@@ -15,8 +15,8 @@ openssl req -x509 -newkey rsa:4096 \
   -keyout "$CERT_DIR/key.pem" \
   -out "$CERT_DIR/cert.pem" \
   -days 365 -nodes \
-  -subj "/C=US/ST=Washington/L=Seattle/O=Jaemzware LLC/CN=stuffedanimalwar.local" \
-  -addext "subjectAltName=DNS:stuffedanimalwar.local,DNS:analogarchive.local,IP:192.168.4.1"
+  -subj "/C=US/ST=Washington/L=Seattle/O=Jaemzware LLC/CN=marginalway.local" \
+  -addext "subjectAltName=DNS:marginalway.local,DNS:analogarchive.local,IP:192.168.4.1"
 
 # Set permissions
 chmod 600 "$CERT_DIR/key.pem"
