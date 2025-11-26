@@ -423,16 +423,11 @@ function writeChatForm(responsesObject) {
         document.write("<span id='micLabel'>Enable Mic</span>");
         document.write("</button>");
 
-        // Audio chat mute button (starts muted by default)
-        document.write("<button id='voiceChatMuteButton' type='button' style='padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 5px; transition: all 0.3s; flex: 1 1 auto; min-width: 120px;'>");
-        document.write("<span id='voiceChatMuteIcon'>🔇</span>");
-        document.write("<span id='voiceChatMuteLabel'>Unmute Voice Chat</span>");
-        document.write("</button>");
-
-        // Click here prompt for autoplay (visible by default)
-        document.write("<button id='resumeAudioButton' type='button' style='padding: 6px 12px; background: #ffa500; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; display: block; animation: pulse 2s infinite; flex: 1 1 100%; min-width: 200px;'>");
-        document.write("👆 Click to enable incoming audio");
-        document.write("</button>");
+        // Accept incoming mic audio checkbox (unchecked by default)
+        document.write("<label style='padding: 8px 12px; background: #2a2a3e; color: white; border-radius: 6px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 8px; transition: all 0.3s; flex: 1 1 auto; min-width: 160px; user-select: none;'>");
+        document.write("<input type='checkbox' id='acceptMicChatCheckbox' style='width: 18px; height: 18px; cursor: pointer; accent-color: #28a745;'>");
+        document.write("<span style='flex: 1;'>Accept Mic Chat</span>");
+        document.write("</label>");
 
         // Test speakers button
         document.write("<button id='testSpeakersButton' type='button' style='padding: 6px 12px; background: #17a2b8; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; flex: 1 1 auto; min-width: 120px;'>");

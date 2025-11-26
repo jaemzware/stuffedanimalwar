@@ -878,67 +878,18 @@ const iceServers = {
 // Initialize voice chat event listeners
 document.addEventListener('DOMContentLoaded', function() {
     const micButton = document.getElementById('micToggleButton');
-    const voiceChatMuteButton = document.getElementById('voiceChatMuteButton');
+    const acceptMicChatCheckbox = document.getElementById('acceptMicChatCheckbox');
 
     if (micButton) {
         micButton.addEventListener('click', toggleMicrophone);
     }
 
-    if (voiceChatMuteButton) {
-        voiceChatMuteButton.addEventListener('click', toggleVoiceChatMute);
+    if (acceptMicChatCheckbox) {
+        acceptMicChatCheckbox.addEventListener('change', handleAcceptMicChatChange);
     }
 
     // Set up WebRTC socket listeners
     initializeVoiceChatSocketHandlers();
-
-    // Set up click handler to resume blocked audio (Chrome autoplay policy)
-    function resumeBlockedAudio() {
-        console.log('🔊 User clicked - attempting to resume all remote audio elements');
-
-        // Resume pending audio elements
-        if (window._pendingAudioElements && window._pendingAudioElements.length > 0) {
-            window._pendingAudioElements.forEach((audioElement, index) => {
-                audioElement.play().then(() => {
-                    console.log('✅ Successfully resumed pending audio element', index);
-                }).catch(err => {
-                    console.error('❌ Still could not play audio element', index, ':', err);
-                });
-            });
-            window._pendingAudioElements = [];
-        }
-
-        // Also ensure ALL remote audio elements are unmuted and playing (respect mute setting)
-        Object.keys(peerConnections).forEach(peerId => {
-            const audioElement = document.getElementById('remoteAudio_' + peerId);
-            if (audioElement) {
-                console.log('🔊 Playing audio for peer:', peerId, 'muted:', isVoiceChatMuted);
-                audioElement.muted = isVoiceChatMuted; // Respect the mute button setting
-                audioElement.play().catch(err => {
-                    console.warn('Could not play audio for peer', peerId, ':', err);
-                });
-            }
-        });
-
-        // Hide the orange button
-        const resumeButton = document.getElementById('resumeAudioButton');
-        if (resumeButton) {
-            resumeButton.style.display = 'none';
-        }
-
-        const statusText = document.getElementById('voiceChatStatus');
-        if (statusText && !isMicEnabled) {
-            statusText.textContent = isVoiceChatMuted ? 'Voice chat muted' : 'Listening to remote audio';
-            statusText.style.color = isVoiceChatMuted ? '#dc3545' : '#28a745';
-        }
-    }
-
-    document.addEventListener('click', resumeBlockedAudio, true);
-
-    // Also attach to the specific button
-    const resumeButton = document.getElementById('resumeAudioButton');
-    if (resumeButton) {
-        resumeButton.addEventListener('click', resumeBlockedAudio);
-    }
 
     // Test speakers button
     const testSpeakersButton = document.getElementById('testSpeakersButton');
@@ -1168,6 +1119,39 @@ function initializeVoiceChatSocketHandlers() {
     });
 }
 
+function handleAcceptMicChatChange(event) {
+    const isChecked = event.target.checked;
+    const statusText = document.getElementById('voiceChatStatus');
+
+    // Update the muted state
+    isVoiceChatMuted = !isChecked;
+
+    console.log('🔊 Accept Mic Chat checkbox changed to:', isChecked, '(muted:', isVoiceChatMuted, ')');
+
+    // Mute/unmute all existing remote audio elements
+    document.querySelectorAll('audio[id^="remoteAudio_"]').forEach(audioElement => {
+        audioElement.muted = isVoiceChatMuted;
+
+        // If enabling, try to play
+        if (!isVoiceChatMuted) {
+            audioElement.play().catch(err => {
+                console.warn('Could not play audio:', err);
+            });
+        }
+    });
+
+    // Update status text
+    if (statusText && !isMicEnabled) {
+        if (isChecked) {
+            statusText.textContent = 'Ready to receive mic audio';
+            statusText.style.color = '#28a745';
+        } else {
+            statusText.textContent = 'Mic chat disabled';
+            statusText.style.color = '#dc3545';
+        }
+    }
+}
+
 async function toggleMicrophone() {
     const micButton = document.getElementById('micToggleButton');
     const micIcon = document.getElementById('micIcon');
@@ -1365,44 +1349,6 @@ async function toggleMicrophone() {
     }
 }
 
-function toggleVoiceChatMute() {
-    const muteButton = document.getElementById('voiceChatMuteButton');
-    const muteIcon = document.getElementById('voiceChatMuteIcon');
-    const muteLabel = document.getElementById('voiceChatMuteLabel');
-    const statusText = document.getElementById('voiceChatStatus');
-    const resumeButton = document.getElementById('resumeAudioButton');
-
-    isVoiceChatMuted = !isVoiceChatMuted;
-
-    // Mute/unmute all remote audio elements
-    document.querySelectorAll('audio[id^="remoteAudio_"]').forEach(audioElement => {
-        audioElement.muted = isVoiceChatMuted;
-    });
-
-    if (isVoiceChatMuted) {
-        muteButton.style.background = '#dc3545';
-        muteIcon.textContent = '🔇';
-        muteLabel.textContent = 'Unmute Voice Chat';
-        if (!isMicEnabled) {
-            statusText.textContent = 'Voice chat muted';
-            statusText.style.color = '#dc3545';
-        }
-    } else {
-        muteButton.style.background = '#666';
-        muteIcon.textContent = '🔊';
-        muteLabel.textContent = 'Mute Voice Chat';
-        if (!isMicEnabled) {
-            statusText.textContent = 'Voice chat ready - click orange button';
-            statusText.style.color = '#999';
-        }
-
-        // Show the orange button when unmuting to ensure audio permission
-        if (resumeButton) {
-            resumeButton.style.display = 'block';
-        }
-    }
-}
-
 function updatePeerCount() {
     const peerCountElement = document.getElementById('voiceChatPeers');
     if (peerCountElement) {
@@ -1520,26 +1466,8 @@ function createPeerConnection(peerId) {
             playPromise.then(() => {
                 console.log('✅ Audio playback started for peer:', peerId);
             }).catch(err => {
-                console.warn('⚠️ Autoplay blocked - will retry on next user interaction:', err.message);
-
-                // Store this audio element to retry later
-                if (!window._pendingAudioElements) {
-                    window._pendingAudioElements = [];
-                }
-                window._pendingAudioElements.push(audioElement);
-
-                // Show the orange "Click to hear" button
-                const resumeButton = document.getElementById('resumeAudioButton');
-                if (resumeButton) {
-                    resumeButton.style.display = 'block';
-                }
-
-                // Update status to inform user
-                const statusText = document.getElementById('voiceChatStatus');
-                if (statusText && !isMicEnabled) {
-                    statusText.textContent = 'Incoming audio ready - click orange button';
-                    statusText.style.color = '#ffa500';
-                }
+                console.warn('⚠️ Autoplay blocked:', err.message);
+                console.log('💡 User should check the "Accept Mic Chat" checkbox to enable audio');
             });
         }
 
