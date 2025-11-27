@@ -895,6 +895,18 @@ io.on('connection', function(socket){
     console.log(JSON.stringify(connectMsgObject));
     io.emit(endpoint + stuffedAnimalWarConnectSocketEvent,connectMsgObject);
 
+    // If this is a camera endpoint, emit camera connect event
+    if (endpoint && endpoint.endsWith('camera')) {
+        const cameraConnectEvent = endpoint + 'camera' + 'connect';
+        const cameraConnectMsg = {
+            userId: socket.id,
+            endpoint: endpoint,
+            timestamp: connectChatPstString
+        };
+        console.log(`[CAMERA] Broadcasting connect for ${endpoint}, socket: ${socket.id}`);
+        io.emit(cameraConnectEvent, cameraConnectMsg);
+    }
+
     //COMMON--------------------------------------------------------------------------------------
     socket.on('disconnect', function(){
         let chatClientAddress = getClientIp(socket);
@@ -909,9 +921,21 @@ io.on('connection', function(socket){
                 CHATUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
                 CHATCLIENTMESSAGE:'DISCONNECT',
                 CHATCLIENTUSER: ''
-         }; 
+         };
         console.log(JSON.stringify(disconnectMsgObject));
         io.emit(endpoint + stuffedAnimalWarDisconnectSocketEvent,disconnectMsgObject);
+
+        // If this is a camera endpoint, emit camera disconnect event
+        if (endpoint && endpoint.endsWith('camera')) {
+            const cameraDisconnectEvent = endpoint + 'camera' + 'disconnect';
+            const cameraDisconnectMsg = {
+                userId: socket.id,
+                endpoint: endpoint,
+                timestamp: chatPstString
+            };
+            console.log(`[CAMERA] Broadcasting disconnect for ${endpoint}, socket: ${socket.id}`);
+            io.emit(cameraDisconnectEvent, cameraDisconnectMsg);
+        }
     });
          
     //ON ERROR
