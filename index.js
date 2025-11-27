@@ -1186,5 +1186,34 @@ io.on('connection', function(socket){
 
 });
 
+// Graceful shutdown handler for systemd restarts
+function gracefulShutdown(signal) {
+    console.log(`\nReceived ${signal}. Starting graceful shutdown...`);
+
+    // Stop accepting new connections
+    server.close(() => {
+        console.log('HTTPS server closed');
+
+        // Close all Socket.IO connections
+        io.close(() => {
+            console.log('Socket.IO closed');
+            console.log('Graceful shutdown complete');
+            process.exit(0);
+        });
+    });
+
+    // Force shutdown after 10 seconds if graceful shutdown fails
+    setTimeout(() => {
+        console.error('Could not close connections in time, forcefully shutting down');
+        process.exit(1);
+    }, 10000);
+}
+
+// Handle SIGTERM (sent by systemd on stop/restart)
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+
+// Handle SIGINT (Ctrl+C)
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
 
 
