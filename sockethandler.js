@@ -672,7 +672,9 @@ $('#selectvideos').change(function(){
     let poster = videoOption.attr("poster");
     changeMp4(videoToPlay,poster);
     let chatClientUser = $("#chatClientUser").val();
-    if(chatClientUser===masterAlias){
+
+    // Don't broadcast camera streams to other users (they're local device streams)
+    if(chatClientUser===masterAlias && !videoToPlay.startsWith('camera://')){
         // If the video path is relative (doesn't start with http), prepend server origin
         let videoUrl = videoToPlay;
         if (!videoToPlay.toLowerCase().startsWith('http://') && !videoToPlay.toLowerCase().startsWith('https://')) {
