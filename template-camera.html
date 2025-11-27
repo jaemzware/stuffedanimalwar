@@ -347,16 +347,136 @@
             }
 
             async function handleCameraChange(event) {
-                selectedCameraDeviceId = event.target.value;
-                if (isCameraEnabled && selectedCameraDeviceId) {
-                    await toggleCamera(); // Turn off
-                    await toggleCamera(); // Turn on with new device
+                const newDeviceId = event.target.value;
+                console.log('Camera selection changed to:', newDeviceId);
+
+                if (!newDeviceId) {
+                    console.log('Empty device ID selected');
+                    return;
+                }
+
+                selectedCameraDeviceId = newDeviceId;
+
+                // If camera is already enabled, switch to the new device
+                if (isCameraEnabled) {
+                    console.log('Camera already enabled, switching devices...');
+                    try {
+                        // Stop current stream
+                        if (localCameraStream) {
+                            localCameraStream.getTracks().forEach(track => track.stop());
+                        }
+
+                        // Start with new device
+                        await startCamera();
+                    } catch (error) {
+                        console.error('Error switching camera:', error);
+                        document.getElementById('status').textContent = 'Error switching camera: ' + error.message;
+                        document.getElementById('status').className = 'status disconnected';
+                    }
+                } else {
+                    console.log('Camera not yet enabled, device will be used when enabled');
                 }
             }
 
             function handleAcceptCameraChange(event) {
                 const remoteCameraSection = document.getElementById('remoteCameraSection');
                 remoteCameraSection.style.display = event.target.checked ? 'block' : 'none';
+            }
+
+            async function startCamera() {
+                const localCameraSection = document.getElementById('localCameraSection');
+                const localCameraVideo = document.getElementById('localCameraVideo');
+                const cameraSelector = document.getElementById('cameraSelector');
+
+                console.log('Starting camera with device ID:', selectedCameraDeviceId);
+
+                const constraints = {
+                    video: {
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    }
+                };
+
+                // Use selected device if specified, otherwise let browser choose
+                if (selectedCameraDeviceId) {
+                    constraints.video.deviceId = { exact: selectedCameraDeviceId };
+                } else {
+                    constraints.video.facingMode = 'user';
+                }
+
+                console.log('getUserMedia constraints:', JSON.stringify(constraints));
+
+                try {
+                    localCameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+
+                    console.log('Camera stream obtained:', localCameraStream.id);
+                    console.log('Video tracks:', localCameraStream.getVideoTracks().map(t => ({
+                        id: t.id,
+                        label: t.label,
+                        enabled: t.enabled,
+                        readyState: t.readyState
+                    })));
+
+                    localCameraVideo.srcObject = localCameraStream;
+                    localCameraSection.style.display = 'block';
+
+                    // Update dropdown to show actual device being used
+                    const videoTrack = localCameraStream.getVideoTracks()[0];
+                    if (videoTrack) {
+                        const settings = videoTrack.getSettings();
+                        console.log('Camera settings:', settings);
+                        if (settings.deviceId) {
+                            cameraSelector.value = settings.deviceId;
+                            selectedCameraDeviceId = settings.deviceId;
+                        }
+                    }
+
+                    document.getElementById('status').textContent = 'Camera active';
+                    document.getElementById('status').className = 'status connected';
+
+                    // Add video tracks to all peer connections
+                    Object.keys(peerConnections).forEach(peerId => {
+                        const pc = peerConnections[peerId];
+                        if (pc && pc.connectionState === 'connected') {
+                            localCameraStream.getVideoTracks().forEach(track => {
+                                pc.addTrack(track, localCameraStream);
+                            });
+
+                            // Renegotiate
+                            pc.createOffer().then(offer => pc.setLocalDescription(offer))
+                                .then(() => {
+                                    socket.emit(voiceOfferSocketEvent, {
+                                        offer: pc.localDescription,
+                                        to: peerId
+                                    });
+                                });
+                        }
+                    });
+
+                    // Refresh camera list with proper labels
+                    await populateCameraDevices();
+
+                } catch (error) {
+                    console.error('Camera access error:', error);
+                    console.error('Error name:', error.name);
+                    console.error('Error message:', error.message);
+
+                    let errorMsg = 'Camera error: ' + error.name;
+                    if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+                        errorMsg = 'Camera not found - check if it\'s connected';
+                    } else if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+                        errorMsg = 'Camera permission denied - check browser settings';
+                    } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
+                        errorMsg = 'Camera in use by another app';
+                    } else if (error.name === 'OverconstrainedError') {
+                        errorMsg = 'Camera doesn\'t support requested settings';
+                    }
+
+                    document.getElementById('status').textContent = errorMsg;
+                    document.getElementById('status').className = 'status disconnected';
+                    alert(errorMsg + '\n\nDetails: ' + error.message);
+                    throw error;
+                }
             }
 
             async function toggleCamera() {
@@ -367,59 +487,26 @@
                 const localCameraVideo = document.getElementById('localCameraVideo');
 
                 if (!isCameraEnabled) {
+                    console.log('Enabling camera...');
                     try {
-                        const constraints = {
-                            video: {
-                                width: { ideal: 1280 },
-                                height: { ideal: 720 },
-                                facingMode: 'user'
-                            }
-                        };
-
-                        if (selectedCameraDeviceId) {
-                            constraints.video.deviceId = { exact: selectedCameraDeviceId };
-                        }
-
-                        localCameraStream = await navigator.mediaDevices.getUserMedia(constraints);
-
-                        localCameraVideo.srcObject = localCameraStream;
-                        localCameraSection.style.display = 'block';
+                        await startCamera();
 
                         button.classList.add('active');
                         label.textContent = 'Camera On';
-
                         isCameraEnabled = true;
 
-                        console.log('Camera enabled, broadcasting to peers');
-
-                        // Add video tracks to all peer connections
-                        Object.keys(peerConnections).forEach(peerId => {
-                            const pc = peerConnections[peerId];
-                            if (pc && pc.connectionState === 'connected') {
-                                localCameraStream.getVideoTracks().forEach(track => {
-                                    pc.addTrack(track, localCameraStream);
-                                });
-
-                                // Renegotiate
-                                pc.createOffer().then(offer => pc.setLocalDescription(offer))
-                                    .then(() => {
-                                        socket.emit(voiceOfferSocketEvent, {
-                                            offer: pc.localDescription,
-                                            to: peerId
-                                        });
-                                    });
-                            }
-                        });
-
-                        populateCameraDevices();
-
+                        console.log('Camera enabled successfully');
                     } catch (error) {
-                        console.error('Camera access error:', error);
-                        alert('Unable to access camera: ' + error.message);
+                        console.error('Failed to enable camera:', error);
+                        isCameraEnabled = false;
                     }
                 } else {
+                    console.log('Disabling camera...');
                     if (localCameraStream) {
-                        localCameraStream.getTracks().forEach(track => track.stop());
+                        localCameraStream.getTracks().forEach(track => {
+                            console.log('Stopping track:', track.label);
+                            track.stop();
+                        });
                         localCameraStream = null;
                     }
 
@@ -430,6 +517,9 @@
                     label.textContent = 'Enable Camera';
 
                     isCameraEnabled = false;
+
+                    document.getElementById('status').textContent = 'Camera disabled';
+                    document.getElementById('status').className = 'status disconnected';
 
                     console.log('Camera disabled');
                 }
