@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pi Camera Broadcaster</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            width: 100%;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .status {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 18px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .status.connected {
+            background: rgba(40, 167, 69, 0.4);
+        }
+        .status.error {
+            background: rgba(220, 53, 69, 0.4);
+        }
+        video {
+            width: 100%;
+            max-width: 640px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            display: block;
+            margin: 0 auto;
+            background: #000;
+        }
+        .controls {
+            margin-top: 20px;
+            text-align: center;
+        }
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            background: rgba(255,255,255,0.3);
+            color: white;
+            margin: 5px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        button:hover {
+            background: rgba(255,255,255,0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0,0,0,0.15);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .info {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            font-size: 14px;
+        }
+        .info p {
+            margin: 8px 0;
+        }
+        .viewers {
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📹 Pi Camera Broadcaster</h1>
+
+        <div id="status" class="status">
+            Initializing...
+        </div>
+
+        <video id="localVideo" autoplay playsinline muted></video>
+
+        <div class="controls">
+            <button id="startButton">Start Broadcasting</button>
+            <button id="stopButton" disabled>Stop Broadcasting</button>
+        </div>
+
+        <div class="info">
+            <p><strong>Instructions:</strong></p>
+            <p>1. Click "Start Broadcasting" to share your camera</p>
+            <p>2. The camera feed will appear in viewers' video player dropdowns as "📹 Pi Camera (Live WebRTC)"</p>
+            <p>3. Keep this page open while broadcasting</p>
+            <div class="viewers">
+                <p><strong>Connected Viewers:</strong> <span id="viewerCount">0</span></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const localVideo = document.getElementById('localVideo');
+        const startButton = document.getElementById('startButton');
+        const stopButton = document.getElementById('stopButton');
+        const statusDiv = document.getElementById('status');
+        const viewerCountSpan = document.getElementById('viewerCount');
+
+        let localStream = null;
+        let peerConnections = {}; // Store connections to each viewer
+        let viewerCount = 0;
+
+        const iceServers = {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' }
+            ]
+        };
+
+        function updateStatus(message, type = 'normal') {
+            statusDiv.textContent = message;
+            statusDiv.className = 'status';
+            if (type === 'connected') {
+                statusDiv.classList.add('connected');
+            } else if (type === 'error') {
+                statusDiv.classList.add('error');
+            }
+        }
+
+        function updateViewerCount() {
+            viewerCount = Object.keys(peerConnections).length;
+            viewerCountSpan.textContent = viewerCount;
+        }
+
+        async function startBroadcasting() {
+            try {
+                updateStatus('Requesting camera access...', 'normal');
+
+                // Request camera access
+                localStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 },
+                        frameRate: { ideal: 30 }
+                    },
+                    audio: false
+                });
+
+                // Display local video
+                localVideo.srcObject = localStream;
+
+                // Register as broadcaster
+                socket.emit('register-camera-broadcaster', {
+                    label: 'Pi Camera Module 3 (Live)'
+                });
+
+                updateStatus('Broadcasting - Waiting for viewers...', 'connected');
+                startButton.disabled = true;
+                stopButton.disabled = false;
+
+                console.log('Broadcasting started successfully');
+            } catch (err) {
+                console.error('Error starting broadcast:', err);
+                updateStatus('Error: ' + err.message, 'error');
+                alert('Could not access camera: ' + err.message);
+            }
+        }
+
+        function stopBroadcasting() {
+            // Stop all peer connections
+            Object.keys(peerConnections).forEach(viewerId => {
+                peerConnections[viewerId].close();
+            });
+            peerConnections = {};
+
+            // Stop local stream
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+                localStream = null;
+            }
+
+            localVideo.srcObject = null;
+            updateStatus('Broadcast stopped', 'normal');
+            startButton.disabled = false;
+            stopButton.disabled = true;
+            updateViewerCount();
+        }
+
+        // Handle viewer requesting stream
+        socket.on('viewer-requesting-stream', async (data) => {
+            const viewerId = data.viewerId;
+            console.log('Viewer requesting stream:', viewerId);
+
+            try {
+                // Create peer connection for this viewer
+                const pc = new RTCPeerConnection(iceServers);
+                peerConnections[viewerId] = pc;
+
+                // Add local stream tracks to peer connection
+                localStream.getTracks().forEach(track => {
+                    pc.addTrack(track, localStream);
+                });
+
+                // Handle ICE candidates
+                pc.onicecandidate = (event) => {
+                    if (event.candidate) {
+                        socket.emit('camera-ice-candidate', {
+                            candidate: event.candidate,
+                            to: viewerId
+                        });
+                    }
+                };
+
+                // Handle connection state
+                pc.onconnectionstatechange = () => {
+                    console.log('Connection state with viewer:', viewerId, pc.connectionState);
+                    if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
+                        if (peerConnections[viewerId]) {
+                            delete peerConnections[viewerId];
+                            updateViewerCount();
+                        }
+                    } else if (pc.connectionState === 'connected') {
+                        updateViewerCount();
+                        updateStatus(`Broadcasting to ${viewerCount} viewer(s)`, 'connected');
+                    }
+                };
+
+                // Create and send offer
+                const offer = await pc.createOffer();
+                await pc.setLocalDescription(offer);
+
+                socket.emit('camera-offer', {
+                    offer: offer,
+                    to: viewerId
+                });
+
+                console.log('Sent offer to viewer:', viewerId);
+            } catch (err) {
+                console.error('Error creating offer for viewer:', err);
+            }
+        });
+
+        // Handle answer from viewer
+        socket.on('camera-answer', async (data) => {
+            const viewerId = data.from;
+            const pc = peerConnections[viewerId];
+
+            if (pc) {
+                try {
+                    await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+                    console.log('Set remote description from viewer:', viewerId);
+                } catch (err) {
+                    console.error('Error setting remote description:', err);
+                }
+            }
+        });
+
+        // Handle ICE candidates from viewer
+        socket.on('camera-ice-candidate', async (data) => {
+            const viewerId = data.from;
+            const pc = peerConnections[viewerId];
+
+            if (pc && data.candidate) {
+                try {
+                    await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+                    console.log('Added ICE candidate from viewer:', viewerId);
+                } catch (err) {
+                    console.error('Error adding ICE candidate:', err);
+                }
+            }
+        });
+
+        // Button event listeners
+        startButton.addEventListener('click', startBroadcasting);
+        stopButton.addEventListener('click', stopBroadcasting);
+
+        // Connection status
+        socket.on('connect', () => {
+            console.log('Connected to server');
+            if (!localStream) {
+                updateStatus('Connected to server - Ready to broadcast', 'normal');
+            }
+        });
+
+        socket.on('disconnect', () => {
+            console.log('Disconnected from server');
+            updateStatus('Disconnected from server', 'error');
+        });
+
+        // Initial status
+        updateStatus('Connected to server - Ready to broadcast', 'normal');
+    </script>
+</body>
+</html>
