@@ -923,6 +923,10 @@ function formatChatServerUserIp(chatServerUser) {
 let localStream = null;
 let peerConnections = {};
 let isMicEnabled = false;
+let isCameraEnabled = false;
+let localCameraStream = null;
+let selectedCameraDeviceId = null;
+let remoteCameraStreams = {}; // Store remote camera streams by peer ID
 let isVoiceChatMuted = true; // Start muted by default
 let connectedPeers = new Set();
 let pendingIceCandidates = {}; // Store ICE candidates that arrive before remote description
@@ -939,6 +943,9 @@ const iceServers = {
 document.addEventListener('DOMContentLoaded', function() {
     const micButton = document.getElementById('micToggleButton');
     const acceptMicChatCheckbox = document.getElementById('acceptMicChatCheckbox');
+    const cameraButton = document.getElementById('cameraToggleButton');
+    const acceptCameraCheckbox = document.getElementById('acceptCameraCheckbox');
+    const cameraSelector = document.getElementById('cameraSelector');
 
     if (micButton) {
         micButton.addEventListener('click', toggleMicrophone);
@@ -946,6 +953,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (acceptMicChatCheckbox) {
         acceptMicChatCheckbox.addEventListener('change', handleAcceptMicChatChange);
+    }
+
+    if (cameraButton) {
+        cameraButton.addEventListener('click', toggleCamera);
+    }
+
+    if (acceptCameraCheckbox) {
+        acceptCameraCheckbox.addEventListener('change', handleAcceptCameraChange);
+    }
+
+    if (cameraSelector) {
+        cameraSelector.addEventListener('change', handleCameraChange);
+        // Populate camera devices
+        populateCameraDevices();
     }
 
     // Set up WebRTC socket listeners
@@ -1430,6 +1451,247 @@ async function toggleMicrophone() {
     }
 }
 
+// Camera functions
+async function populateCameraDevices() {
+    try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = devices.filter(device => device.kind === 'videoinput');
+        const cameraSelector = document.getElementById('cameraSelector');
+
+        if (!cameraSelector) return;
+
+        // Clear existing options except the first placeholder
+        cameraSelector.innerHTML = '<option value="">Select Camera...</option>';
+
+        videoDevices.forEach(device => {
+            const option = document.createElement('option');
+            option.value = device.deviceId;
+            option.text = device.label || `Camera ${cameraSelector.options.length}`;
+            cameraSelector.appendChild(option);
+        });
+
+        console.log('📹 Found', videoDevices.length, 'camera(s)');
+    } catch (error) {
+        console.error('Error enumerating camera devices:', error);
+    }
+}
+
+async function handleCameraChange(event) {
+    const newDeviceId = event.target.value;
+
+    if (!newDeviceId) return;
+
+    selectedCameraDeviceId = newDeviceId;
+
+    // If camera is already enabled, restart with new device
+    if (isCameraEnabled) {
+        await toggleCamera(); // Turn off
+        await toggleCamera(); // Turn back on with new device
+    }
+}
+
+function handleAcceptCameraChange(event) {
+    const isChecked = event.target.checked;
+    const statusText = document.getElementById('voiceChatStatus');
+
+    console.log('📹 Accept Camera checkbox changed to:', isChecked);
+
+    // Show/hide remote camera feeds container based on checkbox
+    const remoteCameraFeeds = document.getElementById('remoteCameraFeeds');
+    if (remoteCameraFeeds) {
+        remoteCameraFeeds.style.display = isChecked ? 'block' : 'none';
+    }
+
+    // Update status text
+    if (statusText && !isCameraEnabled) {
+        if (isChecked) {
+            statusText.textContent = 'Ready to receive camera feeds';
+            statusText.style.color = '#28a745';
+        } else {
+            statusText.textContent = 'Camera disabled';
+            statusText.style.color = '#dc3545';
+        }
+    }
+}
+
+async function toggleCamera() {
+    const cameraButton = document.getElementById('cameraToggleButton');
+    const cameraIcon = document.getElementById('cameraIcon');
+    const cameraLabel = document.getElementById('cameraLabel');
+    const cameraStatus = document.getElementById('cameraStatus');
+    const localCameraPreview = document.getElementById('localCameraPreview');
+    const localCameraVideo = document.getElementById('localCameraVideo');
+
+    if (!isCameraEnabled) {
+        // Enable camera
+        try {
+            // Check if getUserMedia is supported
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                throw new Error('getUserMedia is not supported in this browser');
+            }
+
+            // Check camera permission state if available
+            if (navigator.permissions && navigator.permissions.query) {
+                try {
+                    const permissionStatus = await navigator.permissions.query({ name: 'camera' });
+                    console.log('Camera permission state:', permissionStatus.state);
+
+                    if (permissionStatus.state === 'denied') {
+                        if (cameraStatus) {
+                            cameraStatus.textContent = 'Camera blocked - check browser settings';
+                            cameraStatus.style.color = '#dc3545';
+                        }
+                        alert('Camera is blocked.\n\n1. Click the lock/info icon in the address bar\n2. Change Camera to "Allow"\n3. Refresh the page');
+                        return;
+                    }
+                } catch (e) {
+                    console.log('Could not query camera permission status:', e);
+                }
+            }
+
+            console.log('Requesting camera access...');
+
+            const constraints = {
+                video: {
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 },
+                    facingMode: 'user'
+                }
+            };
+
+            // Use selected device if specified
+            if (selectedCameraDeviceId) {
+                constraints.video.deviceId = { exact: selectedCameraDeviceId };
+            }
+
+            localCameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+
+            console.log('✅ Camera access granted!');
+            console.log('Video tracks:', localCameraStream.getVideoTracks().map(t => ({
+                label: t.label,
+                enabled: t.enabled,
+                readyState: t.readyState
+            })));
+
+            // Show local preview
+            if (localCameraVideo) {
+                localCameraVideo.srcObject = localCameraStream;
+            }
+            if (localCameraPreview) {
+                localCameraPreview.style.display = 'block';
+            }
+
+            isCameraEnabled = true;
+
+            // Update UI
+            cameraButton.style.background = '#28a745';
+            cameraIcon.textContent = '📹';
+            cameraLabel.textContent = 'Camera On';
+            if (cameraStatus) {
+                cameraStatus.textContent = 'Broadcasting...';
+                cameraStatus.style.color = '#28a745';
+            }
+
+            console.log('Camera enabled, adding to peer connections');
+
+            // Add video tracks to existing peer connections
+            Object.keys(peerConnections).forEach(peerId => {
+                const pc = peerConnections[peerId];
+                if (pc && (pc.connectionState === 'connected' || pc.connectionState === 'connecting')) {
+                    console.log('📤 Adding video track to existing peer:', peerId);
+
+                    try {
+                        const senders = pc.getSenders();
+                        const hasVideoTrack = senders.some(sender => sender.track && sender.track.kind === 'video');
+
+                        if (!hasVideoTrack) {
+                            localCameraStream.getVideoTracks().forEach(track => {
+                                console.log('➕ Adding video track to connection:', peerId, 'track:', track.label);
+                                pc.addTrack(track, localCameraStream);
+                            });
+
+                            // Renegotiate
+                            pc.createOffer().then(offer => {
+                                return pc.setLocalDescription(offer);
+                            }).then(() => {
+                                socket.emit(voiceOfferSocketEvent, {
+                                    offer: pc.localDescription,
+                                    to: peerId
+                                });
+                                console.log('📤 Sent camera renegotiation offer to:', peerId);
+                            }).catch(err => {
+                                console.error('Error renegotiating camera with', peerId, ':', err);
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Error adding camera track to peer', peerId, ':', error);
+                    }
+                }
+            });
+
+            // Refresh camera devices list (now we'll have labels)
+            populateCameraDevices();
+
+        } catch (error) {
+            console.error('❌ Error accessing camera:', error.name, '-', error.message);
+
+            let errorMessage = 'Unable to access camera.\n\n';
+
+            if (error.name === 'NotAllowedError') {
+                errorMessage += 'SYSTEM LEVEL BLOCK:\n' +
+                    '1. Open System Settings\n' +
+                    '2. Go to Privacy & Security → Camera\n' +
+                    '3. Enable your browser\n' +
+                    '4. Quit browser completely\n' +
+                    '5. Reopen and try again\n\n' +
+                    'OR check browser permissions:\n' +
+                    '- Click the lock icon in address bar\n' +
+                    '- Set Camera to "Allow"';
+            } else if (error.name === 'NotFoundError') {
+                errorMessage += 'No camera found on your device.';
+            } else if (error.name === 'NotReadableError') {
+                errorMessage += 'Camera is being used by another application.\n' +
+                    'Close other apps using the camera and try again.';
+            } else {
+                errorMessage += error.message;
+            }
+
+            if (cameraStatus) {
+                cameraStatus.textContent = 'Camera access denied - ' + error.name;
+                cameraStatus.style.color = '#dc3545';
+            }
+            alert(errorMessage);
+        }
+    } else {
+        // Disable camera
+        if (localCameraStream) {
+            localCameraStream.getTracks().forEach(track => track.stop());
+            localCameraStream = null;
+        }
+
+        // Hide local preview
+        if (localCameraPreview) {
+            localCameraPreview.style.display = 'none';
+        }
+        if (localCameraVideo) {
+            localCameraVideo.srcObject = null;
+        }
+
+        isCameraEnabled = false;
+
+        // Update UI
+        cameraButton.style.background = '#666';
+        cameraIcon.textContent = '📹';
+        cameraLabel.textContent = 'Enable Camera';
+        if (cameraStatus) {
+            cameraStatus.textContent = 'Camera off';
+            cameraStatus.style.color = '#999';
+        }
+
+        console.log('Camera disabled');
+    }
+}
+
 function updatePeerCount() {
     const peerCountElement = document.getElementById('voiceChatPeers');
     if (peerCountElement) {
@@ -1512,9 +1774,9 @@ function createPeerConnection(peerId) {
         }
     };
 
-    // Handle remote tracks (incoming audio from other users)
+    // Handle remote tracks (incoming audio/video from other users)
     peerConnection.ontrack = function(event) {
-        console.log('🎵🎵🎵 RECEIVED REMOTE TRACK from peer:', peerId, '🎵🎵🎵');
+        console.log('🎵📹 RECEIVED REMOTE TRACK from peer:', peerId);
         console.log('   Track kind:', event.track.kind);
         console.log('   Track enabled:', event.track.enabled);
         console.log('   Track muted:', event.track.muted);
@@ -1523,67 +1785,131 @@ function createPeerConnection(peerId) {
 
         const remoteStream = event.streams[0];
 
-        // Create or get audio element for this peer
-        let audioElement = document.getElementById('remoteAudio_' + peerId);
-        if (!audioElement) {
-            audioElement = document.createElement('audio');
-            audioElement.id = 'remoteAudio_' + peerId;
-            audioElement.autoplay = true;
-            audioElement.muted = isVoiceChatMuted;
-            audioElement.volume = 1.0;
-            audioElement.style.display = 'none';
-            document.body.appendChild(audioElement);
-            console.log('   ✅ Created audio element:', audioElement.id, 'muted:', audioElement.muted);
-        } else {
-            console.log('   ♻️ Reusing existing audio element:', audioElement.id);
-        }
-
-        audioElement.srcObject = remoteStream;
-        console.log('   📡 Set srcObject with', remoteStream.getAudioTracks().length, 'audio tracks');
-
-        // Try to play audio - Chrome may block this until user interaction
-        const playPromise = audioElement.play();
-        if (playPromise !== undefined) {
-            playPromise.then(() => {
-                console.log('✅ Audio playback started for peer:', peerId);
-            }).catch(err => {
-                console.warn('⚠️ Autoplay blocked:', err.message);
-                console.log('💡 User should check the "Accept Mic Chat" checkbox to enable audio');
-            });
-        }
-
-        // Monitor audio levels (for debugging)
-        if (window.AudioContext || window.webkitAudioContext) {
-            try {
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const source = audioContext.createMediaStreamSource(remoteStream);
-                const analyser = audioContext.createAnalyser();
-                source.connect(analyser);
-
-                const dataArray = new Uint8Array(analyser.frequencyBinCount);
-                let silenceCount = 0;
-
-                const checkAudio = setInterval(() => {
-                    analyser.getByteFrequencyData(dataArray);
-                    const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
-
-                    if (average > 0) {
-                        // console.log('🔊 Audio level from peer', peerId, ':', average.toFixed(2));
-                        silenceCount = 0;
-                    } else {
-                        silenceCount++;
-                        if (silenceCount === 30) {
-                            console.warn('⚠️ No audio detected from peer', peerId, 'for 30 seconds');
-                            silenceCount = 0; // Reset to avoid repeated warnings
-                        }
-                    }
-                }, 1000);
-
-                // Store interval to clear later
-                peerConnection._audioCheckInterval = checkAudio;
-            } catch (e) {
-                console.log('Could not set up audio monitoring:', e);
+        if (event.track.kind === 'audio') {
+            // Handle audio track
+            let audioElement = document.getElementById('remoteAudio_' + peerId);
+            if (!audioElement) {
+                audioElement = document.createElement('audio');
+                audioElement.id = 'remoteAudio_' + peerId;
+                audioElement.autoplay = true;
+                audioElement.muted = isVoiceChatMuted;
+                audioElement.volume = 1.0;
+                audioElement.style.display = 'none';
+                document.body.appendChild(audioElement);
+                console.log('   ✅ Created audio element:', audioElement.id, 'muted:', audioElement.muted);
+            } else {
+                console.log('   ♻️ Reusing existing audio element:', audioElement.id);
             }
+
+            audioElement.srcObject = remoteStream;
+            console.log('   📡 Set srcObject with', remoteStream.getAudioTracks().length, 'audio tracks');
+
+            // Try to play audio
+            const playPromise = audioElement.play();
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    console.log('✅ Audio playback started for peer:', peerId);
+                }).catch(err => {
+                    console.warn('⚠️ Autoplay blocked:', err.message);
+                    console.log('💡 User should check the "Accept Mic Chat" checkbox to enable audio');
+                });
+            }
+
+            // Monitor audio levels (for debugging)
+            if (window.AudioContext || window.webkitAudioContext) {
+                try {
+                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const source = audioContext.createMediaStreamSource(remoteStream);
+                    const analyser = audioContext.createAnalyser();
+                    source.connect(analyser);
+
+                    const dataArray = new Uint8Array(analyser.frequencyBinCount);
+                    let silenceCount = 0;
+
+                    const checkAudio = setInterval(() => {
+                        analyser.getByteFrequencyData(dataArray);
+                        const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
+
+                        if (average > 0) {
+                            silenceCount = 0;
+                        } else {
+                            silenceCount++;
+                            if (silenceCount === 30) {
+                                console.warn('⚠️ No audio detected from peer', peerId, 'for 30 seconds');
+                                silenceCount = 0;
+                            }
+                        }
+                    }, 1000);
+
+                    peerConnection._audioCheckInterval = checkAudio;
+                } catch (e) {
+                    console.log('Could not set up audio monitoring:', e);
+                }
+            }
+        } else if (event.track.kind === 'video') {
+            // Handle video track
+            console.log('📹 Received video track from peer:', peerId);
+
+            // Check if user has accepted camera feeds
+            const acceptCameraCheckbox = document.getElementById('acceptCameraCheckbox');
+            if (!acceptCameraCheckbox || !acceptCameraCheckbox.checked) {
+                console.log('⚠️ Camera feed rejected - user has not enabled "Accept Camera"');
+                return;
+            }
+
+            const remoteCameraContainer = document.getElementById('remoteCameraContainer');
+            const remoteCameraFeeds = document.getElementById('remoteCameraFeeds');
+
+            if (!remoteCameraContainer) {
+                console.warn('Remote camera container not found');
+                return;
+            }
+
+            // Show remote camera feeds container
+            if (remoteCameraFeeds) {
+                remoteCameraFeeds.style.display = 'block';
+            }
+
+            // Create or get video element for this peer
+            let videoElement = document.getElementById('remoteVideo_' + peerId);
+            let videoWrapper = document.getElementById('remoteVideoWrapper_' + peerId);
+
+            if (!videoElement) {
+                // Create wrapper div
+                videoWrapper = document.createElement('div');
+                videoWrapper.id = 'remoteVideoWrapper_' + peerId;
+                videoWrapper.style.cssText = 'position: relative; background: #000; border-radius: 6px; overflow: hidden;';
+
+                // Create label
+                const label = document.createElement('div');
+                label.style.cssText = 'position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,0.7); color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; z-index: 1;';
+                label.textContent = 'Peer ' + peerId.substring(0, 8);
+                videoWrapper.appendChild(label);
+
+                // Create video element
+                videoElement = document.createElement('video');
+                videoElement.id = 'remoteVideo_' + peerId;
+                videoElement.autoplay = true;
+                videoElement.playsinline = true;
+                videoElement.style.cssText = 'width: 100%; height: auto; display: block; border-radius: 6px;';
+                videoWrapper.appendChild(videoElement);
+
+                remoteCameraContainer.appendChild(videoWrapper);
+                console.log('   ✅ Created video element:', videoElement.id);
+            }
+
+            // Store the stream
+            remoteCameraStreams[peerId] = remoteStream;
+            videoElement.srcObject = remoteStream;
+
+            console.log('   📹 Set video srcObject with', remoteStream.getVideoTracks().length, 'video tracks');
+
+            // Try to play video
+            videoElement.play().then(() => {
+                console.log('✅ Video playback started for peer:', peerId);
+            }).catch(err => {
+                console.warn('⚠️ Video autoplay blocked:', err.message);
+            });
         }
     };
 

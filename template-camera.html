@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>{{ENDPOINT}} Camera Room</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+        <script src="/socket.io/socket.io.js"></script>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+                color: #fff;
+                padding: 20px;
+                min-height: 100vh;
+            }
+
+            .header {
+                text-align: center;
+                margin-bottom: 30px;
+                padding: 20px;
+                background: rgba(0, 0, 0, 0.3);
+                border-radius: 12px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+                margin-bottom: 10px;
+                color: #fff;
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            }
+
+            .header p {
+                color: #aaa;
+                font-size: 0.9em;
+            }
+
+            .controls {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+                justify-content: center;
+                align-items: center;
+                margin-bottom: 20px;
+                padding: 15px;
+                background: rgba(0, 0, 0, 0.3);
+                border-radius: 12px;
+            }
+
+            .btn {
+                padding: 12px 24px;
+                border: none;
+                border-radius: 8px;
+                font-size: 14px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                min-width: 150px;
+                justify-content: center;
+            }
+
+            .btn-camera {
+                background: #666;
+                color: white;
+            }
+
+            .btn-camera.active {
+                background: #28a745;
+            }
+
+            .btn-camera:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            }
+
+            .checkbox-label {
+                padding: 12px 20px;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 8px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                user-select: none;
+                transition: all 0.3s ease;
+            }
+
+            .checkbox-label:hover {
+                background: rgba(255, 255, 255, 0.15);
+            }
+
+            .checkbox-label input {
+                width: 20px;
+                height: 20px;
+                cursor: pointer;
+                accent-color: #28a745;
+            }
+
+            select {
+                padding: 12px 20px;
+                background: rgba(255, 255, 255, 0.1);
+                color: white;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-radius: 8px;
+                font-size: 14px;
+                cursor: pointer;
+                min-width: 200px;
+            }
+
+            select option {
+                background: #2a2a3e;
+                color: white;
+            }
+
+            .status {
+                text-align: center;
+                padding: 10px;
+                margin-bottom: 20px;
+                border-radius: 8px;
+                background: rgba(0, 0, 0, 0.3);
+                font-size: 14px;
+            }
+
+            .status.connected {
+                color: #28a745;
+            }
+
+            .status.disconnected {
+                color: #dc3545;
+            }
+
+            .camera-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+                gap: 20px;
+                margin-bottom: 20px;
+            }
+
+            .camera-card {
+                background: rgba(0, 0, 0, 0.5);
+                border-radius: 12px;
+                overflow: hidden;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+                transition: transform 0.3s ease;
+            }
+
+            .camera-card:hover {
+                transform: translateY(-4px);
+            }
+
+            .camera-label {
+                padding: 12px;
+                background: rgba(0, 0, 0, 0.7);
+                font-weight: 600;
+                font-size: 14px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .camera-label .badge {
+                background: #28a745;
+                padding: 4px 8px;
+                border-radius: 4px;
+                font-size: 11px;
+                font-weight: 700;
+            }
+
+            video {
+                width: 100%;
+                height: auto;
+                display: block;
+                background: #000;
+                min-height: 200px;
+            }
+
+            .local-camera {
+                border: 3px solid #28a745;
+            }
+
+            .local-camera .camera-label {
+                background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            }
+
+            .empty-state {
+                text-align: center;
+                padding: 60px 20px;
+                color: #666;
+            }
+
+            .empty-state svg {
+                width: 80px;
+                height: 80px;
+                margin-bottom: 20px;
+                opacity: 0.5;
+            }
+
+            @media (max-width: 768px) {
+                .camera-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .controls {
+                    flex-direction: column;
+                }
+
+                .btn, select {
+                    width: 100%;
+                    min-width: unset;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1>📹 {{ENDPOINT}} Camera Room</h1>
+            <p>Share and view cameras with others in this room</p>
+        </div>
+
+        <div class="controls">
+            <button id="cameraToggleButton" class="btn btn-camera">
+                <span id="cameraIcon">📹</span>
+                <span id="cameraLabel">Enable Camera</span>
+            </button>
+
+            <select id="cameraSelector">
+                <option value="">Select Camera...</option>
+            </select>
+
+            <label class="checkbox-label">
+                <input type="checkbox" id="acceptCameraCheckbox" checked>
+                <span>Show Remote Cameras</span>
+            </label>
+
+            <span id="peerCount" style="color: #aaa; font-size: 13px;">Peers: 0</span>
+        </div>
+
+        <div id="status" class="status disconnected">
+            Connecting to room...
+        </div>
+
+        <div id="localCameraSection" style="display: none;">
+            <div class="camera-card local-camera">
+                <div class="camera-label">
+                    <span>📹 Your Camera</span>
+                    <span class="badge">LOCAL</span>
+                </div>
+                <video id="localCameraVideo" autoplay playsinline muted></video>
+            </div>
+        </div>
+
+        <div id="remoteCameraSection">
+            <div id="remoteCameraGrid" class="camera-grid"></div>
+            <div id="emptyState" class="empty-state">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                </svg>
+                <p>No remote cameras connected</p>
+                <p style="font-size: 12px; margin-top: 10px;">Other users will appear here when they enable their cameras</p>
+            </div>
+        </div>
+
+        <script>
+            const endpoint = "{{ENDPOINT}}";
+            const socket = io({
+                query: { endpoint: endpoint + 'camera' },
+                transports: ['polling', 'websocket'],
+                upgrade: true,
+                reconnection: true,
+                reconnectionDelay: 1000,
+                reconnectionDelayMax: 5000,
+                reconnectionAttempts: 5
+            });
+
+            // Camera state
+            let localCameraStream = null;
+            let isCameraEnabled = false;
+            let selectedCameraDeviceId = null;
+            let peerConnections = {};
+            let remoteCameraStreams = {};
+
+            // ICE servers
+            const iceServers = {
+                iceServers: [
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:stun1.l.google.com:19302' }
+                ]
+            };
+
+            // Socket event names
+            const voiceOfferSocketEvent = endpoint + 'cameracamera' + 'voiceoffer';
+            const voiceAnswerSocketEvent = endpoint + 'cameracamera' + 'voiceanswer';
+            const voiceIceCandidateSocketEvent = endpoint + 'cameracamera' + 'voiceicecandidate';
+            const connectSocketEvent = endpoint + 'cameracamera' + 'connect';
+            const disconnectSocketEvent = endpoint + 'cameracamera' + 'disconnect';
+
+            // Initialize
+            document.addEventListener('DOMContentLoaded', function() {
+                document.getElementById('cameraToggleButton').addEventListener('click', toggleCamera);
+                document.getElementById('cameraSelector').addEventListener('change', handleCameraChange);
+                document.getElementById('acceptCameraCheckbox').addEventListener('change', handleAcceptCameraChange);
+
+                populateCameraDevices();
+                initializeSocketHandlers();
+            });
+
+            // Socket connection
+            socket.on('connect', function() {
+                console.log('Connected to room:', endpoint + 'camera');
+                document.getElementById('status').textContent = 'Connected to room';
+                document.getElementById('status').className = 'status connected';
+            });
+
+            socket.on('disconnect', function() {
+                console.log('Disconnected from room');
+                document.getElementById('status').textContent = 'Disconnected - reconnecting...';
+                document.getElementById('status').className = 'status disconnected';
+            });
+
+            // Camera functions
+            async function populateCameraDevices() {
+                try {
+                    const devices = await navigator.mediaDevices.enumerateDevices();
+                    const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                    const cameraSelector = document.getElementById('cameraSelector');
+
+                    cameraSelector.innerHTML = '<option value="">Select Camera...</option>';
+
+                    videoDevices.forEach((device, index) => {
+                        const option = document.createElement('option');
+                        option.value = device.deviceId;
+                        option.text = device.label || `Camera ${index + 1}`;
+                        cameraSelector.appendChild(option);
+                    });
+
+                    console.log('Found', videoDevices.length, 'camera(s)');
+                } catch (error) {
+                    console.error('Error enumerating cameras:', error);
+                }
+            }
+
+            async function handleCameraChange(event) {
+                selectedCameraDeviceId = event.target.value;
+                if (isCameraEnabled && selectedCameraDeviceId) {
+                    await toggleCamera(); // Turn off
+                    await toggleCamera(); // Turn on with new device
+                }
+            }
+
+            function handleAcceptCameraChange(event) {
+                const remoteCameraSection = document.getElementById('remoteCameraSection');
+                remoteCameraSection.style.display = event.target.checked ? 'block' : 'none';
+            }
+
+            async function toggleCamera() {
+                const button = document.getElementById('cameraToggleButton');
+                const icon = document.getElementById('cameraIcon');
+                const label = document.getElementById('cameraLabel');
+                const localCameraSection = document.getElementById('localCameraSection');
+                const localCameraVideo = document.getElementById('localCameraVideo');
+
+                if (!isCameraEnabled) {
+                    try {
+                        const constraints = {
+                            video: {
+                                width: { ideal: 1280 },
+                                height: { ideal: 720 },
+                                facingMode: 'user'
+                            }
+                        };
+
+                        if (selectedCameraDeviceId) {
+                            constraints.video.deviceId = { exact: selectedCameraDeviceId };
+                        }
+
+                        localCameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+
+                        localCameraVideo.srcObject = localCameraStream;
+                        localCameraSection.style.display = 'block';
+
+                        button.classList.add('active');
+                        label.textContent = 'Camera On';
+
+                        isCameraEnabled = true;
+
+                        console.log('Camera enabled, broadcasting to peers');
+
+                        // Add video tracks to all peer connections
+                        Object.keys(peerConnections).forEach(peerId => {
+                            const pc = peerConnections[peerId];
+                            if (pc && pc.connectionState === 'connected') {
+                                localCameraStream.getVideoTracks().forEach(track => {
+                                    pc.addTrack(track, localCameraStream);
+                                });
+
+                                // Renegotiate
+                                pc.createOffer().then(offer => pc.setLocalDescription(offer))
+                                    .then(() => {
+                                        socket.emit(voiceOfferSocketEvent, {
+                                            offer: pc.localDescription,
+                                            to: peerId
+                                        });
+                                    });
+                            }
+                        });
+
+                        populateCameraDevices();
+
+                    } catch (error) {
+                        console.error('Camera access error:', error);
+                        alert('Unable to access camera: ' + error.message);
+                    }
+                } else {
+                    if (localCameraStream) {
+                        localCameraStream.getTracks().forEach(track => track.stop());
+                        localCameraStream = null;
+                    }
+
+                    localCameraVideo.srcObject = null;
+                    localCameraSection.style.display = 'none';
+
+                    button.classList.remove('active');
+                    label.textContent = 'Enable Camera';
+
+                    isCameraEnabled = false;
+
+                    console.log('Camera disabled');
+                }
+            }
+
+            function updatePeerCount() {
+                const count = Object.keys(peerConnections).length;
+                document.getElementById('peerCount').textContent = 'Peers: ' + count;
+            }
+
+            function updateEmptyState() {
+                const remoteCameraGrid = document.getElementById('remoteCameraGrid');
+                const emptyState = document.getElementById('emptyState');
+                const hasRemoteCameras = remoteCameraGrid.children.length > 0;
+                emptyState.style.display = hasRemoteCameras ? 'none' : 'block';
+            }
+
+            // WebRTC functions
+            function initializeSocketHandlers() {
+                socket.on(endpoint + 'cameracamera' + 'voiceoffer', handleOffer);
+                socket.on(endpoint + 'cameracamera' + 'voiceanswer', handleAnswer);
+                socket.on(endpoint + 'cameracamera' + 'voiceicecandidate', handleIceCandidate);
+                socket.on(endpoint + 'cameracamera' + 'disconnect', handlePeerDisconnect);
+            }
+
+            function createPeerConnection(peerId) {
+                if (peerConnections[peerId]) {
+                    return peerConnections[peerId];
+                }
+
+                const pc = new RTCPeerConnection(iceServers);
+                peerConnections[peerId] = pc;
+
+                // Add local camera tracks if enabled
+                if (localCameraStream) {
+                    localCameraStream.getTracks().forEach(track => {
+                        pc.addTrack(track, localCameraStream);
+                    });
+                }
+
+                pc.onicecandidate = function(event) {
+                    if (event.candidate) {
+                        socket.emit(voiceIceCandidateSocketEvent, {
+                            candidate: event.candidate,
+                            to: peerId
+                        });
+                    }
+                };
+
+                pc.ontrack = function(event) {
+                    console.log('Received track from peer:', peerId, 'kind:', event.track.kind);
+
+                    if (event.track.kind === 'video') {
+                        const acceptCameraCheckbox = document.getElementById('acceptCameraCheckbox');
+                        if (!acceptCameraCheckbox.checked) {
+                            return;
+                        }
+
+                        const remoteCameraGrid = document.getElementById('remoteCameraGrid');
+                        let videoWrapper = document.getElementById('remoteVideo_' + peerId);
+
+                        if (!videoWrapper) {
+                            videoWrapper = document.createElement('div');
+                            videoWrapper.id = 'remoteVideo_' + peerId;
+                            videoWrapper.className = 'camera-card';
+
+                            const label = document.createElement('div');
+                            label.className = 'camera-label';
+                            label.innerHTML = `<span>📹 Peer ${peerId.substring(0, 8)}</span><span class="badge">LIVE</span>`;
+
+                            const video = document.createElement('video');
+                            video.autoplay = true;
+                            video.playsinline = true;
+                            video.srcObject = event.streams[0];
+
+                            videoWrapper.appendChild(label);
+                            videoWrapper.appendChild(video);
+                            remoteCameraGrid.appendChild(videoWrapper);
+
+                            remoteCameraStreams[peerId] = event.streams[0];
+                        }
+
+                        updateEmptyState();
+                    }
+                };
+
+                pc.onconnectionstatechange = function() {
+                    console.log('Peer', peerId, 'connection state:', pc.connectionState);
+                    if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed' || pc.connectionState === 'closed') {
+                        const videoWrapper = document.getElementById('remoteVideo_' + peerId);
+                        if (videoWrapper) {
+                            videoWrapper.remove();
+                        }
+                        delete peerConnections[peerId];
+                        delete remoteCameraStreams[peerId];
+                        updatePeerCount();
+                        updateEmptyState();
+                    } else if (pc.connectionState === 'connected') {
+                        updatePeerCount();
+                    }
+                };
+
+                return pc;
+            }
+
+            async function handleOffer(data) {
+                console.log('Received offer from:', data.from);
+                const pc = createPeerConnection(data.from);
+
+                await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
+                const answer = await pc.createAnswer();
+                await pc.setLocalDescription(answer);
+
+                socket.emit(voiceAnswerSocketEvent, {
+                    answer: pc.localDescription,
+                    to: data.from
+                });
+            }
+
+            async function handleAnswer(data) {
+                console.log('Received answer from:', data.from);
+                const pc = peerConnections[data.from];
+                if (pc) {
+                    await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+                }
+            }
+
+            async function handleIceCandidate(data) {
+                const pc = peerConnections[data.from];
+                if (pc && data.candidate) {
+                    await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+                }
+            }
+
+            function handlePeerDisconnect(data) {
+                const videoWrapper = document.getElementById('remoteVideo_' + data.userId);
+                if (videoWrapper) {
+                    videoWrapper.remove();
+                }
+                if (peerConnections[data.userId]) {
+                    peerConnections[data.userId].close();
+                    delete peerConnections[data.userId];
+                }
+                delete remoteCameraStreams[data.userId];
+                updatePeerCount();
+                updateEmptyState();
+            }
+
+            // Broadcast offer when camera is enabled or when new peer joins
+            socket.on(endpoint + 'cameracamera' + 'connect', function(data) {
+                if (data.userId !== socket.id && isCameraEnabled) {
+                    const pc = createPeerConnection(data.userId);
+                    pc.createOffer().then(offer => pc.setLocalDescription(offer))
+                        .then(() => {
+                            socket.emit(voiceOfferSocketEvent, {
+                                offer: pc.localDescription,
+                                to: data.userId
+                            });
+                        });
+                }
+            });
+        </script>
+    </body>
+</html>
