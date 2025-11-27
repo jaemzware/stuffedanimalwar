@@ -208,25 +208,30 @@ function initializeSocketHandlers(){
 
     // Listen for camera broadcaster announcements
     socket.on('camera-broadcaster-available', function(data) {
-        console.log("Camera broadcaster available:", data);
+        console.log("[CLIENT] 📹 Camera broadcaster available:", data);
+        console.log("[CLIENT] Broadcaster ID:", data.broadcasterId, "Label:", data.label);
         addCameraBroadcasterOption(data.broadcasterId, data.label);
     });
 
     socket.on('camera-broadcaster-unavailable', function(data) {
-        console.log("Camera broadcaster unavailable:", data);
+        console.log("[CLIENT] ❌ Camera broadcaster unavailable:", data);
         removeCameraBroadcasterOption(data.broadcasterId);
     });
 }
 
 // Add Pi camera broadcaster to video dropdown
 function addCameraBroadcasterOption(broadcasterId, label) {
+    console.log("[CLIENT] 🔧 addCameraBroadcasterOption called with:", broadcasterId, label);
     const selectVideos = document.getElementById('selectvideos');
-    if (!selectVideos) return;
+    if (!selectVideos) {
+        console.error("[CLIENT] ❌ selectvideos element not found!");
+        return;
+    }
 
     // Check if option already exists
     const existingOption = selectVideos.querySelector(`option[value="webrtc://${broadcasterId}"]`);
     if (existingOption) {
-        console.log("Broadcaster option already exists");
+        console.log("[CLIENT] ⚠️ Broadcaster option already exists, skipping");
         return;
     }
 
@@ -244,7 +249,8 @@ function addCameraBroadcasterOption(broadcasterId, label) {
         selectVideos.appendChild(option);
     }
 
-    console.log("Added broadcaster option to dropdown:", label);
+    console.log("[CLIENT] ✅ Added broadcaster option to dropdown:", label);
+    console.log("[CLIENT] Total options in dropdown:", selectVideos.options.length);
 }
 
 // Remove Pi camera broadcaster from video dropdown

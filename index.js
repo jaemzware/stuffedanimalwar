@@ -898,12 +898,13 @@ io.on('connection', function(socket){
     // Send currently active camera broadcasters to newly connected client
     const sockets = Array.from(io.sockets.sockets.values());
     const activeBroadcasters = sockets.filter(s => s.isCameraBroadcaster);
+    console.log(`[NEW CLIENT CONNECTED] Checking for active broadcasters. Total sockets: ${sockets.length}, Active broadcasters: ${activeBroadcasters.length}`);
     activeBroadcasters.forEach(broadcaster => {
         socket.emit('camera-broadcaster-available', {
             broadcasterId: broadcaster.id,
             label: broadcaster.broadcasterLabel || 'Pi Camera (Live)'
         });
-        console.log('Sent existing broadcaster to new client:', broadcaster.id);
+        console.log(`[BROADCASTER SYNC] Sent existing broadcaster to new client. Broadcaster ID: ${broadcaster.id}, Label: ${broadcaster.broadcasterLabel}`);
     });
 
     // Also send native broadcaster if it exists
@@ -911,7 +912,7 @@ io.on('connection', function(socket){
         const broadcasterInfo = nativeBroadcaster.getBroadcasterInfo();
         if (broadcasterInfo) {
             socket.emit('camera-broadcaster-available', broadcasterInfo);
-            console.log('Sent native broadcaster to new client:', broadcasterInfo.broadcasterId);
+            console.log(`[NATIVE BROADCASTER SYNC] Sent native broadcaster to new client: ${broadcasterInfo.broadcasterId}`);
         }
     }
 
@@ -1057,7 +1058,7 @@ io.on('connection', function(socket){
 
         // Camera broadcaster registration
         socket.on('register-camera-broadcaster', (data) => {
-            console.log('Camera broadcaster registered:', socket.id);
+            console.log(`[BROADCASTER REGISTERED] Socket ID: ${socket.id}, Label: ${data.label || 'Pi Camera (Live)'}`);
             socket.broadcasterLabel = data.label || 'Pi Camera (Live)';
             socket.isCameraBroadcaster = true;
 
@@ -1066,6 +1067,7 @@ io.on('connection', function(socket){
                 broadcasterId: socket.id,
                 label: socket.broadcasterLabel
             });
+            console.log(`[BROADCASTER ANNOUNCED] Broadcasted to all clients. ID: ${socket.id}, Label: ${socket.broadcasterLabel}`);
         });
 
         // Camera stream request from viewer
