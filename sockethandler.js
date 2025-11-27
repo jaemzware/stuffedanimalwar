@@ -205,6 +205,58 @@ function initializeSocketHandlers(){
         span.attr("class", "disconnectnotification");
         span.prependTo("#messagesdiv");
     });
+
+    // Listen for camera broadcaster announcements
+    socket.on('camera-broadcaster-available', function(data) {
+        console.log("Camera broadcaster available:", data);
+        addCameraBroadcasterOption(data.broadcasterId, data.label);
+    });
+
+    socket.on('camera-broadcaster-unavailable', function(data) {
+        console.log("Camera broadcaster unavailable:", data);
+        removeCameraBroadcasterOption(data.broadcasterId);
+    });
+}
+
+// Add Pi camera broadcaster to video dropdown
+function addCameraBroadcasterOption(broadcasterId, label) {
+    const selectVideos = document.getElementById('selectvideos');
+    if (!selectVideos) return;
+
+    // Check if option already exists
+    const existingOption = selectVideos.querySelector(`option[value="webrtc://${broadcasterId}"]`);
+    if (existingOption) {
+        console.log("Broadcaster option already exists");
+        return;
+    }
+
+    // Create and add the option
+    const option = document.createElement('option');
+    option.value = `webrtc://${broadcasterId}`;
+    option.setAttribute('data-is-broadcaster', 'true');
+    option.setAttribute('data-broadcaster-id', broadcasterId);
+    option.textContent = `📹 ${label || 'Pi Camera (Live WebRTC)'}`;
+
+    // Insert at the beginning of the select
+    if (selectVideos.firstChild) {
+        selectVideos.insertBefore(option, selectVideos.firstChild);
+    } else {
+        selectVideos.appendChild(option);
+    }
+
+    console.log("Added broadcaster option to dropdown:", label);
+}
+
+// Remove Pi camera broadcaster from video dropdown
+function removeCameraBroadcasterOption(broadcasterId) {
+    const selectVideos = document.getElementById('selectvideos');
+    if (!selectVideos) return;
+
+    const option = selectVideos.querySelector(`option[value="webrtc://${broadcasterId}"]`);
+    if (option) {
+        option.remove();
+        console.log("Removed broadcaster option from dropdown");
+    }
 }
 function onBaseChatSocketEvent(chatMsgObject){
     let remoteChatClientUser = chatMsgObject.CHATCLIENTUSER;

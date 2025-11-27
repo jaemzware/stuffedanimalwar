@@ -191,6 +191,7 @@ function changeMp4(mp4Url){
 }
 // Global variable to store active camera stream
 let activeCameraStream = null;
+let cameraWebRTCConnection = null; // Store WebRTC connection for remote camera
 
 function changeMp4(mp4Url,coverImageUrl){
     console.log("CHANGE MP4");
@@ -233,8 +234,25 @@ function changeMp4(mp4Url,coverImageUrl){
 
     const videoElement = document.getElementById("jaemzwaredynamicvideoplayer");
 
-    // Check if this is the camera option
-    if (mp4Url.startsWith("camera://")) {
+    // Check if this is a WebRTC camera stream from a broadcaster
+    if (mp4Url.startsWith("webrtc://")) {
+        console.log("Connecting to WebRTC camera broadcaster");
+
+        // Stop any existing camera stream
+        stopCameraStream();
+        stopCameraWebRTC();
+
+        // Clear the source element
+        $('#jaemzwaredynamicvideosource').attr("src", "");
+
+        // Extract broadcaster ID from the URL
+        const broadcasterId = mp4Url.replace("webrtc://", "");
+
+        // Connect to the broadcaster via WebRTC
+        connectToCameraBroadcaster(broadcasterId, videoElement);
+    }
+    // Check if this is a local camera option
+    else if (mp4Url.startsWith("camera://")) {
         console.log("Activating camera stream");
 
         // Stop any existing camera stream
@@ -285,6 +303,7 @@ function changeMp4(mp4Url,coverImageUrl){
     } else {
         // Stop camera stream if switching to a file-based video
         stopCameraStream();
+        stopCameraWebRTC();
 
         // Reset srcObject to null when switching to file-based video
         videoElement.srcObject = null;
@@ -403,6 +422,93 @@ async function updateCameraLabels() {
     } catch (err) {
         console.log("Could not update camera labels:", err.message);
     }
+}
+
+// Stop WebRTC camera connection
+function stopCameraWebRTC() {
+    if (cameraWebRTCConnection) {
+        console.log("Stopping WebRTC camera connection");
+        cameraWebRTCConnection.close();
+        cameraWebRTCConnection = null;
+    }
+}
+
+// Connect to a camera broadcaster via WebRTC
+function connectToCameraBroadcaster(broadcasterId, videoElement) {
+    console.log("Setting up WebRTC connection to broadcaster:", broadcasterId);
+
+    // Create a new peer connection
+    const pc = new RTCPeerConnection({
+        iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' }
+        ]
+    });
+
+    cameraWebRTCConnection = pc;
+
+    // Handle incoming video track
+    pc.ontrack = function(event) {
+        console.log("📹 Received video track from broadcaster");
+        const remoteStream = event.streams[0];
+        videoElement.srcObject = remoteStream;
+        videoElement.play();
+    };
+
+    // Handle ICE candidates
+    pc.onicecandidate = function(event) {
+        if (event.candidate) {
+            console.log("Sending ICE candidate to broadcaster");
+            socket.emit('camera-ice-candidate', {
+                candidate: event.candidate,
+                to: broadcasterId
+            });
+        }
+    };
+
+    // Handle connection state changes
+    pc.onconnectionstatechange = function() {
+        console.log("Camera WebRTC connection state:", pc.connectionState);
+        if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') {
+            alert("Camera connection lost. Please try again.");
+        }
+    };
+
+    // Request camera stream from broadcaster
+    console.log("Requesting camera stream from broadcaster");
+    socket.emit('request-camera-stream', { broadcasterId: broadcasterId });
+
+    // Listen for the offer from the broadcaster
+    socket.on('camera-offer', async function(data) {
+        if (data.from === broadcasterId) {
+            console.log("Received camera offer from broadcaster");
+            try {
+                await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
+                const answer = await pc.createAnswer();
+                await pc.setLocalDescription(answer);
+
+                socket.emit('camera-answer', {
+                    answer: answer,
+                    to: broadcasterId
+                });
+                console.log("Sent answer to broadcaster");
+            } catch (err) {
+                console.error("Error handling camera offer:", err);
+            }
+        }
+    });
+
+    // Listen for ICE candidates from broadcaster
+    socket.on('camera-ice-candidate', async function(data) {
+        if (data.from === broadcasterId && data.candidate) {
+            try {
+                await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+                console.log("Added ICE candidate from broadcaster");
+            } catch (err) {
+                console.error("Error adding ICE candidate:", err);
+            }
+        }
+    });
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
