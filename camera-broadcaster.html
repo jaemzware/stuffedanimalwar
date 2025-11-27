@@ -155,9 +155,11 @@
 
         async function startBroadcasting() {
             try {
+                console.log('[BROADCASTER] 🎬 Starting broadcasting process...');
                 updateStatus('Requesting camera access...', 'normal');
 
                 // Request camera access
+                console.log('[BROADCASTER] 📹 Requesting camera access...');
                 localStream = await navigator.mediaDevices.getUserMedia({
                     video: {
                         width: { ideal: 1280 },
@@ -167,21 +169,26 @@
                     audio: false
                 });
 
+                console.log('[BROADCASTER] ✅ Camera access granted');
                 // Display local video
                 localVideo.srcObject = localStream;
 
                 // Register as broadcaster
+                console.log('[BROADCASTER] 📡 Emitting register-camera-broadcaster event...');
+                console.log('[BROADCASTER] Socket ID:', socket.id);
+                console.log('[BROADCASTER] Socket connected:', socket.connected);
                 socket.emit('register-camera-broadcaster', {
                     label: 'Pi Camera Module 3 (Live)'
                 });
+                console.log('[BROADCASTER] ✅ Emitted register-camera-broadcaster event');
 
                 updateStatus('Broadcasting - Waiting for viewers...', 'connected');
                 startButton.disabled = true;
                 stopButton.disabled = false;
 
-                console.log('Broadcasting started successfully');
+                console.log('[BROADCASTER] Broadcasting started successfully');
             } catch (err) {
-                console.error('Error starting broadcast:', err);
+                console.error('[BROADCASTER] ❌ Error starting broadcast:', err);
                 updateStatus('Error: ' + err.message, 'error');
                 alert('Could not access camera: ' + err.message);
             }
@@ -297,18 +304,25 @@
 
         // Connection status
         socket.on('connect', () => {
-            console.log('Connected to server');
+            console.log('[BROADCASTER] ✅ Connected to server');
+            console.log('[BROADCASTER] Socket ID:', socket.id);
             if (!localStream) {
                 updateStatus('Connected to server - Ready to broadcast', 'normal');
             }
         });
 
         socket.on('disconnect', () => {
-            console.log('Disconnected from server');
+            console.log('[BROADCASTER] ❌ Disconnected from server');
             updateStatus('Disconnected from server', 'error');
         });
 
+        // Debug: Log ALL socket events
+        socket.onAny((eventName, ...args) => {
+            console.log('[BROADCASTER] 📨 Received event:', eventName, args);
+        });
+
         // Initial status
+        console.log('[BROADCASTER] Page loaded, socket status:', socket.connected ? 'connected' : 'not connected');
         updateStatus('Connected to server - Ready to broadcast', 'normal');
     </script>
 </body>
