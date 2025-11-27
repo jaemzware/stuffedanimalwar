@@ -881,19 +881,29 @@
                 updateEmptyState();
             }
 
-            // Broadcast offer when camera/mic is enabled or when new peer joins
+            // Broadcast offer when new peer joins (always establish connection)
             socket.on(endpoint + 'cameracamera' + 'connect', function(data) {
-                console.log('New peer joined:', data.userId);
-                if (data.userId !== socket.id && (isCameraEnabled || isMicEnabled)) {
-                    console.log('Creating offer for new peer (camera:', isCameraEnabled, 'mic:', isMicEnabled, ')');
+                console.log('🔔 New peer joined:', data.userId);
+
+                // Only create connection if this is a different peer
+                if (data.userId !== socket.id) {
+                    console.log('Creating peer connection (camera:', isCameraEnabled, 'mic:', isMicEnabled, ')');
+
+                    // Create peer connection (will add any enabled media tracks)
                     const pc = createPeerConnection(data.userId);
+
+                    // Always create and send offer, even if we don't have media yet
+                    // This establishes the connection, and media can be added later
                     pc.createOffer().then(offer => pc.setLocalDescription(offer))
                         .then(() => {
                             socket.emit(voiceOfferSocketEvent, {
                                 offer: pc.localDescription,
                                 to: data.userId
                             });
-                            console.log('Sent offer to new peer:', data.userId);
+                            console.log('📤 Sent offer to new peer:', data.userId);
+                        })
+                        .catch(err => {
+                            console.error('❌ Error creating offer:', err);
                         });
                 }
             });
