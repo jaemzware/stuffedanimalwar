@@ -175,10 +175,12 @@
 
             video {
                 width: 100%;
+                max-width: 100%;
                 height: auto;
                 display: block;
                 background: #000;
-                min-height: 200px;
+                min-height: 240px;
+                object-fit: contain;
             }
 
             .local-camera {
@@ -409,16 +411,39 @@
                 try {
                     localCameraStream = await navigator.mediaDevices.getUserMedia(constraints);
 
-                    console.log('Camera stream obtained:', localCameraStream.id);
+                    console.log('✅ Camera stream obtained:', localCameraStream.id);
                     console.log('Video tracks:', localCameraStream.getVideoTracks().map(t => ({
                         id: t.id,
                         label: t.label,
                         enabled: t.enabled,
-                        readyState: t.readyState
+                        readyState: t.readyState,
+                        muted: t.muted
                     })));
 
+                    // Set the stream to the video element
                     localCameraVideo.srcObject = localCameraStream;
+                    console.log('📹 Set srcObject to video element');
+
+                    // Show the video container
                     localCameraSection.style.display = 'block';
+                    console.log('👁️ Made video container visible');
+
+                    // Force the video to play
+                    console.log('▶️ Attempting to play video...');
+                    try {
+                        await localCameraVideo.play();
+                        console.log('✅ Video playing successfully');
+                        console.log('Video element state:', {
+                            paused: localCameraVideo.paused,
+                            muted: localCameraVideo.muted,
+                            readyState: localCameraVideo.readyState,
+                            videoWidth: localCameraVideo.videoWidth,
+                            videoHeight: localCameraVideo.videoHeight,
+                            srcObject: !!localCameraVideo.srcObject
+                        });
+                    } catch (playError) {
+                        console.error('❌ Video play error:', playError);
+                    }
 
                     // Update dropdown to show actual device being used
                     const videoTrack = localCameraStream.getVideoTracks()[0];
@@ -430,6 +455,19 @@
                             selectedCameraDeviceId = settings.deviceId;
                         }
                     }
+
+                    // Listen for video metadata loaded
+                    localCameraVideo.addEventListener('loadedmetadata', function() {
+                        console.log('📊 Video metadata loaded:', {
+                            width: localCameraVideo.videoWidth,
+                            height: localCameraVideo.videoHeight
+                        });
+                    });
+
+                    // Listen for video data
+                    localCameraVideo.addEventListener('loadeddata', function() {
+                        console.log('📦 Video data loaded');
+                    });
 
                     document.getElementById('status').textContent = 'Camera active';
                     document.getElementById('status').className = 'status connected';
