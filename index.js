@@ -32,6 +32,7 @@ const io = new Server(server, {
 const path = require('path');
 let listenPort =55556;
 const setupRouter = require('./pisetup/setup-endpoint'); //RASBERRY PI wifi setup
+const nativeBroadcaster = require('./native-broadcaster'); //Native Pi camera broadcaster
 
 //GET PORT TO LISTEN TO
 if(process.argv.length !== 3){
@@ -51,8 +52,29 @@ app.use(setupRouter);
 app.set('trust proxy', true); // Trust the first proxy
 
 //START LISTENING
-server.listen(listenPort, () => {
+server.listen(listenPort, async () => {
     console.log(`listening on *:${listenPort}`);
+
+    // Initialize native camera broadcaster
+    console.log('\n=== Initializing Native Camera Broadcaster ===');
+    const initialized = nativeBroadcaster.initialize(io);
+
+    if (initialized) {
+        // Try to start broadcasting if camera is available
+        const started = await nativeBroadcaster.startBroadcasting();
+        if (started) {
+            console.log('✓ Native Pi camera broadcaster is running');
+            console.log('  Camera will appear in video player dropdown on all clients');
+        } else {
+            console.log('⚠ Camera broadcaster initialized but not started (no camera found)');
+        }
+    } else {
+        console.log('⚠ Camera broadcaster not available (wrtc module not installed)');
+        console.log('  Install with: npm install wrtc');
+        console.log('  Note: This can take 10-20 minutes to compile on Raspberry Pi');
+        console.log('  Alternative: Use /camera-broadcaster page manually');
+    }
+    console.log('==============================================\n');
 });
 
 /**
