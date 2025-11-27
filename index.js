@@ -916,8 +916,67 @@ io.on('connection', function(socket){
         }
     }
 
+    // CAMERA BROADCASTER HANDLERS - GLOBAL (NOT ENDPOINT-SPECIFIC)
+    // These must be outside the endpoint loop so /camera-broadcaster page works
+    socket.on('register-camera-broadcaster', (data) => {
+        console.log(`[BROADCASTER REGISTERED] Socket ID: ${socket.id}, Label: ${data.label || 'Pi Camera (Live)'}`);
+        socket.broadcasterLabel = data.label || 'Pi Camera (Live)';
+        socket.isCameraBroadcaster = true;
+
+        // Notify all clients that a broadcaster is available
+        io.emit('camera-broadcaster-available', {
+            broadcasterId: socket.id,
+            label: socket.broadcasterLabel
+        });
+        console.log(`[BROADCASTER ANNOUNCED] Broadcasted to all clients. ID: ${socket.id}, Label: ${socket.broadcasterLabel}`);
+    });
+
+    // Camera stream request from viewer
+    socket.on('request-camera-stream', (data) => {
+        console.log('Camera stream requested for broadcaster:', data.broadcasterId);
+        // Forward the request to the broadcaster
+        io.to(data.broadcasterId).emit('viewer-requesting-stream', {
+            viewerId: socket.id
+        });
+    });
+
+    // Camera offer from broadcaster
+    socket.on('camera-offer', (data) => {
+        console.log('Camera offer from broadcaster to viewer:', data.to);
+        io.to(data.to).emit('camera-offer', {
+            offer: data.offer,
+            from: socket.id
+        });
+    });
+
+    // Camera answer from viewer
+    socket.on('camera-answer', (data) => {
+        console.log('Camera answer from viewer to broadcaster:', data.to);
+        io.to(data.to).emit('camera-answer', {
+            answer: data.answer,
+            from: socket.id
+        });
+    });
+
+    // Camera ICE candidate
+    socket.on('camera-ice-candidate', (data) => {
+        if (data.to) {
+            io.to(data.to).emit('camera-ice-candidate', {
+                candidate: data.candidate,
+                from: socket.id
+            });
+        }
+    });
+
     //COMMON--------------------------------------------------------------------------------------
     socket.on('disconnect', function(){
+        // Handle camera broadcaster disconnect
+        if (socket.isCameraBroadcaster) {
+            console.log('Camera broadcaster disconnected:', socket.id);
+            io.emit('camera-broadcaster-unavailable', {
+                broadcasterId: socket.id
+            });
+        }
         let chatClientAddress = getClientIp(socket);
         let chatServerDate = new Date();
         let chatPstString = chatServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
@@ -1053,67 +1112,6 @@ io.on('connection', function(socket){
                 io.to(iceMsgObject.to).emit(endpoint + stuffedAnimalWarVoiceIceCandidateSocketEvent, reorderedIceMsgObject);
             } else {
                 io.emit(endpoint + stuffedAnimalWarVoiceIceCandidateSocketEvent, reorderedIceMsgObject);
-            }
-        });
-
-        // Camera broadcaster registration
-        socket.on('register-camera-broadcaster', (data) => {
-            console.log(`[BROADCASTER REGISTERED] Socket ID: ${socket.id}, Label: ${data.label || 'Pi Camera (Live)'}`);
-            socket.broadcasterLabel = data.label || 'Pi Camera (Live)';
-            socket.isCameraBroadcaster = true;
-
-            // Notify all clients in this endpoint that a broadcaster is available
-            io.emit('camera-broadcaster-available', {
-                broadcasterId: socket.id,
-                label: socket.broadcasterLabel
-            });
-            console.log(`[BROADCASTER ANNOUNCED] Broadcasted to all clients. ID: ${socket.id}, Label: ${socket.broadcasterLabel}`);
-        });
-
-        // Camera stream request from viewer
-        socket.on('request-camera-stream', (data) => {
-            console.log('Camera stream requested for broadcaster:', data.broadcasterId);
-            // Forward the request to the broadcaster
-            io.to(data.broadcasterId).emit('viewer-requesting-stream', {
-                viewerId: socket.id
-            });
-        });
-
-        // Camera offer from broadcaster
-        socket.on('camera-offer', (data) => {
-            console.log('Camera offer from broadcaster to viewer:', data.to);
-            io.to(data.to).emit('camera-offer', {
-                offer: data.offer,
-                from: socket.id
-            });
-        });
-
-        // Camera answer from viewer
-        socket.on('camera-answer', (data) => {
-            console.log('Camera answer from viewer to broadcaster:', data.to);
-            io.to(data.to).emit('camera-answer', {
-                answer: data.answer,
-                from: socket.id
-            });
-        });
-
-        // Camera ICE candidate
-        socket.on('camera-ice-candidate', (data) => {
-            if (data.to) {
-                io.to(data.to).emit('camera-ice-candidate', {
-                    candidate: data.candidate,
-                    from: socket.id
-                });
-            }
-        });
-
-        // Handle broadcaster disconnect
-        socket.on('disconnect', () => {
-            if (socket.isCameraBroadcaster) {
-                console.log('Camera broadcaster disconnected:', socket.id);
-                io.emit('camera-broadcaster-unavailable', {
-                    broadcasterId: socket.id
-                });
             }
         });
     });
