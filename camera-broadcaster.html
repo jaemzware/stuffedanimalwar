@@ -158,18 +158,33 @@
                 console.log('[BROADCASTER] 🎬 Starting broadcasting process...');
                 updateStatus('Requesting camera access...', 'normal');
 
-                // Request camera access
+                // First, list all available cameras
+                console.log('[BROADCASTER] 📹 Enumerating available cameras...');
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                console.log('[BROADCASTER] Available cameras:', videoDevices.length);
+                videoDevices.forEach((device, index) => {
+                    console.log(`[BROADCASTER]   Camera ${index}: ${device.label || 'Unnamed'} (ID: ${device.deviceId})`);
+                });
+
+                // Request camera access - prefer environment-facing camera (rear/external)
                 console.log('[BROADCASTER] 📹 Requesting camera access...');
                 localStream = await navigator.mediaDevices.getUserMedia({
                     video: {
                         width: { ideal: 1280 },
                         height: { ideal: 720 },
-                        frameRate: { ideal: 30 }
+                        frameRate: { ideal: 30 },
+                        facingMode: { ideal: 'environment' }  // Prefer rear/external camera
                     },
                     audio: false
                 });
 
                 console.log('[BROADCASTER] ✅ Camera access granted');
+                console.log('[BROADCASTER] Video tracks:', localStream.getVideoTracks().length);
+                localStream.getVideoTracks().forEach((track, index) => {
+                    console.log(`[BROADCASTER]   Track ${index}: ${track.label}, enabled: ${track.enabled}, readyState: ${track.readyState}`);
+                });
+
                 // Display local video
                 localVideo.srcObject = localStream;
 
@@ -217,7 +232,7 @@
         // Handle viewer requesting stream
         socket.on('viewer-requesting-stream', async (data) => {
             const viewerId = data.viewerId;
-            console.log('Viewer requesting stream:', viewerId);
+            console.log('[BROADCASTER] 🎥 Viewer requesting stream:', viewerId);
 
             try {
                 // Create peer connection for this viewer
@@ -225,13 +240,19 @@
                 peerConnections[viewerId] = pc;
 
                 // Add local stream tracks to peer connection
+                console.log('[BROADCASTER] Adding tracks to peer connection for viewer:', viewerId);
+                let trackCount = 0;
                 localStream.getTracks().forEach(track => {
+                    console.log(`[BROADCASTER]   Adding track: ${track.kind}, ${track.label}, enabled: ${track.enabled}`);
                     pc.addTrack(track, localStream);
+                    trackCount++;
                 });
+                console.log(`[BROADCASTER] ✅ Added ${trackCount} tracks to peer connection`);
 
                 // Handle ICE candidates
                 pc.onicecandidate = (event) => {
                     if (event.candidate) {
+                        console.log('[BROADCASTER] 🧊 Sending ICE candidate to viewer:', viewerId);
                         socket.emit('camera-ice-candidate', {
                             candidate: event.candidate,
                             to: viewerId
@@ -241,28 +262,37 @@
 
                 // Handle connection state
                 pc.onconnectionstatechange = () => {
-                    console.log('Connection state with viewer:', viewerId, pc.connectionState);
+                    console.log(`[BROADCASTER] 🔄 Connection state with viewer ${viewerId}: ${pc.connectionState}`);
                     if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
+                        console.log(`[BROADCASTER] ❌ Connection ${pc.connectionState} for viewer:`, viewerId);
                         if (peerConnections[viewerId]) {
                             delete peerConnections[viewerId];
                             updateViewerCount();
                         }
                     } else if (pc.connectionState === 'connected') {
+                        console.log(`[BROADCASTER] ✅ Connected to viewer:`, viewerId);
                         updateViewerCount();
                         updateStatus(`Broadcasting to ${viewerCount} viewer(s)`, 'connected');
                     }
                 };
 
+                // Monitor ICE connection state
+                pc.oniceconnectionstatechange = () => {
+                    console.log(`[BROADCASTER] 🧊 ICE connection state for ${viewerId}: ${pc.iceConnectionState}`);
+                };
+
                 // Create and send offer
+                console.log('[BROADCASTER] 📤 Creating offer for viewer:', viewerId);
                 const offer = await pc.createOffer();
                 await pc.setLocalDescription(offer);
 
+                console.log('[BROADCASTER] 📤 Sending offer to viewer:', viewerId);
                 socket.emit('camera-offer', {
                     offer: offer,
                     to: viewerId
                 });
 
-                console.log('Sent offer to viewer:', viewerId);
+                console.log('[BROADCASTER] ✅ Offer sent to viewer:', viewerId);
             } catch (err) {
                 console.error('Error creating offer for viewer:', err);
             }

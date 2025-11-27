@@ -435,7 +435,7 @@ function stopCameraWebRTC() {
 
 // Connect to a camera broadcaster via WebRTC
 function connectToCameraBroadcaster(broadcasterId, videoElement) {
-    console.log("Setting up WebRTC connection to broadcaster:", broadcasterId);
+    console.log("[VIEWER] 🎬 Setting up WebRTC connection to broadcaster:", broadcasterId);
 
     // Create a new peer connection
     const pc = new RTCPeerConnection({
@@ -449,10 +449,25 @@ function connectToCameraBroadcaster(broadcasterId, videoElement) {
 
     // Handle incoming video track
     pc.ontrack = function(event) {
-        console.log("📹 Received video track from broadcaster");
+        console.log("[VIEWER] 🎥 Received video track from broadcaster!");
+        console.log("[VIEWER]   Track kind:", event.track.kind);
+        console.log("[VIEWER]   Track enabled:", event.track.enabled);
+        console.log("[VIEWER]   Track readyState:", event.track.readyState);
+        console.log("[VIEWER]   Streams:", event.streams.length);
+
         const remoteStream = event.streams[0];
+        console.log("[VIEWER]   Stream tracks:", remoteStream.getTracks().length);
+        remoteStream.getTracks().forEach(track => {
+            console.log("[VIEWER]     - Track:", track.kind, track.label, "enabled:", track.enabled);
+        });
+
         videoElement.srcObject = remoteStream;
-        videoElement.play();
+        console.log("[VIEWER] ✅ Set srcObject on video element");
+        videoElement.play().then(() => {
+            console.log("[VIEWER] ✅ Video playing!");
+        }).catch(err => {
+            console.error("[VIEWER] ❌ Error playing video:", err);
+        });
     };
 
     // Handle ICE candidates
@@ -468,32 +483,46 @@ function connectToCameraBroadcaster(broadcasterId, videoElement) {
 
     // Handle connection state changes
     pc.onconnectionstatechange = function() {
-        console.log("Camera WebRTC connection state:", pc.connectionState);
+        console.log("[VIEWER] 🔄 Camera WebRTC connection state:", pc.connectionState);
         if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') {
+            console.error("[VIEWER] ❌ Connection state:", pc.connectionState);
             alert("Camera connection lost. Please try again.");
+        } else if (pc.connectionState === 'connected') {
+            console.log("[VIEWER] ✅ WebRTC connection established!");
         }
     };
 
+    // Monitor ICE connection state
+    pc.oniceconnectionstatechange = function() {
+        console.log("[VIEWER] 🧊 ICE connection state:", pc.iceConnectionState);
+    };
+
     // Request camera stream from broadcaster
-    console.log("Requesting camera stream from broadcaster");
+    console.log("[VIEWER] 📤 Requesting camera stream from broadcaster:", broadcasterId);
     socket.emit('request-camera-stream', { broadcasterId: broadcasterId });
 
     // Listen for the offer from the broadcaster
     socket.on('camera-offer', async function(data) {
         if (data.from === broadcasterId) {
-            console.log("Received camera offer from broadcaster");
+            console.log("[VIEWER] 📨 Received camera offer from broadcaster");
             try {
+                console.log("[VIEWER] 📝 Setting remote description...");
                 await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
+                console.log("[VIEWER] ✅ Remote description set");
+
+                console.log("[VIEWER] 📝 Creating answer...");
                 const answer = await pc.createAnswer();
                 await pc.setLocalDescription(answer);
+                console.log("[VIEWER] ✅ Local description set");
 
+                console.log("[VIEWER] 📤 Sending answer to broadcaster...");
                 socket.emit('camera-answer', {
                     answer: answer,
                     to: broadcasterId
                 });
-                console.log("Sent answer to broadcaster");
+                console.log("[VIEWER] ✅ Answer sent to broadcaster");
             } catch (err) {
-                console.error("Error handling camera offer:", err);
+                console.error("[VIEWER] ❌ Error handling camera offer:", err);
             }
         }
     });
