@@ -882,6 +882,14 @@ io.on('connection', function(socket){
     let chatClientAddress = getClientIp(socket);
     let chatServerDate = new Date();
     let connectChatPstString = chatServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
+
+    console.log(`[SERVER] 🔌 New connection - Socket ID: ${socket.id}, Endpoint: ${endpoint || 'NONE'}, IP: ${chatClientAddress}`);
+
+    // Log ALL events from this socket for debugging
+    socket.onAny((eventName, ...args) => {
+        console.log(`[SERVER] 📨 Socket ${socket.id} emitted: ${eventName}`);
+    });
+
     stuffedAnimalWarPageCounters[endpoint]++;
     let connectMsgObject = {
                 CHATSERVERENDPOINT: endpoint,
