@@ -232,6 +232,11 @@
                 <span id="cameraLabel">Enable Camera</span>
             </button>
 
+            <button id="micToggleButton" class="btn btn-camera">
+                <span id="micIcon">🎤</span>
+                <span id="micLabel">Enable Mic</span>
+            </button>
+
             <select id="cameraSelector">
                 <option value="">Select Camera...</option>
             </select>
@@ -239,6 +244,11 @@
             <label class="checkbox-label">
                 <input type="checkbox" id="acceptCameraCheckbox" checked>
                 <span>Show Remote Cameras</span>
+            </label>
+
+            <label class="checkbox-label">
+                <input type="checkbox" id="acceptMicCheckbox" checked>
+                <span>Accept Remote Audio</span>
             </label>
 
             <span id="peerCount" style="color: #aaa; font-size: 13px;">Peers: 0</span>
@@ -281,12 +291,15 @@
                 reconnectionAttempts: 5
             });
 
-            // Camera state
+            // Camera and mic state
             let localCameraStream = null;
+            let localMicStream = null;
             let isCameraEnabled = false;
+            let isMicEnabled = false;
             let selectedCameraDeviceId = null;
             let peerConnections = {};
             let remoteCameraStreams = {};
+            let isRemoteAudioMuted = false;
 
             // ICE servers
             const iceServers = {
@@ -306,8 +319,10 @@
             // Initialize
             document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('cameraToggleButton').addEventListener('click', toggleCamera);
+                document.getElementById('micToggleButton').addEventListener('click', toggleMic);
                 document.getElementById('cameraSelector').addEventListener('change', handleCameraChange);
                 document.getElementById('acceptCameraCheckbox').addEventListener('change', handleAcceptCameraChange);
+                document.getElementById('acceptMicCheckbox').addEventListener('change', handleAcceptMicChange);
 
                 populateCameraDevices();
                 initializeSocketHandlers();
@@ -383,6 +398,17 @@
             function handleAcceptCameraChange(event) {
                 const remoteCameraSection = document.getElementById('remoteCameraSection');
                 remoteCameraSection.style.display = event.target.checked ? 'block' : 'none';
+            }
+
+            function handleAcceptMicChange(event) {
+                isRemoteAudioMuted = !event.target.checked;
+                console.log('Accept remote audio:', event.target.checked, 'Muted:', isRemoteAudioMuted);
+
+                // Mute/unmute all existing remote audio elements
+                document.querySelectorAll('audio[id^="remoteAudio_"]').forEach(audioElement => {
+                    audioElement.muted = isRemoteAudioMuted;
+                    console.log('Set audio element', audioElement.id, 'muted:', audioElement.muted);
+                });
             }
 
             async function startCamera() {
@@ -563,6 +589,96 @@
                 }
             }
 
+            async function toggleMic() {
+                const button = document.getElementById('micToggleButton');
+                const icon = document.getElementById('micIcon');
+                const label = document.getElementById('micLabel');
+
+                if (!isMicEnabled) {
+                    console.log('Enabling microphone...');
+                    try {
+                        localMicStream = await navigator.mediaDevices.getUserMedia({
+                            audio: {
+                                echoCancellation: true,
+                                noiseSuppression: true,
+                                autoGainControl: true
+                            }
+                        });
+
+                        console.log('✅ Microphone access granted!');
+                        console.log('Audio tracks:', localMicStream.getAudioTracks().map(t => ({
+                            id: t.id,
+                            label: t.label,
+                            enabled: t.enabled,
+                            readyState: t.readyState
+                        })));
+
+                        button.classList.add('active');
+                        label.textContent = 'Mic On';
+                        isMicEnabled = true;
+
+                        document.getElementById('status').textContent = 'Microphone enabled';
+                        document.getElementById('status').className = 'status connected';
+
+                        // Add audio tracks to all peer connections
+                        Object.keys(peerConnections).forEach(peerId => {
+                            const pc = peerConnections[peerId];
+                            if (pc && pc.connectionState === 'connected') {
+                                console.log('📤 Adding audio track to peer:', peerId);
+                                localMicStream.getAudioTracks().forEach(track => {
+                                    pc.addTrack(track, localMicStream);
+                                });
+
+                                // Renegotiate
+                                pc.createOffer().then(offer => pc.setLocalDescription(offer))
+                                    .then(() => {
+                                        socket.emit(voiceOfferSocketEvent, {
+                                            offer: pc.localDescription,
+                                            to: peerId
+                                        });
+                                    });
+                            }
+                        });
+
+                        console.log('Microphone enabled successfully');
+                    } catch (error) {
+                        console.error('❌ Microphone access error:', error);
+
+                        let errorMsg = 'Microphone error: ' + error.name;
+                        if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+                            errorMsg = 'Microphone not found';
+                        } else if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+                            errorMsg = 'Microphone permission denied - check browser settings';
+                        } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
+                            errorMsg = 'Microphone in use by another app';
+                        }
+
+                        document.getElementById('status').textContent = errorMsg;
+                        document.getElementById('status').className = 'status disconnected';
+                        alert(errorMsg + '\n\nDetails: ' + error.message);
+                        isMicEnabled = false;
+                    }
+                } else {
+                    console.log('Disabling microphone...');
+                    if (localMicStream) {
+                        localMicStream.getTracks().forEach(track => {
+                            console.log('Stopping audio track:', track.label);
+                            track.stop();
+                        });
+                        localMicStream = null;
+                    }
+
+                    button.classList.remove('active');
+                    label.textContent = 'Enable Mic';
+                    isMicEnabled = false;
+
+                    document.getElementById('status').textContent = 'Microphone disabled';
+                    document.getElementById('status').className = 'status disconnected';
+
+                    console.log('Microphone disabled');
+                }
+            }
+
             function updatePeerCount() {
                 const count = Object.keys(peerConnections).length;
                 document.getElementById('peerCount').textContent = 'Peers: ' + count;
@@ -591,10 +707,21 @@
                 const pc = new RTCPeerConnection(iceServers);
                 peerConnections[peerId] = pc;
 
+                console.log('Creating peer connection for:', peerId);
+
                 // Add local camera tracks if enabled
                 if (localCameraStream) {
                     localCameraStream.getTracks().forEach(track => {
+                        console.log('Adding camera track to peer:', peerId, 'kind:', track.kind);
                         pc.addTrack(track, localCameraStream);
+                    });
+                }
+
+                // Add local microphone tracks if enabled
+                if (localMicStream) {
+                    localMicStream.getTracks().forEach(track => {
+                        console.log('Adding mic track to peer:', peerId, 'kind:', track.kind);
+                        pc.addTrack(track, localMicStream);
                     });
                 }
 
@@ -608,11 +735,12 @@
                 };
 
                 pc.ontrack = function(event) {
-                    console.log('Received track from peer:', peerId, 'kind:', event.track.kind);
+                    console.log('📥 Received track from peer:', peerId, 'kind:', event.track.kind);
 
                     if (event.track.kind === 'video') {
                         const acceptCameraCheckbox = document.getElementById('acceptCameraCheckbox');
                         if (!acceptCameraCheckbox.checked) {
+                            console.log('Video track rejected - camera checkbox not checked');
                             return;
                         }
 
@@ -638,25 +766,60 @@
                             remoteCameraGrid.appendChild(videoWrapper);
 
                             remoteCameraStreams[peerId] = event.streams[0];
+                            console.log('✅ Created video element for peer:', peerId);
                         }
 
                         updateEmptyState();
+                    } else if (event.track.kind === 'audio') {
+                        console.log('🎤 Received audio track from peer:', peerId);
+
+                        // Create or get audio element for this peer
+                        let audioElement = document.getElementById('remoteAudio_' + peerId);
+                        if (!audioElement) {
+                            audioElement = document.createElement('audio');
+                            audioElement.id = 'remoteAudio_' + peerId;
+                            audioElement.autoplay = true;
+                            audioElement.muted = isRemoteAudioMuted;
+                            audioElement.volume = 1.0;
+                            audioElement.style.display = 'none';
+                            document.body.appendChild(audioElement);
+                            console.log('✅ Created audio element:', audioElement.id, 'muted:', audioElement.muted);
+                        }
+
+                        audioElement.srcObject = event.streams[0];
+
+                        // Try to play audio
+                        audioElement.play().then(() => {
+                            console.log('✅ Audio playing from peer:', peerId);
+                        }).catch(err => {
+                            console.warn('⚠️ Audio autoplay blocked:', err.message);
+                        });
                     }
                 };
 
                 pc.onconnectionstatechange = function() {
                     console.log('Peer', peerId, 'connection state:', pc.connectionState);
                     if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed' || pc.connectionState === 'closed') {
+                        // Clean up video element
                         const videoWrapper = document.getElementById('remoteVideo_' + peerId);
                         if (videoWrapper) {
                             videoWrapper.remove();
                         }
+
+                        // Clean up audio element
+                        const audioElement = document.getElementById('remoteAudio_' + peerId);
+                        if (audioElement) {
+                            audioElement.remove();
+                        }
+
                         delete peerConnections[peerId];
                         delete remoteCameraStreams[peerId];
                         updatePeerCount();
                         updateEmptyState();
+                        console.log('❌ Cleaned up peer:', peerId);
                     } else if (pc.connectionState === 'connected') {
                         updatePeerCount();
+                        console.log('✅ Peer connected:', peerId);
                     }
                 };
 
@@ -693,22 +856,36 @@
             }
 
             function handlePeerDisconnect(data) {
+                console.log('Peer disconnected:', data.userId);
+
+                // Clean up video element
                 const videoWrapper = document.getElementById('remoteVideo_' + data.userId);
                 if (videoWrapper) {
                     videoWrapper.remove();
                 }
+
+                // Clean up audio element
+                const audioElement = document.getElementById('remoteAudio_' + data.userId);
+                if (audioElement) {
+                    audioElement.remove();
+                }
+
+                // Close and remove peer connection
                 if (peerConnections[data.userId]) {
                     peerConnections[data.userId].close();
                     delete peerConnections[data.userId];
                 }
+
                 delete remoteCameraStreams[data.userId];
                 updatePeerCount();
                 updateEmptyState();
             }
 
-            // Broadcast offer when camera is enabled or when new peer joins
+            // Broadcast offer when camera/mic is enabled or when new peer joins
             socket.on(endpoint + 'cameracamera' + 'connect', function(data) {
-                if (data.userId !== socket.id && isCameraEnabled) {
+                console.log('New peer joined:', data.userId);
+                if (data.userId !== socket.id && (isCameraEnabled || isMicEnabled)) {
+                    console.log('Creating offer for new peer (camera:', isCameraEnabled, 'mic:', isMicEnabled, ')');
                     const pc = createPeerConnection(data.userId);
                     pc.createOffer().then(offer => pc.setLocalDescription(offer))
                         .then(() => {
@@ -716,6 +893,7 @@
                                 offer: pc.localDescription,
                                 to: data.userId
                             });
+                            console.log('Sent offer to new peer:', data.userId);
                         });
                 }
             });
