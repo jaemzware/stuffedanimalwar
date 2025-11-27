@@ -271,6 +271,9 @@ function changeMp4(mp4Url,coverImageUrl){
                 videoElement.srcObject = stream;
                 videoElement.play();
                 console.log("Camera stream activated successfully");
+
+                // Update camera labels now that we have permission
+                updateCameraLabels();
             })
             .catch(function(err) {
                 console.error("Error accessing camera: ", err);
@@ -316,55 +319,89 @@ async function initializeCameraOptions() {
     }
 
     try {
-        // Request camera permission first to get device labels
-        // This is necessary because device labels are only available after permission is granted
-        const tempStream = await navigator.mediaDevices.getUserMedia({ video: true });
-        tempStream.getTracks().forEach(track => track.stop()); // Stop the temporary stream
-
-        // Enumerate all media devices
+        // Enumerate all media devices WITHOUT requesting permission first
+        // Device labels will be blank until permission is granted, but we can still detect count
         const devices = await navigator.mediaDevices.enumerateDevices();
 
         // Filter for video input devices (cameras)
         const videoDevices = devices.filter(device => device.kind === 'videoinput');
 
-        console.log(`Found ${videoDevices.length} camera(s)`);
-
-        // Add an option for each camera at the beginning of the dropdown
-        videoDevices.forEach((device, index) => {
-            const option = document.createElement('option');
-            option.value = `camera://${device.deviceId}`;
-            option.setAttribute('data-is-camera', 'true');
-            option.setAttribute('data-device-id', device.deviceId);
-
-            // Create a friendly label
-            let label = device.label || `Camera ${index + 1}`;
-
-            // Add emoji and format the label
-            option.textContent = `📹 ${label}`;
-
-            // Insert at the beginning of the select
-            if (selectVideos.firstChild) {
-                selectVideos.insertBefore(option, selectVideos.firstChild);
-            } else {
-                selectVideos.appendChild(option);
-            }
-        });
+        console.log(`Found ${videoDevices.length} camera device(s)`);
 
         if (videoDevices.length > 0) {
+            // Add an option for each camera at the beginning of the dropdown
+            videoDevices.forEach((device, index) => {
+                const option = document.createElement('option');
+                option.value = `camera://${device.deviceId}`;
+                option.setAttribute('data-is-camera', 'true');
+                option.setAttribute('data-device-id', device.deviceId);
+
+                // Use device label if available (will be blank until permission granted)
+                // Otherwise use a generic label
+                let label = device.label || `Camera ${index + 1}`;
+
+                // Add emoji and format the label
+                option.textContent = `📹 ${label}`;
+
+                // Insert at the beginning of the select
+                if (selectVideos.firstChild) {
+                    selectVideos.insertBefore(option, selectVideos.firstChild);
+                } else {
+                    selectVideos.appendChild(option);
+                }
+            });
+
             console.log("Camera options added to dropdown");
+        } else {
+            // No cameras detected, add a default option anyway
+            console.log("No cameras detected, adding default option");
+            addDefaultCameraOption(selectVideos);
         }
     } catch (err) {
-        console.log("Could not enumerate cameras (permission may be denied):", err.message);
-        // Add a generic camera option even if we can't enumerate
-        const option = document.createElement('option');
-        option.value = 'camera://default';
-        option.setAttribute('data-is-camera', 'true');
-        option.textContent = '📹 Camera (Default)';
-        if (selectVideos.firstChild) {
-            selectVideos.insertBefore(option, selectVideos.firstChild);
-        } else {
-            selectVideos.appendChild(option);
-        }
+        console.log("Could not enumerate cameras:", err.message);
+        // Add a default camera option as fallback
+        addDefaultCameraOption(selectVideos);
+    }
+}
+
+// Helper function to add a default camera option
+function addDefaultCameraOption(selectVideos) {
+    const option = document.createElement('option');
+    option.value = 'camera://default';
+    option.setAttribute('data-is-camera', 'true');
+    option.textContent = '📹 Camera (Default)';
+    if (selectVideos.firstChild) {
+        selectVideos.insertBefore(option, selectVideos.firstChild);
+    } else {
+        selectVideos.appendChild(option);
+    }
+}
+
+// Update camera labels after permission is granted
+async function updateCameraLabels() {
+    const selectVideos = document.getElementById('selectvideos');
+    if (!selectVideos || !navigator.mediaDevices) return;
+
+    try {
+        // Re-enumerate devices - now we should get labels since permission was granted
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = devices.filter(device => device.kind === 'videoinput');
+
+        // Update labels for existing camera options
+        const options = selectVideos.querySelectorAll('option[data-is-camera="true"]');
+        options.forEach((option, index) => {
+            const deviceId = option.getAttribute('data-device-id');
+            if (deviceId) {
+                // Find matching device
+                const device = videoDevices.find(d => d.deviceId === deviceId);
+                if (device && device.label) {
+                    option.textContent = `📹 ${device.label}`;
+                    console.log(`Updated camera label: ${device.label}`);
+                }
+            }
+        });
+    } catch (err) {
+        console.log("Could not update camera labels:", err.message);
     }
 }
 
