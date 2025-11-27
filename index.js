@@ -891,9 +891,29 @@ io.on('connection', function(socket){
                 CHATUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
                 CHATCLIENTMESSAGE: 'CONNECT',
                 CHATCLIENTUSER: ''
-     }; 
+     };
     console.log(JSON.stringify(connectMsgObject));
     io.emit(endpoint + stuffedAnimalWarConnectSocketEvent,connectMsgObject);
+
+    // Send currently active camera broadcasters to newly connected client
+    const sockets = Array.from(io.sockets.sockets.values());
+    const activeBroadcasters = sockets.filter(s => s.isCameraBroadcaster);
+    activeBroadcasters.forEach(broadcaster => {
+        socket.emit('camera-broadcaster-available', {
+            broadcasterId: broadcaster.id,
+            label: broadcaster.broadcasterLabel || 'Pi Camera (Live)'
+        });
+        console.log('Sent existing broadcaster to new client:', broadcaster.id);
+    });
+
+    // Also send native broadcaster if it exists
+    if (nativeBroadcaster.isBroadcasting()) {
+        const broadcasterInfo = nativeBroadcaster.getBroadcasterInfo();
+        if (broadcasterInfo) {
+            socket.emit('camera-broadcaster-available', broadcasterInfo);
+            console.log('Sent native broadcaster to new client:', broadcasterInfo.broadcasterId);
+        }
+    }
 
     //COMMON--------------------------------------------------------------------------------------
     socket.on('disconnect', function(){

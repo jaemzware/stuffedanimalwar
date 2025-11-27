@@ -362,6 +362,19 @@ function isBroadcasting() {
     return isStreaming;
 }
 
+/**
+ * Get broadcaster info (for sending to newly connected clients)
+ */
+function getBroadcasterInfo() {
+    if (!isStreaming || !broadcasterId) {
+        return null;
+    }
+    return {
+        broadcasterId: broadcasterId,
+        label: 'Pi Camera Module 3 (Live)'
+    };
+}
+
 // Cleanup on exit
 process.on('SIGINT', () => {
     stopBroadcasting();
@@ -376,5 +389,6 @@ module.exports = {
     startBroadcasting,
     stopBroadcasting,
     isBroadcasting,
+    getBroadcasterInfo,
     detectCamera
 };
