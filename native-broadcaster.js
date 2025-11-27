@@ -63,12 +63,19 @@ function initialize(socketIO) {
 
     // Try to load wrtc (node-webrtc)
     try {
-        wrtc = require('wrtc');
-        console.log('✓ wrtc module loaded');
+        // Try @roamhq/wrtc first (pre-built for ARM)
+        wrtc = require('@roamhq/wrtc');
+        console.log('✓ wrtc module loaded (@roamhq/wrtc)');
     } catch (err) {
-        console.log('✗ wrtc module not found - install with: npm install wrtc');
-        console.log('  Note: wrtc compilation can take 10-20 minutes on Raspberry Pi');
-        return false;
+        try {
+            // Fallback to standard wrtc
+            wrtc = require('wrtc');
+            console.log('✓ wrtc module loaded (wrtc)');
+        } catch (err2) {
+            console.log('✗ wrtc module not found - install with: npm install @roamhq/wrtc');
+            console.log('  Or: npm install wrtc');
+            return false;
+        }
     }
 
     setupSocketHandlers();
