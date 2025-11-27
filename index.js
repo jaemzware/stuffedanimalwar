@@ -33,6 +33,7 @@ const path = require('path');
 let listenPort =55556;
 const setupRouter = require('./pisetup/setup-endpoint'); //RASBERRY PI wifi setup
 const nativeBroadcaster = require('./native-broadcaster'); //Native Pi camera broadcaster
+const autoBroadcaster = require('./auto-broadcaster'); //Headless browser camera broadcaster
 
 //GET PORT TO LISTEN TO
 if(process.argv.length !== 3){
@@ -55,9 +56,11 @@ app.set('trust proxy', true); // Trust the first proxy
 server.listen(listenPort, async () => {
     console.log(`listening on *:${listenPort}`);
 
-    // Initialize native camera broadcaster
+    // Initialize native camera broadcaster (requires wrtc)
     console.log('\n=== Initializing Native Camera Broadcaster ===');
     const initialized = nativeBroadcaster.initialize(io);
+
+    let broadcasterStarted = false;
 
     if (initialized) {
         // Try to start broadcasting if camera is available
@@ -65,14 +68,31 @@ server.listen(listenPort, async () => {
         if (started) {
             console.log('✓ Native Pi camera broadcaster is running');
             console.log('  Camera will appear in video player dropdown on all clients');
+            broadcasterStarted = true;
         } else {
             console.log('⚠ Camera broadcaster initialized but not started (no camera found)');
         }
     } else {
-        console.log('⚠ Camera broadcaster not available (wrtc module not installed)');
-        console.log('  Install with: npm install wrtc');
-        console.log('  Note: This can take 10-20 minutes to compile on Raspberry Pi');
-        console.log('  Alternative: Use /camera-broadcaster page manually');
+        console.log('⚠ Native broadcaster not available (wrtc module not installed)');
+    }
+
+    // If native broadcaster didn't start, try auto-broadcaster (headless browser)
+    if (!broadcasterStarted) {
+        console.log('\n=== Trying Auto-Broadcaster (Headless Browser) ===');
+        try {
+            const autoStarted = await autoBroadcaster.startBroadcaster(`https://localhost:${listenPort}`);
+            if (autoStarted) {
+                console.log('✓ Auto-broadcaster started successfully');
+                console.log('  Camera will appear in video player dropdown on all clients');
+            } else {
+                console.log('⚠ Auto-broadcaster failed to start');
+                console.log('  You can manually open: https://localhost:' + listenPort + '/camera-broadcaster');
+            }
+        } catch (err) {
+            console.log('⚠ Auto-broadcaster not available (puppeteer not installed)');
+            console.log('  Install with: npm install puppeteer');
+            console.log('  Or manually open: https://localhost:' + listenPort + '/camera-broadcaster');
+        }
     }
     console.log('==============================================\n');
 });
