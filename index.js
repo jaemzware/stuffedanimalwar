@@ -32,8 +32,6 @@ const io = new Server(server, {
 const path = require('path');
 let listenPort =55556;
 const setupRouter = require('./pisetup/setup-endpoint'); //RASBERRY PI wifi setup
-const nativeBroadcaster = require('./native-broadcaster'); //Native Pi camera broadcaster
-const autoBroadcaster = require('./auto-broadcaster'); //Headless browser camera broadcaster
 
 //GET PORT TO LISTEN TO
 if(process.argv.length !== 3){
@@ -55,46 +53,6 @@ app.set('trust proxy', true); // Trust the first proxy
 //START LISTENING
 server.listen(listenPort, async () => {
     console.log(`listening on *:${listenPort}`);
-
-    // Initialize native camera broadcaster (requires wrtc)
-    console.log('\n=== Initializing Native Camera Broadcaster ===');
-    const initialized = nativeBroadcaster.initialize(io);
-
-    let broadcasterStarted = false;
-
-    if (initialized) {
-        // Try to start broadcasting if camera is available
-        const started = await nativeBroadcaster.startBroadcasting();
-        if (started) {
-            console.log('✓ Native Pi camera broadcaster is running');
-            console.log('  Camera will appear in video player dropdown on all clients');
-            broadcasterStarted = true;
-        } else {
-            console.log('⚠ Camera broadcaster initialized but not started (no camera found)');
-        }
-    } else {
-        console.log('⚠ Native broadcaster not available (wrtc module not installed)');
-    }
-
-    // If native broadcaster didn't start, try auto-broadcaster (headless browser)
-    if (!broadcasterStarted) {
-        console.log('\n=== Trying Auto-Broadcaster (Headless Browser) ===');
-        try {
-            const autoStarted = await autoBroadcaster.startBroadcaster(`https://localhost:${listenPort}`);
-            if (autoStarted) {
-                console.log('✓ Auto-broadcaster started successfully');
-                console.log('  Camera will appear in video player dropdown on all clients');
-            } else {
-                console.log('⚠ Auto-broadcaster failed to start');
-                console.log('  You can manually open: https://localhost:' + listenPort + '/camera-broadcaster');
-            }
-        } catch (err) {
-            console.log('⚠ Auto-broadcaster not available (puppeteer not installed)');
-            console.log('  Install with: npm install puppeteer');
-            console.log('  Or manually open: https://localhost:' + listenPort + '/camera-broadcaster');
-        }
-    }
-    console.log('==============================================\n');
 });
 
 /**
@@ -127,11 +85,6 @@ for (let i = 1; i <= 420; i++) {
 
 // Load canvas template HTML at startup (RIP SVG - we canvas-only now)
 let templateCanvasHtml = fs.readFileSync(path.join(__dirname, 'template-canvas.html'), 'utf8');
-
-//SERVE CAMERA BROADCASTER PAGE
-app.get('/camera-broadcaster', function(req, res){
-    res.sendFile(path.join(__dirname, 'camera-broadcaster.html'));
-});
 
 //SERVE INDEX FOR NO ENDPOINT AFTER PORT ADDRESS
 app.get('/', function(req, res){
@@ -923,88 +876,8 @@ io.on('connection', function(socket){
     console.log(JSON.stringify(connectMsgObject));
     io.emit(endpoint + stuffedAnimalWarConnectSocketEvent,connectMsgObject);
 
-    // Send currently active camera broadcasters to newly connected client
-    const sockets = Array.from(io.sockets.sockets.values());
-    const activeBroadcasters = sockets.filter(s => s.isCameraBroadcaster);
-    console.log(`[NEW CLIENT CONNECTED] Checking for active broadcasters. Total sockets: ${sockets.length}, Active broadcasters: ${activeBroadcasters.length}`);
-    activeBroadcasters.forEach(broadcaster => {
-        socket.emit('camera-broadcaster-available', {
-            broadcasterId: broadcaster.id,
-            label: broadcaster.broadcasterLabel || 'Pi Camera (Live)'
-        });
-        console.log(`[BROADCASTER SYNC] Sent existing broadcaster to new client. Broadcaster ID: ${broadcaster.id}, Label: ${broadcaster.broadcasterLabel}`);
-    });
-
-    // Also send native broadcaster if it exists
-    if (nativeBroadcaster.isBroadcasting()) {
-        const broadcasterInfo = nativeBroadcaster.getBroadcasterInfo();
-        if (broadcasterInfo) {
-            socket.emit('camera-broadcaster-available', broadcasterInfo);
-            console.log(`[NATIVE BROADCASTER SYNC] Sent native broadcaster to new client: ${broadcasterInfo.broadcasterId}`);
-        }
-    }
-
-    // CAMERA BROADCASTER HANDLERS - GLOBAL (NOT ENDPOINT-SPECIFIC)
-    // These must be outside the endpoint loop so /camera-broadcaster page works
-    socket.on('register-camera-broadcaster', (data) => {
-        console.log(`[BROADCASTER REGISTERED] Socket ID: ${socket.id}, Label: ${data.label || 'Pi Camera (Live)'}`);
-        socket.broadcasterLabel = data.label || 'Pi Camera (Live)';
-        socket.isCameraBroadcaster = true;
-
-        // Notify all clients that a broadcaster is available
-        io.emit('camera-broadcaster-available', {
-            broadcasterId: socket.id,
-            label: socket.broadcasterLabel
-        });
-        console.log(`[BROADCASTER ANNOUNCED] Broadcasted to all clients. ID: ${socket.id}, Label: ${socket.broadcasterLabel}`);
-    });
-
-    // Camera stream request from viewer
-    socket.on('request-camera-stream', (data) => {
-        console.log('Camera stream requested for broadcaster:', data.broadcasterId);
-        // Forward the request to the broadcaster
-        io.to(data.broadcasterId).emit('viewer-requesting-stream', {
-            viewerId: socket.id
-        });
-    });
-
-    // Camera offer from broadcaster
-    socket.on('camera-offer', (data) => {
-        console.log('Camera offer from broadcaster to viewer:', data.to);
-        io.to(data.to).emit('camera-offer', {
-            offer: data.offer,
-            from: socket.id
-        });
-    });
-
-    // Camera answer from viewer
-    socket.on('camera-answer', (data) => {
-        console.log('Camera answer from viewer to broadcaster:', data.to);
-        io.to(data.to).emit('camera-answer', {
-            answer: data.answer,
-            from: socket.id
-        });
-    });
-
-    // Camera ICE candidate
-    socket.on('camera-ice-candidate', (data) => {
-        if (data.to) {
-            io.to(data.to).emit('camera-ice-candidate', {
-                candidate: data.candidate,
-                from: socket.id
-            });
-        }
-    });
-
     //COMMON--------------------------------------------------------------------------------------
     socket.on('disconnect', function(){
-        // Handle camera broadcaster disconnect
-        if (socket.isCameraBroadcaster) {
-            console.log('Camera broadcaster disconnected:', socket.id);
-            io.emit('camera-broadcaster-unavailable', {
-                broadcasterId: socket.id
-            });
-        }
         let chatClientAddress = getClientIp(socket);
         let chatServerDate = new Date();
         let chatPstString = chatServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
