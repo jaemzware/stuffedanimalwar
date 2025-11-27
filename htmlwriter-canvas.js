@@ -425,12 +425,6 @@ function writeChatForm(responsesObject) {
         document.write("<span id='micLabel'>Enable Mic</span>");
         document.write("</button>");
 
-        // Video toggle button
-        document.write("<button id='videoToggleButton' type='button' style='padding: 6px 12px; background: #666; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 5px; transition: all 0.3s; flex: 1 1 auto; min-width: 120px;'>");
-        document.write("<span id='videoIcon'>📹</span>");
-        document.write("<span id='videoLabel'>Enable Video</span>");
-        document.write("</button>");
-
         // Accept incoming mic audio checkbox (unchecked by default)
         document.write("<label style='padding: 8px 12px; background: #2a2a3e; color: white; border-radius: 6px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 8px; transition: all 0.3s; flex: 1 1 auto; min-width: 160px; user-select: none;'>");
         document.write("<input type='checkbox' id='acceptMicChatCheckbox' style='width: 18px; height: 18px; cursor: pointer; accent-color: #28a745;'>");
