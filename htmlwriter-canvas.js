@@ -289,6 +289,8 @@ function writeVideoFromJson(mediaObject){
                     document.write("<label for='selectvideos' class='input-label'>Select Video</label>");
                     document.write("<select id=\"selectvideos\" class='modern-select'>");
 
+                    //CAMERA OPTIONS WILL BE ADDED DYNAMICALLY BY initializeCameraOptions()
+
                     //WRITE A SELECT DROPDOWN OPTION FOR EACH VIDEO PASSED THROUGH THE MEDIA OBJECT
                     for (let i=0;i<mediaObject.videos.length;i++){
 

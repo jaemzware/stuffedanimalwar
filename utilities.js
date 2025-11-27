@@ -64,6 +64,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     //speed slider
     initSpeedSlider();
+
+    //Initialize camera options
+    initializeCameraOptions();
 });
 /*
  * THESE ARE UTILITY FUNCTIONS FOR CONTROLLING THE AUDIO AND VIDEO PLAYERS ON THE PAGE  THESE ARE RESPONSES TO THE
@@ -186,6 +189,9 @@ function changeMp4(mp4Url){
     //change the source of the VIDEO player with default video cover image
     changeMp4(mp4Url,"photos/stuffedanimalwarfinal.jpg");
 }
+// Global variable to store active camera stream
+let activeCameraStream = null;
+
 function changeMp4(mp4Url,coverImageUrl){
     console.log("CHANGE MP4");
 
@@ -225,14 +231,141 @@ function changeMp4(mp4Url,coverImageUrl){
     // Select the option
     $selectVideos.val(mp4Url);
 
-    //change the source of the VIDEO player
-    $('#jaemzwaredynamicvideosource').attr("src",mp4Url);
-    if (coverImageUrl && coverImageUrl !== 'undefined') {
-        $('#jaemzwaredynamicvideoplayer').attr("poster",coverImageUrl);
+    const videoElement = document.getElementById("jaemzwaredynamicvideoplayer");
+
+    // Check if this is the camera option
+    if (mp4Url.startsWith("camera://")) {
+        console.log("Activating camera stream");
+
+        // Stop any existing camera stream
+        stopCameraStream();
+
+        // Clear the source element
+        $('#jaemzwaredynamicvideosource').attr("src", "");
+
+        // Extract device ID from the URL
+        const deviceId = mp4Url.replace("camera://", "");
+
+        // Request camera access
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            // Build video constraints
+            const videoConstraints = {
+                width: { ideal: 1920 },
+                height: { ideal: 1080 }
+            };
+
+            // If a specific device ID is provided (not "default"), use it
+            if (deviceId && deviceId !== "default") {
+                videoConstraints.deviceId = { exact: deviceId };
+            } else {
+                // For default, prefer environment-facing camera (rear camera on mobile)
+                videoConstraints.facingMode = 'environment';
+            }
+
+            navigator.mediaDevices.getUserMedia({
+                video: videoConstraints,
+                audio: false
+            })
+            .then(function(stream) {
+                activeCameraStream = stream;
+                videoElement.srcObject = stream;
+                videoElement.play();
+                console.log("Camera stream activated successfully");
+            })
+            .catch(function(err) {
+                console.error("Error accessing camera: ", err);
+                alert("Could not access camera: " + err.message + "\n\nPlease ensure:\n1. Camera permissions are granted\n2. Camera is not in use by another application\n3. You're accessing via HTTPS or localhost");
+            });
+        } else {
+            alert("Camera access is not supported in this browser");
+        }
+    } else {
+        // Stop camera stream if switching to a file-based video
+        stopCameraStream();
+
+        // Reset srcObject to null when switching to file-based video
+        videoElement.srcObject = null;
+
+        //change the source of the VIDEO player
+        $('#jaemzwaredynamicvideosource').attr("src",mp4Url);
+        if (coverImageUrl && coverImageUrl !== 'undefined') {
+            $('#jaemzwaredynamicvideoplayer').attr("poster",coverImageUrl);
+        }
+        videoElement.pause();
+        videoElement.load();
+        videoElement.play();
     }
-    document.getElementById("jaemzwaredynamicvideoplayer").pause();
-    document.getElementById("jaemzwaredynamicvideoplayer").load();
-    document.getElementById("jaemzwaredynamicvideoplayer").play();
+}
+
+function stopCameraStream() {
+    if (activeCameraStream) {
+        console.log("Stopping camera stream");
+        activeCameraStream.getTracks().forEach(track => track.stop());
+        activeCameraStream = null;
+    }
+}
+
+// Initialize camera options by enumerating available video devices
+async function initializeCameraOptions() {
+    const selectVideos = document.getElementById('selectvideos');
+
+    // Check if video select exists and getUserMedia is supported
+    if (!selectVideos || !navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+        console.log("Camera enumeration not supported or video select not found");
+        return;
+    }
+
+    try {
+        // Request camera permission first to get device labels
+        // This is necessary because device labels are only available after permission is granted
+        const tempStream = await navigator.mediaDevices.getUserMedia({ video: true });
+        tempStream.getTracks().forEach(track => track.stop()); // Stop the temporary stream
+
+        // Enumerate all media devices
+        const devices = await navigator.mediaDevices.enumerateDevices();
+
+        // Filter for video input devices (cameras)
+        const videoDevices = devices.filter(device => device.kind === 'videoinput');
+
+        console.log(`Found ${videoDevices.length} camera(s)`);
+
+        // Add an option for each camera at the beginning of the dropdown
+        videoDevices.forEach((device, index) => {
+            const option = document.createElement('option');
+            option.value = `camera://${device.deviceId}`;
+            option.setAttribute('data-is-camera', 'true');
+            option.setAttribute('data-device-id', device.deviceId);
+
+            // Create a friendly label
+            let label = device.label || `Camera ${index + 1}`;
+
+            // Add emoji and format the label
+            option.textContent = `📹 ${label}`;
+
+            // Insert at the beginning of the select
+            if (selectVideos.firstChild) {
+                selectVideos.insertBefore(option, selectVideos.firstChild);
+            } else {
+                selectVideos.appendChild(option);
+            }
+        });
+
+        if (videoDevices.length > 0) {
+            console.log("Camera options added to dropdown");
+        }
+    } catch (err) {
+        console.log("Could not enumerate cameras (permission may be denied):", err.message);
+        // Add a generic camera option even if we can't enumerate
+        const option = document.createElement('option');
+        option.value = 'camera://default';
+        option.setAttribute('data-is-camera', 'true');
+        option.textContent = '📹 Camera (Default)';
+        if (selectVideos.firstChild) {
+            selectVideos.insertBefore(option, selectVideos.firstChild);
+        } else {
+            selectVideos.appendChild(option);
+        }
+    }
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
