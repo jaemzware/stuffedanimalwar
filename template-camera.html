@@ -489,16 +489,16 @@
                         const option = document.createElement('option');
                         option.value = device.deviceId;
                         option.text = device.label || `Camera ${index + 1}`;
+
+                        // Pre-select if this matches our selected device
+                        if (device.deviceId === selectedCameraDeviceId) {
+                            option.selected = true;
+                        }
+
                         cameraSelector.appendChild(option);
                     });
 
-                    // Restore previously selected camera if it exists
-                    if (selectedCameraDeviceId) {
-                        cameraSelector.value = selectedCameraDeviceId;
-                        console.log('Restored selected camera:', selectedCameraDeviceId);
-                    }
-
-                    console.log('Found', videoDevices.length, 'camera(s)');
+                    console.log('Found', videoDevices.length, 'camera(s)', 'Selected:', selectedCameraDeviceId || 'none');
                 } catch (error) {
                     console.error('Error enumerating cameras:', error);
                 }
