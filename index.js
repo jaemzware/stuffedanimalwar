@@ -1119,6 +1119,17 @@ io.on('connection', function(socket){
             // Broadcast to all other clients in the room
             socket.to(cameraEndpoint).emit(cameraEndpoint + 'camera' + 'nameupdate', reorderedNameUpdateMsgObject);
         });
+
+        socket.on(cameraEndpoint + 'camera' + 'reconnect', (reconnectMsgObject) => {
+            console.log('CAMERA RECONNECT REQUEST:', cameraEndpoint, 'from:', socket.id);
+
+            const reorderedReconnectMsgObject = {
+                userId: socket.id
+            };
+
+            // Broadcast to all other clients in the room
+            socket.to(cameraEndpoint).emit(cameraEndpoint + 'camera' + 'reconnect', reorderedReconnectMsgObject);
+        });
     });
 
     //GENERIC CHATMESSAGE SENDER, FOR MULTIPLE, INDEPENDENT CHAT CHANNELS
