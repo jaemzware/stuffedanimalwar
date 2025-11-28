@@ -331,6 +331,22 @@
 
                 populateCameraDevices();
                 initializeSocketHandlers();
+
+                // Handle page visibility changes (mobile backgrounding)
+                document.addEventListener('visibilitychange', function() {
+                    if (document.hidden) {
+                        console.log('📱 Page hidden (backgrounded) - connections may pause');
+                    } else {
+                        console.log('📱 Page visible again - checking connections');
+                        // Check all peer connections
+                        Object.keys(peerConnections).forEach(peerId => {
+                            const pc = peerConnections[peerId];
+                            if (pc) {
+                                console.log('Peer', peerId, 'state:', pc.connectionState, 'ICE:', pc.iceConnectionState);
+                            }
+                        });
+                    }
+                });
             });
 
             // Socket connection
@@ -423,10 +439,17 @@
 
                 console.log('Starting camera with device ID:', selectedCameraDeviceId);
 
+                // Detect if we're on mobile
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                console.log('Device type:', isMobile ? 'Mobile' : 'Desktop');
+
                 const constraints = {
                     video: {
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 }
+                        // Lower resolution for mobile to prevent freezing
+                        width: { ideal: isMobile ? 640 : 1280 },
+                        height: { ideal: isMobile ? 480 : 720 },
+                        // Mobile-friendly frameRate
+                        frameRate: { ideal: isMobile ? 15 : 30, max: 30 }
                     }
                 };
 
@@ -696,6 +719,51 @@
                 emptyState.style.display = hasRemoteCameras ? 'none' : 'block';
             }
 
+            // Monitor connection quality and detect frozen streams
+            function monitorConnectionQuality(pc, peerId) {
+                const checkInterval = 5000; // Check every 5 seconds
+                let lastBytesReceived = 0;
+                let noDataCount = 0;
+
+                const qualityMonitor = setInterval(async () => {
+                    if (!pc || pc.connectionState === 'closed') {
+                        clearInterval(qualityMonitor);
+                        return;
+                    }
+
+                    try {
+                        const stats = await pc.getStats();
+                        let currentBytesReceived = 0;
+
+                        stats.forEach(report => {
+                            if (report.type === 'inbound-rtp' && report.kind === 'video') {
+                                currentBytesReceived = report.bytesReceived || 0;
+                            }
+                        });
+
+                        // Check if we're receiving data
+                        if (currentBytesReceived === lastBytesReceived && currentBytesReceived > 0) {
+                            noDataCount++;
+                            console.warn(`⚠️ No new data from peer ${peerId} for ${noDataCount * checkInterval / 1000} seconds`);
+
+                            // If frozen for 15 seconds, log it prominently
+                            if (noDataCount >= 3) {
+                                console.error(`❌ Stream from peer ${peerId} appears frozen!`);
+                            }
+                        } else {
+                            noDataCount = 0;
+                        }
+
+                        lastBytesReceived = currentBytesReceived;
+                    } catch (err) {
+                        console.error('Error checking connection quality:', err);
+                    }
+                }, checkInterval);
+
+                // Store the interval so we can clear it later
+                pc._qualityMonitor = qualityMonitor;
+            }
+
             // WebRTC functions
             function initializeSocketHandlers() {
                 socket.on(endpoint + 'cameracamera' + 'voiceoffer', handleOffer);
@@ -805,6 +873,11 @@
                 pc.onconnectionstatechange = function() {
                     console.log('Peer', peerId, 'connection state:', pc.connectionState);
                     if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed' || pc.connectionState === 'closed') {
+                        // Clean up quality monitor
+                        if (pc._qualityMonitor) {
+                            clearInterval(pc._qualityMonitor);
+                        }
+
                         // Clean up video element
                         const videoWrapper = document.getElementById('remoteVideo_' + peerId);
                         if (videoWrapper) {
@@ -825,6 +898,17 @@
                     } else if (pc.connectionState === 'connected') {
                         updatePeerCount();
                         console.log('✅ Peer connected:', peerId);
+
+                        // Monitor connection quality for mobile devices
+                        monitorConnectionQuality(pc, peerId);
+                    }
+                };
+
+                // Monitor ICE connection state for mobile issues
+                pc.oniceconnectionstatechange = function() {
+                    console.log('Peer', peerId, 'ICE connection state:', pc.iceConnectionState);
+                    if (pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'disconnected') {
+                        console.warn('⚠️ ICE connection issue for peer:', peerId, '- may need to reconnect');
                     }
                 };
 
