@@ -453,18 +453,12 @@
                 // Wait a moment, then request all peers to reconnect
                 setTimeout(() => {
                     console.log('📢 Broadcasting reconnection request to room');
+                    console.log('Current camera name:', myCameraName || '(none)');
 
                     // Emit a special reconnect event that triggers others to send offers
                     socket.emit(endpoint + 'cameracamera' + 'reconnect', {
                         userId: socket.id
                     });
-
-                    // Also send our camera name if we have one
-                    if (myCameraName) {
-                        socket.emit(cameraNameUpdateSocketEvent, {
-                            cameraName: myCameraName
-                        });
-                    }
 
                     console.log('🔄 Reconnection process initiated');
 
@@ -991,6 +985,12 @@
             function handleCameraNameUpdate(data) {
                 console.log('📥 Received camera name update from:', data.userId, 'name:', data.cameraName || '(cleared)');
 
+                // Ignore updates from ourselves
+                if (data.userId === socket.id) {
+                    console.log('⏭️ Ignoring our own camera name update');
+                    return;
+                }
+
                 // Store the new name
                 if (data.cameraName) {
                     peerCameraNames[data.userId] = data.cameraName;
@@ -1007,6 +1007,8 @@
                         label.textContent = `📹 ${displayName}`;
                         console.log('✅ Updated video label for', data.userId, 'to:', displayName);
                     }
+                } else {
+                    console.log('⚠️ No video element found for peer:', data.userId);
                 }
             }
 
@@ -1375,14 +1377,7 @@
                 // Only create connection if this is a different peer
                 if (data.userId !== socket.id) {
                     console.log('Creating peer connection (camera:', isCameraEnabled, 'mic:', isMicEnabled, ')');
-
-                    // Send our camera name to the new peer if we have one set
-                    if (myCameraName) {
-                        socket.emit(cameraNameUpdateSocketEvent, {
-                            cameraName: myCameraName
-                        });
-                        console.log('📤 Sent initial camera name to new peer:', myCameraName);
-                    }
+                    console.log('My camera name:', myCameraName || '(not set)');
 
                     // Create peer connection (will add any enabled media tracks)
                     const pc = createPeerConnection(data.userId);

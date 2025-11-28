@@ -1116,8 +1116,8 @@ io.on('connection', function(socket){
                 userId: socket.id
             };
 
-            // Broadcast to all other clients in the room
-            socket.to(cameraEndpoint).emit(cameraEndpoint + 'camera' + 'nameupdate', reorderedNameUpdateMsgObject);
+            // Broadcast to all clients (event name contains endpoint so only relevant clients receive it)
+            io.emit(cameraEndpoint + 'camera' + 'nameupdate', reorderedNameUpdateMsgObject);
         });
 
         socket.on(cameraEndpoint + 'camera' + 'reconnect', (reconnectMsgObject) => {
@@ -1127,8 +1127,8 @@ io.on('connection', function(socket){
                 userId: socket.id
             };
 
-            // Broadcast to all other clients in the room
-            socket.to(cameraEndpoint).emit(cameraEndpoint + 'camera' + 'reconnect', reorderedReconnectMsgObject);
+            // Broadcast to all clients (event name contains endpoint so only relevant clients receive it)
+            io.emit(cameraEndpoint + 'camera' + 'reconnect', reorderedReconnectMsgObject);
         });
     });
 
