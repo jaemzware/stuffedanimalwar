@@ -1039,7 +1039,18 @@
             async function handleIceCandidate(data) {
                 const pc = peerConnections[data.from];
                 if (pc && data.candidate) {
-                    await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+                    try {
+                        // Validate candidate has required properties
+                        if (data.candidate.candidate && data.candidate.candidate.trim() !== '') {
+                            await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+                        } else {
+                            console.warn('⚠️ Skipping invalid/empty ICE candidate from:', data.from);
+                        }
+                    } catch (error) {
+                        // Safari can be strict about candidate format - log but don't crash
+                        console.warn('⚠️ Failed to add ICE candidate from:', data.from, 'Error:', error.message);
+                        console.debug('Candidate data:', data.candidate);
+                    }
                 }
             }
 
