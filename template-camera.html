@@ -138,8 +138,12 @@
 
             .camera-grid {
                 display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-                gap: 20px;
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                gap: 15px;
+                margin-bottom: 20px;
+            }
+
+            #localCameraSection {
                 margin-bottom: 20px;
             }
 
@@ -179,7 +183,8 @@
                 height: auto;
                 display: block;
                 background: #000;
-                min-height: 240px;
+                min-height: 180px;
+                max-height: 300px;
                 object-fit: contain;
             }
 
@@ -258,7 +263,7 @@
             Connecting to room...
         </div>
 
-        <div id="localCameraSection" style="display: none;">
+        <div id="localCameraSection" style="display: none; max-width: 400px;">
             <div class="camera-card local-camera">
                 <div class="camera-label">
                     <span>📹 Your Camera</span>
