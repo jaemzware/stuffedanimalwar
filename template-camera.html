@@ -961,24 +961,34 @@
 
                 // Only respond if this is a different peer
                 if (data.userId !== socket.id) {
-                    console.log('Creating new peer connection for reconnecting peer:', data.userId);
+                    // Glare resolution: only the peer with the lower ID creates the offer
+                    // This prevents both peers from sending offers simultaneously
+                    const shouldCreateOffer = socket.id < data.userId;
 
-                    // Create peer connection (will add any enabled media tracks)
-                    const pc = createPeerConnection(data.userId);
+                    console.log('Should create offer:', shouldCreateOffer, '(my ID:', socket.id, 'vs their ID:', data.userId, ')');
 
-                    // Send offer to the reconnecting peer
-                    pc.createOffer().then(offer => pc.setLocalDescription(offer))
-                        .then(() => {
-                            socket.emit(voiceOfferSocketEvent, {
-                                offer: pc.localDescription,
-                                to: data.userId,
-                                cameraName: myCameraName
+                    if (shouldCreateOffer) {
+                        console.log('Creating new peer connection for reconnecting peer:', data.userId);
+
+                        // Create peer connection (will add any enabled media tracks)
+                        const pc = createPeerConnection(data.userId);
+
+                        // Send offer to the reconnecting peer
+                        pc.createOffer().then(offer => pc.setLocalDescription(offer))
+                            .then(() => {
+                                socket.emit(voiceOfferSocketEvent, {
+                                    offer: pc.localDescription,
+                                    to: data.userId,
+                                    cameraName: myCameraName
+                                });
+                                console.log('📤 Sent offer to reconnecting peer:', data.userId);
+                            })
+                            .catch(err => {
+                                console.error('❌ Error creating offer for reconnecting peer:', err);
                             });
-                            console.log('📤 Sent offer to reconnecting peer:', data.userId);
-                        })
-                        .catch(err => {
-                            console.error('❌ Error creating offer for reconnecting peer:', err);
-                        });
+                    } else {
+                        console.log('⏸️ Waiting for offer from peer:', data.userId, '(they have lower ID)');
+                    }
                 }
             }
 
@@ -1376,26 +1386,37 @@
 
                 // Only create connection if this is a different peer
                 if (data.userId !== socket.id) {
+                    // Glare resolution: only the peer with the lower ID creates the offer
+                    // This prevents both peers from sending offers simultaneously when joining at the same time
+                    const shouldCreateOffer = socket.id < data.userId;
+
                     console.log('Creating peer connection (camera:', isCameraEnabled, 'mic:', isMicEnabled, ')');
                     console.log('My camera name:', myCameraName || '(not set)');
+                    console.log('Should create offer:', shouldCreateOffer, '(my ID:', socket.id, 'vs their ID:', data.userId, ')');
 
-                    // Create peer connection (will add any enabled media tracks)
-                    const pc = createPeerConnection(data.userId);
+                    if (shouldCreateOffer) {
+                        // Create peer connection (will add any enabled media tracks)
+                        const pc = createPeerConnection(data.userId);
 
-                    // Always create and send offer, even if we don't have media yet
-                    // This establishes the connection, and media can be added later
-                    pc.createOffer().then(offer => pc.setLocalDescription(offer))
-                        .then(() => {
-                            socket.emit(voiceOfferSocketEvent, {
-                                offer: pc.localDescription,
-                                to: data.userId,
-                                cameraName: myCameraName
+                        // Always create and send offer, even if we don't have media yet
+                        // This establishes the connection, and media can be added later
+                        pc.createOffer().then(offer => pc.setLocalDescription(offer))
+                            .then(() => {
+                                socket.emit(voiceOfferSocketEvent, {
+                                    offer: pc.localDescription,
+                                    to: data.userId,
+                                    cameraName: myCameraName
+                                });
+                                console.log('📤 Sent offer to new peer:', data.userId, 'with name:', myCameraName || '(default)');
+                            })
+                            .catch(err => {
+                                console.error('❌ Error creating offer:', err);
                             });
-                            console.log('📤 Sent offer to new peer:', data.userId, 'with name:', myCameraName || '(default)');
-                        })
-                        .catch(err => {
-                            console.error('❌ Error creating offer:', err);
-                        });
+                    } else {
+                        console.log('⏸️ Waiting for offer from peer:', data.userId, '(they have lower ID)');
+                        // Still create the peer connection so we're ready to receive their offer
+                        createPeerConnection(data.userId);
+                    }
                 }
             });
         </script>
