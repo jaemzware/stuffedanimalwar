@@ -246,6 +246,9 @@
                 <option value="">Select Camera...</option>
             </select>
 
+            <input type="text" id="cameraNameInput" placeholder="Your camera name..."
+                   style="width: 100%; padding: 10px; margin: 8px 0; border: 2px solid #555; border-radius: 8px; background: #2a2a3e; color: white; font-size: 14px;">
+
             <label class="checkbox-label">
                 <input type="checkbox" id="acceptCameraCheckbox" checked>
                 <span>Show Remote Cameras</span>
@@ -266,7 +269,7 @@
         <div id="localCameraSection" style="display: none; max-width: 400px;">
             <div class="camera-card local-camera">
                 <div class="camera-label">
-                    <span>📹 Your Camera</span>
+                    <span id="localCameraNameLabel">📹 Your Camera</span>
                     <span class="badge">LOCAL</span>
                 </div>
                 <video id="localCameraVideo" autoplay playsinline muted></video>
@@ -305,6 +308,9 @@
             let peerConnections = {};
             let remoteCameraStreams = {};
             let isRemoteAudioMuted = false;
+            let pendingIceCandidates = {}; // Queue for ICE candidates that arrive before remote description
+            let myCameraName = ''; // User's custom camera name
+            let peerCameraNames = {}; // Map of peerId -> camera name
 
             // ICE servers
             const iceServers = {
@@ -328,6 +334,16 @@
                 document.getElementById('cameraSelector').addEventListener('change', handleCameraChange);
                 document.getElementById('acceptCameraCheckbox').addEventListener('change', handleAcceptCameraChange);
                 document.getElementById('acceptMicCheckbox').addEventListener('change', handleAcceptMicChange);
+                document.getElementById('cameraNameInput').addEventListener('input', function(e) {
+                    myCameraName = e.target.value.trim();
+                    console.log('Camera name set to:', myCameraName || '(default)');
+
+                    // Update local camera label if camera is visible
+                    const localCameraNameLabel = document.getElementById('localCameraNameLabel');
+                    if (localCameraNameLabel) {
+                        localCameraNameLabel.textContent = myCameraName ? `📹 ${myCameraName}` : '📹 Your Camera';
+                    }
+                });
 
                 populateCameraDevices();
                 initializeSocketHandlers();
@@ -539,7 +555,8 @@
                                 .then(() => {
                                     socket.emit(voiceOfferSocketEvent, {
                                         offer: pc.localDescription,
-                                        to: peerId
+                                        to: peerId,
+                                        cameraName: myCameraName
                                     });
                                 });
                         }
@@ -662,7 +679,8 @@
                                     .then(() => {
                                         socket.emit(voiceOfferSocketEvent, {
                                             offer: pc.localDescription,
-                                            to: peerId
+                                            to: peerId,
+                                            cameraName: myCameraName
                                         });
                                     });
                             }
@@ -710,6 +728,25 @@
             function updatePeerCount() {
                 const count = Object.keys(peerConnections).length;
                 document.getElementById('peerCount').textContent = 'Peers: ' + count;
+
+                // Diagnostic: log peer connection states on Safari
+                console.log('📊 Peer connections:', count);
+                Object.keys(peerConnections).forEach(peerId => {
+                    const pc = peerConnections[peerId];
+                    const receivers = pc.getReceivers();
+                    const videoReceivers = receivers.filter(r => r.track && r.track.kind === 'video');
+                    const audioReceivers = receivers.filter(r => r.track && r.track.kind === 'audio');
+                    console.log(`  Peer ${peerId.substring(0, 8)}:`,
+                        'connection:', pc.connectionState,
+                        'ice:', pc.iceConnectionState,
+                        'video tracks:', videoReceivers.length,
+                        'audio tracks:', audioReceivers.length);
+
+                    // Log track states
+                    videoReceivers.forEach((r, i) => {
+                        console.log(`    Video ${i}:`, 'readyState:', r.track.readyState, 'muted:', r.track.muted);
+                    });
+                });
             }
 
             function updateEmptyState() {
@@ -855,7 +892,8 @@
                 };
 
                 pc.ontrack = function(event) {
-                    console.log('📥 Received track from peer:', peerId, 'kind:', event.track.kind);
+                    console.log('📥 Received track from peer:', peerId, 'kind:', event.track.kind, 'readyState:', event.track.readyState, 'muted:', event.track.muted);
+                    console.log('   Track ID:', event.track.id, 'Streams:', event.streams.length);
 
                     if (event.track.kind === 'video') {
                         const acceptCameraCheckbox = document.getElementById('acceptCameraCheckbox');
@@ -874,7 +912,8 @@
 
                             const label = document.createElement('div');
                             label.className = 'camera-label';
-                            label.innerHTML = `<span>📹 Peer ${peerId.substring(0, 8)}</span><span class="badge">LIVE</span>`;
+                            const displayName = peerCameraNames[peerId] || `Peer ${peerId.substring(0, 8)}`;
+                            label.innerHTML = `<span>📹 ${displayName}</span><span class="badge">LIVE</span>`;
 
                             const video = document.createElement('video');
                             video.autoplay = true;
@@ -991,6 +1030,17 @@
 
                         delete peerConnections[peerId];
                         delete remoteCameraStreams[peerId];
+
+                        // Clean up pending ICE candidates
+                        if (pendingIceCandidates[peerId]) {
+                            delete pendingIceCandidates[peerId];
+                        }
+
+                        // Clean up peer camera name
+                        if (peerCameraNames[peerId]) {
+                            delete peerCameraNames[peerId];
+                        }
+
                         updatePeerCount();
                         updateEmptyState();
                         console.log('❌ Cleaned up peer:', peerId);
@@ -1016,31 +1066,112 @@
 
             async function handleOffer(data) {
                 console.log('Received offer from:', data.from);
+
+                // Store peer's camera name if provided
+                if (data.cameraName) {
+                    peerCameraNames[data.from] = data.cameraName;
+                    console.log('📝 Stored camera name for', data.from, ':', data.cameraName);
+                }
+
                 const pc = createPeerConnection(data.from);
 
-                await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
-                const answer = await pc.createAnswer();
-                await pc.setLocalDescription(answer);
+                try {
+                    await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
+                    console.log('✅ Set remote description for offer from:', data.from);
 
-                socket.emit(voiceAnswerSocketEvent, {
-                    answer: pc.localDescription,
-                    to: data.from
-                });
+                    // Process any pending ICE candidates
+                    await processPendingIceCandidates(data.from);
+
+                    const answer = await pc.createAnswer();
+                    await pc.setLocalDescription(answer);
+
+                    socket.emit(voiceAnswerSocketEvent, {
+                        answer: pc.localDescription,
+                        to: data.from,
+                        cameraName: myCameraName
+                    });
+                    console.log('📤 Sent answer to:', data.from);
+                } catch (error) {
+                    console.error('❌ Error handling offer from:', data.from, error.message);
+                    console.debug('Offer data:', data.offer);
+                }
             }
 
             async function handleAnswer(data) {
                 console.log('Received answer from:', data.from);
+
+                // Store peer's camera name if provided
+                if (data.cameraName) {
+                    peerCameraNames[data.from] = data.cameraName;
+                    console.log('📝 Stored camera name for', data.from, ':', data.cameraName);
+                }
+
                 const pc = peerConnections[data.from];
                 if (pc) {
-                    await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+                    try {
+                        await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+                        console.log('✅ Set remote description for answer from:', data.from);
+
+                        // Process any pending ICE candidates
+                        await processPendingIceCandidates(data.from);
+                    } catch (error) {
+                        console.error('❌ Error handling answer from:', data.from, error.message);
+                        console.debug('Answer data:', data.answer);
+                    }
+                } else {
+                    console.warn('⚠️ Received answer from unknown peer:', data.from);
                 }
             }
 
             async function handleIceCandidate(data) {
                 const pc = peerConnections[data.from];
-                if (pc && data.candidate) {
-                    await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+                if (!pc || !data.candidate) return;
+
+                // Validate candidate has required properties
+                if (!data.candidate.candidate || data.candidate.candidate.trim() === '') {
+                    console.warn('⚠️ Skipping invalid/empty ICE candidate from:', data.from);
+                    return;
                 }
+
+                // If remote description not set yet, queue the candidate
+                if (!pc.remoteDescription || !pc.remoteDescription.type) {
+                    console.log('⏸️ Queueing ICE candidate from:', data.from, '(remote description not set)');
+                    if (!pendingIceCandidates[data.from]) {
+                        pendingIceCandidates[data.from] = [];
+                    }
+                    pendingIceCandidates[data.from].push(data.candidate);
+                    return;
+                }
+
+                // Remote description is set, add candidate
+                try {
+                    await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+                } catch (error) {
+                    // Safari can be strict about candidate format - log but don't crash
+                    console.warn('⚠️ Failed to add ICE candidate from:', data.from, 'Error:', error.message);
+                    console.debug('Candidate data:', data.candidate);
+                }
+            }
+
+            async function processPendingIceCandidates(peerId) {
+                const pc = peerConnections[peerId];
+                const candidates = pendingIceCandidates[peerId];
+
+                if (!pc || !candidates || candidates.length === 0) return;
+
+                console.log('🔄 Processing', candidates.length, 'pending ICE candidates for:', peerId);
+
+                for (const candidate of candidates) {
+                    try {
+                        await pc.addIceCandidate(new RTCIceCandidate(candidate));
+                    } catch (error) {
+                        console.warn('⚠️ Failed to add pending ICE candidate:', error.message);
+                    }
+                }
+
+                // Clear the queue
+                delete pendingIceCandidates[peerId];
+                console.log('✅ Processed all pending ICE candidates for:', peerId);
             }
 
             function handlePeerDisconnect(data) {
@@ -1068,6 +1199,16 @@
                     delete peerConnections[data.userId];
                 }
 
+                // Clean up pending ICE candidates
+                if (pendingIceCandidates[data.userId]) {
+                    delete pendingIceCandidates[data.userId];
+                }
+
+                // Clean up peer camera name
+                if (peerCameraNames[data.userId]) {
+                    delete peerCameraNames[data.userId];
+                }
+
                 delete remoteCameraStreams[data.userId];
                 updatePeerCount();
                 updateEmptyState();
@@ -1090,9 +1231,10 @@
                         .then(() => {
                             socket.emit(voiceOfferSocketEvent, {
                                 offer: pc.localDescription,
-                                to: data.userId
+                                to: data.userId,
+                                cameraName: myCameraName
                             });
-                            console.log('📤 Sent offer to new peer:', data.userId);
+                            console.log('📤 Sent offer to new peer:', data.userId, 'with name:', myCameraName || '(default)');
                         })
                         .catch(err => {
                             console.error('❌ Error creating offer:', err);
