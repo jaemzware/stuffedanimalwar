@@ -1063,12 +1063,13 @@ io.on('connection', function(socket){
         const cameraEndpoint = endpoint + 'camera';
 
         socket.on(cameraEndpoint + 'camera' + 'voiceoffer', (offerMsgObject) => {
-            console.log('CAMERA OFFER:', cameraEndpoint, 'from:', socket.id, 'to:', offerMsgObject.to || 'broadcast');
+            console.log('CAMERA OFFER:', cameraEndpoint, 'from:', socket.id, 'to:', offerMsgObject.to || 'broadcast', 'name:', offerMsgObject.cameraName || '(none)');
 
             const reorderedOfferMsgObject = {
                 offer: offerMsgObject.offer,
                 from: socket.id,
-                to: offerMsgObject.to || 'broadcast'
+                to: offerMsgObject.to || 'broadcast',
+                cameraName: offerMsgObject.cameraName
             };
 
             if (offerMsgObject.to) {
@@ -1079,12 +1080,13 @@ io.on('connection', function(socket){
         });
 
         socket.on(cameraEndpoint + 'camera' + 'voiceanswer', (answerMsgObject) => {
-            console.log('CAMERA ANSWER:', cameraEndpoint, 'from:', socket.id, 'to:', answerMsgObject.to);
+            console.log('CAMERA ANSWER:', cameraEndpoint, 'from:', socket.id, 'to:', answerMsgObject.to, 'name:', answerMsgObject.cameraName || '(none)');
 
             const reorderedAnswerMsgObject = {
                 answer: answerMsgObject.answer,
                 from: socket.id,
-                to: answerMsgObject.to
+                to: answerMsgObject.to,
+                cameraName: answerMsgObject.cameraName
             };
 
             io.to(answerMsgObject.to).emit(cameraEndpoint + 'camera' + 'voiceanswer', reorderedAnswerMsgObject);
@@ -1104,6 +1106,18 @@ io.on('connection', function(socket){
             } else {
                 io.emit(cameraEndpoint + 'camera' + 'voiceicecandidate', reorderedIceMsgObject);
             }
+        });
+
+        socket.on(cameraEndpoint + 'camera' + 'nameupdate', (nameUpdateMsgObject) => {
+            console.log('CAMERA NAME UPDATE:', cameraEndpoint, 'from:', socket.id, 'name:', nameUpdateMsgObject.cameraName || '(cleared)');
+
+            const reorderedNameUpdateMsgObject = {
+                cameraName: nameUpdateMsgObject.cameraName,
+                userId: socket.id
+            };
+
+            // Broadcast to all other clients in the room
+            socket.to(cameraEndpoint).emit(cameraEndpoint + 'camera' + 'nameupdate', reorderedNameUpdateMsgObject);
         });
     });
 

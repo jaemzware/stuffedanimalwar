@@ -326,6 +326,7 @@
             const voiceIceCandidateSocketEvent = endpoint + 'cameracamera' + 'voiceicecandidate';
             const connectSocketEvent = endpoint + 'cameracamera' + 'connect';
             const disconnectSocketEvent = endpoint + 'cameracamera' + 'disconnect';
+            const cameraNameUpdateSocketEvent = endpoint + 'cameracamera' + 'nameupdate';
 
             // Initialize
             document.addEventListener('DOMContentLoaded', function() {
@@ -343,6 +344,12 @@
                     if (localCameraNameLabel) {
                         localCameraNameLabel.textContent = myCameraName ? `📹 ${myCameraName}` : '📹 Your Camera';
                     }
+
+                    // Broadcast name change to all connected peers
+                    socket.emit(cameraNameUpdateSocketEvent, {
+                        cameraName: myCameraName
+                    });
+                    console.log('📤 Broadcast camera name update:', myCameraName || '(cleared)');
                 });
 
                 populateCameraDevices();
@@ -854,6 +861,29 @@
                 socket.on(endpoint + 'cameracamera' + 'voiceanswer', handleAnswer);
                 socket.on(endpoint + 'cameracamera' + 'voiceicecandidate', handleIceCandidate);
                 socket.on(endpoint + 'cameracamera' + 'disconnect', handlePeerDisconnect);
+                socket.on(endpoint + 'cameracamera' + 'nameupdate', handleCameraNameUpdate);
+            }
+
+            function handleCameraNameUpdate(data) {
+                console.log('📥 Received camera name update from:', data.userId, 'name:', data.cameraName || '(cleared)');
+
+                // Store the new name
+                if (data.cameraName) {
+                    peerCameraNames[data.userId] = data.cameraName;
+                } else {
+                    delete peerCameraNames[data.userId];
+                }
+
+                // Update the video label if it exists
+                const videoWrapper = document.getElementById('remoteVideo_' + data.userId);
+                if (videoWrapper) {
+                    const label = videoWrapper.querySelector('.camera-label span:first-child');
+                    if (label) {
+                        const displayName = peerCameraNames[data.userId] || `Peer ${data.userId.substring(0, 8)}`;
+                        label.textContent = `📹 ${displayName}`;
+                        console.log('✅ Updated video label for', data.userId, 'to:', displayName);
+                    }
+                }
             }
 
             function createPeerConnection(peerId) {
@@ -1221,6 +1251,14 @@
                 // Only create connection if this is a different peer
                 if (data.userId !== socket.id) {
                     console.log('Creating peer connection (camera:', isCameraEnabled, 'mic:', isMicEnabled, ')');
+
+                    // Send our camera name to the new peer if we have one set
+                    if (myCameraName) {
+                        socket.emit(cameraNameUpdateSocketEvent, {
+                            cameraName: myCameraName
+                        });
+                        console.log('📤 Sent initial camera name to new peer:', myCameraName);
+                    }
 
                     // Create peer connection (will add any enabled media tracks)
                     const pc = createPeerConnection(data.userId);
