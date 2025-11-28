@@ -492,6 +492,12 @@
                         cameraSelector.appendChild(option);
                     });
 
+                    // Restore previously selected camera if it exists
+                    if (selectedCameraDeviceId) {
+                        cameraSelector.value = selectedCameraDeviceId;
+                        console.log('Restored selected camera:', selectedCameraDeviceId);
+                    }
+
                     console.log('Found', videoDevices.length, 'camera(s)');
                 } catch (error) {
                     console.error('Error enumerating cameras:', error);
