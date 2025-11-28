@@ -719,6 +719,53 @@
                 emptyState.style.display = hasRemoteCameras ? 'none' : 'block';
             }
 
+            // Monitor if video element is actually rendering frames
+            function monitorVideoRendering(videoElement, peerId, videoWrapper) {
+                let noVideoCount = 0;
+                const checkInterval = 3000; // Check every 3 seconds
+
+                const renderMonitor = setInterval(() => {
+                    // Check if video has dimensions (indicates it's loaded)
+                    if (videoElement.videoWidth > 0 && videoElement.videoHeight > 0) {
+                        // Video has dimensions, reset counter
+                        noVideoCount = 0;
+
+                        // Update badge to show resolution
+                        const badge = videoWrapper.querySelector('.badge');
+                        if (badge && badge.textContent === 'LIVE') {
+                            // Optionally show resolution
+                            // badge.textContent = `${videoElement.videoWidth}x${videoElement.videoHeight}`;
+                        }
+                    } else {
+                        // Video element exists but has no dimensions (black screen)
+                        noVideoCount++;
+
+                        if (noVideoCount >= 3) { // 9 seconds of black screen
+                            console.error(`⬛ Black screen detected for peer ${peerId}!`);
+                            console.log('Video element state:', {
+                                readyState: videoElement.readyState,
+                                networkState: videoElement.networkState,
+                                paused: videoElement.paused,
+                                videoWidth: videoElement.videoWidth,
+                                videoHeight: videoElement.videoHeight,
+                                srcObject: !!videoElement.srcObject
+                            });
+
+                            // Update badge to show issue
+                            const badge = videoWrapper.querySelector('.badge');
+                            if (badge) {
+                                badge.textContent = 'NO VIDEO';
+                                badge.style.background = '#000';
+                                badge.style.color = '#fff';
+                            }
+                        }
+                    }
+                }, checkInterval);
+
+                // Store monitor so we can clean it up
+                videoElement._renderMonitor = renderMonitor;
+            }
+
             // Monitor connection quality and detect frozen streams
             function monitorConnectionQuality(pc, peerId) {
                 const checkInterval = 5000; // Check every 5 seconds
@@ -842,6 +889,54 @@
                             console.log('✅ Created video element for peer:', peerId);
                         }
 
+                        // Monitor video track state
+                        event.track.onended = function() {
+                            console.warn('⚠️ Video track ended for peer:', peerId);
+                            const badge = videoWrapper.querySelector('.badge');
+                            if (badge) {
+                                badge.textContent = 'OFFLINE';
+                                badge.style.background = '#dc3545';
+                            }
+                        };
+
+                        event.track.onmute = function() {
+                            console.warn('🔇 Video track muted for peer:', peerId);
+                            const badge = videoWrapper.querySelector('.badge');
+                            if (badge) {
+                                badge.textContent = 'PAUSED';
+                                badge.style.background = '#ffc107';
+                            }
+                        };
+
+                        event.track.onunmute = function() {
+                            console.log('🔊 Video track unmuted for peer:', peerId);
+                            const badge = videoWrapper.querySelector('.badge');
+                            if (badge) {
+                                badge.textContent = 'LIVE';
+                                badge.style.background = '#28a745';
+                            }
+                        };
+
+                        // Monitor stream state
+                        event.streams[0].onactive = function() {
+                            console.log('✅ Stream became active for peer:', peerId);
+                        };
+
+                        event.streams[0].oninactive = function() {
+                            console.warn('⚠️ Stream became inactive for peer:', peerId);
+                            const badge = videoWrapper.querySelector('.badge');
+                            if (badge) {
+                                badge.textContent = 'INACTIVE';
+                                badge.style.background = '#6c757d';
+                            }
+                        };
+
+                        // Monitor if video is actually rendering (detect black screens)
+                        const video = videoWrapper.querySelector('video');
+                        if (video) {
+                            monitorVideoRendering(video, peerId, videoWrapper);
+                        }
+
                         updateEmptyState();
                     } else if (event.track.kind === 'audio') {
                         console.log('🎤 Received audio track from peer:', peerId);
@@ -878,9 +973,13 @@
                             clearInterval(pc._qualityMonitor);
                         }
 
-                        // Clean up video element
+                        // Clean up video element and monitors
                         const videoWrapper = document.getElementById('remoteVideo_' + peerId);
                         if (videoWrapper) {
+                            const video = videoWrapper.querySelector('video');
+                            if (video && video._renderMonitor) {
+                                clearInterval(video._renderMonitor);
+                            }
                             videoWrapper.remove();
                         }
 
@@ -947,9 +1046,13 @@
             function handlePeerDisconnect(data) {
                 console.log('Peer disconnected:', data.userId);
 
-                // Clean up video element
+                // Clean up video element and monitors
                 const videoWrapper = document.getElementById('remoteVideo_' + data.userId);
                 if (videoWrapper) {
+                    const video = videoWrapper.querySelector('video');
+                    if (video && video._renderMonitor) {
+                        clearInterval(video._renderMonitor);
+                    }
                     videoWrapper.remove();
                 }
 
