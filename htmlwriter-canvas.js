@@ -425,16 +425,33 @@ function writeChatForm(responsesObject) {
         document.write("<span id='micLabel'>Enable Mic</span>");
         document.write("</button>");
 
+        // Camera button
+        document.write("<button id='cameraToggleButton' type='button' style='padding: 6px 12px; background: #666; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 5px; transition: all 0.3s; flex: 1 1 auto; min-width: 120px;'>");
+        document.write("<span id='cameraIcon'>📹</span>");
+        document.write("<span id='cameraLabel'>Enable Camera</span>");
+        document.write("</button>");
+
         // Accept incoming mic audio checkbox (unchecked by default)
         document.write("<label style='padding: 8px 12px; background: #2a2a3e; color: white; border-radius: 6px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 8px; transition: all 0.3s; flex: 1 1 auto; min-width: 160px; user-select: none;'>");
         document.write("<input type='checkbox' id='acceptMicChatCheckbox' style='width: 18px; height: 18px; cursor: pointer; accent-color: #28a745;'>");
         document.write("<span style='flex: 1;'>Accept Mic Chat</span>");
         document.write("</label>");
 
+        // Accept incoming camera video checkbox (unchecked by default)
+        document.write("<label style='padding: 8px 12px; background: #2a2a3e; color: white; border-radius: 6px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 8px; transition: all 0.3s; flex: 1 1 auto; min-width: 160px; user-select: none;'>");
+        document.write("<input type='checkbox' id='acceptCameraCheckbox' style='width: 18px; height: 18px; cursor: pointer; accent-color: #28a745;'>");
+        document.write("<span style='flex: 1;'>Accept Camera</span>");
+        document.write("</label>");
+
         // Test speakers button
         document.write("<button id='testSpeakersButton' type='button' style='padding: 6px 12px; background: #17a2b8; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; flex: 1 1 auto; min-width: 120px;'>");
         document.write("🔊 Test Speakers");
         document.write("</button>");
+
+        // Camera device selector
+        document.write("<select id='cameraSelector' style='padding: 6px 12px; background: #2a2a3e; color: white; border: 1px solid #444; border-radius: 6px; cursor: pointer; font-size: 13px; flex: 1 1 auto; min-width: 180px;'>");
+        document.write("<option value=''>Select Camera...</option>");
+        document.write("</select>");
 
         // Status indicator
         document.write("<span id='voiceChatStatus' style='color: #999; font-size: 11px; flex: 1 1 100%; margin-top: 5px;'>Voice chat ready</span>");
@@ -445,6 +462,23 @@ function writeChatForm(responsesObject) {
         // Add CSS animation for pulse
         document.write("<style>@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }</style>");
 
+        document.write("</div>");
+
+        // Local camera preview
+        document.write("<div id='localCameraPreview' style='display: none; margin-top: 15px; padding: 10px; background: rgba(0, 0, 0, 0.3); border-radius: 8px;'>");
+        document.write("<div style='display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;'>");
+        document.write("<span style='color: #fff; font-size: 13px; font-weight: bold;'>📹 Your Camera</span>");
+        document.write("<span id='cameraStatus' style='color: #999; font-size: 11px;'>Initializing...</span>");
+        document.write("</div>");
+        document.write("<video id='localCameraVideo' autoplay playsinline muted style='width: 100%; max-width: 400px; border-radius: 6px; background: #000;'></video>");
+        document.write("</div>");
+
+        // Remote camera feeds container
+        document.write("<div id='remoteCameraFeeds' style='display: none; margin-top: 15px; padding: 10px; background: rgba(0, 0, 0, 0.3); border-radius: 8px;'>");
+        document.write("<div style='margin-bottom: 8px;'>");
+        document.write("<span style='color: #fff; font-size: 13px; font-weight: bold;'>📹 Remote Cameras</span>");
+        document.write("</div>");
+        document.write("<div id='remoteCameraContainer' style='display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px;'></div>");
         document.write("</div>");
 
     document.write("</form>");

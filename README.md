@@ -35,6 +35,122 @@ A privacy-focused, real-time chat, game, and media sharing platform built with N
 
 ### Communication
 - **Real-time Communication**: Instant chat, media sharing, and game interactions via WebSockets
+- **WebRTC Voice Chat**: Peer-to-peer audio communication in main rooms
+- **Camera Endpoints**: Dedicated video/audio rooms for multi-device streaming and monitoring
+
+## 🌐 Endpoints Overview
+
+StuffedAnimalWar provides multiple types of endpoints for different use cases:
+
+### Quick Reference
+
+| Endpoint Pattern | Example | Purpose |
+|-----------------|---------|---------|
+| `/` | `https://yourserver:55556/` | Landing page with all room links |
+| `/{endpoint}` | `https://yourserver:55556/jim` | Main interactive room |
+| `/{endpoint}camera` | `https://yourserver:55556/jimcamera` | Video/audio streaming room |
+| `/{endpoint}?readonly=true` | `https://yourserver:55556/jim?readonly=true` | Read-only display mode |
+| `/crud-manager` | `https://yourserver:55556/crud-manager` | Endpoint configuration manager |
+| `/setup` | `https://yourserver:55556/setup` | Raspberry Pi WiFi setup |
+
+---
+
+### Main Room Endpoints
+```
+https://yourserver.com:55556/{endpoint}
+```
+Interactive room with chat, drawing, game mechanics, and media sharing.
+
+**Examples:**
+- `https://yourserver.com:55556/jim` - Jim's room
+- `https://yourserver.com:55556/maddie` - Maddie's room
+- `https://yourserver.com:55556/katie` - Katie's room
+
+**Features:**
+- Real-time chat with custom responses
+- Collaborative drawing canvas
+- Stuffed Animal War game
+- Music/video/photo sharing
+- DJ controls (for designated users)
+- WebRTC voice chat
+
+---
+
+### Camera Endpoints (NEW!)
+```
+https://yourserver.com:55556/{endpoint}camera
+```
+Dedicated camera room for video and audio streaming between peers.
+
+**Examples:**
+- `https://yourserver.com:55556/jimcamera` - Camera room for Jim endpoint
+- `https://yourserver.com:55556/maddiecamera` - Camera room for Maddie endpoint
+- `https://yourserver.com:55556/katiecamera` - Camera room for Katie endpoint
+
+**Features:**
+- 📹 **Local camera preview** - See your own device camera
+- 📹 **Remote camera viewing** - See cameras from other users in the same room
+- 🎤 **Microphone support** - Share audio with others
+- 🔇 **Mute controls** - Toggle video/audio reception
+- 🎯 **Room isolation** - Each camera endpoint is completely separate
+- 📱 **Multi-device** - Works on laptops, phones, tablets, Raspberry Pi
+- 🔒 **WebRTC P2P** - Direct peer-to-peer video/audio streaming
+
+**Use Cases:**
+- Monitor Raspberry Pi camera remotely
+- Video chat with room participants
+- Security camera viewing
+- Multi-camera surveillance
+- Remote collaboration
+
+---
+
+### CRUD Manager
+```
+https://yourserver.com:55556/crud-manager
+```
+Password-protected web interface for managing endpoint configurations.
+
+**Features:**
+- Create, read, update, delete endpoint JSON files
+- Live editing of room configurations
+- Test changes without server restart
+- Manage animals, media, and responses
+- Password authentication (default: `jaemzware`)
+
+**See:** [CRUD_README.md](CRUD_README.md) for detailed documentation
+
+---
+
+### Raspberry Pi Setup
+```
+https://yourserver.com:55556/setup
+```
+WiFi configuration interface for Raspberry Pi deployments.
+
+**Features:**
+- Scan and connect to WiFi networks
+- Configure network settings
+- Perfect for headless Pi setup
+- Mobile-friendly interface
+
+**See:** [pisetup/README.md](pisetup/README.md) for setup guide
+
+---
+
+### Root Directory
+```
+https://yourserver.com:55556/
+```
+Landing page with links to all available room endpoints.
+
+**Features:**
+- Grid of all configured endpoints
+- Quick access to all rooms
+- Responsive button layout
+- Mobile-optimized
+
+---
 
 ## 🎯 URL Parameters
 
@@ -68,6 +184,8 @@ https://yourserver.com:55556/jim?readonly=true
 - Public display screens showing live collaborative art
 - Projector displays for group viewing
 - Digital signage showing real-time activity
+
+---
 
 ## 🚀 Quick Start
 
@@ -167,12 +285,16 @@ Perfect for creating a **portable, offline social hub** on your local network:
 
 ```
 stuffedanimalwar/
-├── index.js                    # Express server & Socket.io handler
-├── template.html              # Client-side interface template
-├── stuffedanimalwarmechanics.js # Game logic (client-side)
-├── utilities.js               # Audio/video player utilities
-├── sockethandler.js           # Client-side socket event handlers
-├── {username}.json            # Configuration files for each endpoint
+├── index.js                      # Express server & Socket.io handler
+├── template-canvas.html          # Main room interface template (canvas mode)
+├── template-camera.html          # Camera room interface template
+├── stuffedanimalwarmechanics.js  # Game logic (client-side)
+├── utilities.js                  # Audio/video player utilities
+├── sockethandler.js              # Client-side socket event handlers
+├── htmlwriter-canvas.js          # Dynamic HTML generation for main rooms
+├── endpoints/{username}.json     # Configuration files for each endpoint
+├── crud-manager.html             # CRUD interface for endpoint management
+├── pisetup/                      # Raspberry Pi WiFi setup utilities
 └── package.json
 ```
 
@@ -298,6 +420,20 @@ Each `.json` file customizes the endpoint experience with multiple sections:
 - Manages game board state including animal positions and bullet interactions
 - Example: `maddietapmessage` for the 'maddie' endpoint
 
+**Voice Chat Events** (Main Rooms): `{endpoint}voiceoffer`, `{endpoint}voiceanswer`, `{endpoint}voiceicecandidate`
+- WebRTC signaling for peer-to-peer audio chat in main rooms
+- Example: `jimvoiceoffer` for the 'jim' endpoint
+
+**Camera Room Events**: `{endpoint}cameracameravoiceoffer`, `{endpoint}cameracameravoiceanswer`, `{endpoint}cameracameravoiceicecandidate`
+- WebRTC signaling for peer-to-peer video/audio streaming in camera rooms
+- Handles connection setup, track negotiation, and ICE candidates
+- Example: `jimcameracameravoiceoffer` for the 'jimcamera' endpoint
+
+**Connection Events**: `{endpoint}connect`, `{endpoint}disconnect`
+- Notifies when users join or leave rooms
+- Updates peer counts and manages connection cleanup
+- Example: `jimcameracameraconnect` for camera room connections
+
 ### DJ Privileges
 
 Users with the configured `masterAlias` can:
@@ -333,6 +469,15 @@ Users with the configured `masterAlias` can:
 - **Small communities**: Neighborhood or friend group communication
 - **Development/testing**: Safe environment for testing social features
 
+### **Video & Audio Streaming**
+- **Remote monitoring**: View Raspberry Pi cameras from anywhere on your network
+- **Security cameras**: Monitor multiple camera feeds in isolated rooms
+- **Video chat**: Peer-to-peer video/audio without cloud services
+- **Baby monitors**: Local video monitoring without internet-based services
+- **Pet cameras**: Check on pets remotely within your home network
+- **Workshop streaming**: Share live video of projects or demonstrations
+- **Multi-device collaboration**: Connect laptops, phones, and Pis for group video
+
 ### **Gaming & Entertainment**
 - **Game nights**: Combine digital interaction with physical gatherings
 - **Strategy games**: Place animals and use bullets in colorful tactical battles
@@ -352,6 +497,9 @@ This platform is designed with privacy as a core principle:
 - **Local network only**: Can be isolated from external networks entirely
 - **Decentralized**: Host your own instance for complete control
 - **Open source**: Full transparency of data handling practices
+- **P2P Video/Audio**: Camera streams use WebRTC peer-to-peer connections - no central recording
+- **No cloud services**: All video/audio stays within your local network
+- **Room isolation**: Each camera endpoint is completely separate with no cross-room access
 
 ## 🤝 Contributing
 

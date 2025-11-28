@@ -85,6 +85,8 @@ for (let i = 1; i <= 420; i++) {
 
 // Load canvas template HTML at startup (RIP SVG - we canvas-only now)
 let templateCanvasHtml = fs.readFileSync(path.join(__dirname, 'template-canvas.html'), 'utf8');
+// Load camera template HTML
+let templateCameraHtml = fs.readFileSync(path.join(__dirname, 'template-camera.html'), 'utf8');
 
 //SERVE INDEX FOR NO ENDPOINT AFTER PORT ADDRESS
 app.get('/', function(req, res){
@@ -262,6 +264,23 @@ stuffedAnimalWarEndpoints.forEach(endpoint => {
             res.status(500).send(`Error generating page for endpoint ${endpoint}: ${error.message}`);
         }
     });
+
+    //SERVE THE CAMERA ENDPOINT FOR THIS ROOM
+    app.get('/' + endpoint + 'camera', function(req, res){
+        try {
+            let html = templateCameraHtml;
+            console.log(`Serving camera endpoint for ${endpoint}`);
+
+            // Replace endpoint placeholder
+            html = html.replace(/{{ENDPOINT}}/g, endpoint);
+
+            res.send(html);
+        } catch (error) {
+            console.error(`Error generating camera page for endpoint ${endpoint}:`, error);
+            res.status(500).send(`Error generating camera page for endpoint ${endpoint}: ${error.message}`);
+        }
+    });
+
     //UPLOAD AN IMAGE ENDPOINT
     app.post('/' + endpoint + stuffedAnimalWarChatImageSocketEvent, upload.single('image'), (req, res) => {
         if (!req.file) {
@@ -876,6 +895,18 @@ io.on('connection', function(socket){
     console.log(JSON.stringify(connectMsgObject));
     io.emit(endpoint + stuffedAnimalWarConnectSocketEvent,connectMsgObject);
 
+    // If this is a camera endpoint, emit camera connect event
+    if (endpoint && endpoint.endsWith('camera')) {
+        const cameraConnectEvent = endpoint + 'camera' + 'connect';
+        const cameraConnectMsg = {
+            userId: socket.id,
+            endpoint: endpoint,
+            timestamp: connectChatPstString
+        };
+        console.log(`[CAMERA] Broadcasting connect for ${endpoint}, socket: ${socket.id}`);
+        io.emit(cameraConnectEvent, cameraConnectMsg);
+    }
+
     //COMMON--------------------------------------------------------------------------------------
     socket.on('disconnect', function(){
         let chatClientAddress = getClientIp(socket);
@@ -890,9 +921,21 @@ io.on('connection', function(socket){
                 CHATUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
                 CHATCLIENTMESSAGE:'DISCONNECT',
                 CHATCLIENTUSER: ''
-         }; 
+         };
         console.log(JSON.stringify(disconnectMsgObject));
         io.emit(endpoint + stuffedAnimalWarDisconnectSocketEvent,disconnectMsgObject);
+
+        // If this is a camera endpoint, emit camera disconnect event
+        if (endpoint && endpoint.endsWith('camera')) {
+            const cameraDisconnectEvent = endpoint + 'camera' + 'disconnect';
+            const cameraDisconnectMsg = {
+                userId: socket.id,
+                endpoint: endpoint,
+                timestamp: chatPstString
+            };
+            console.log(`[CAMERA] Broadcasting disconnect for ${endpoint}, socket: ${socket.id}`);
+            io.emit(cameraDisconnectEvent, cameraDisconnectMsg);
+        }
     });
          
     //ON ERROR
@@ -1013,6 +1056,53 @@ io.on('connection', function(socket){
                 io.to(iceMsgObject.to).emit(endpoint + stuffedAnimalWarVoiceIceCandidateSocketEvent, reorderedIceMsgObject);
             } else {
                 io.emit(endpoint + stuffedAnimalWarVoiceIceCandidateSocketEvent, reorderedIceMsgObject);
+            }
+        });
+
+        // Camera endpoint WebRTC handlers
+        const cameraEndpoint = endpoint + 'camera';
+
+        socket.on(cameraEndpoint + 'camera' + 'voiceoffer', (offerMsgObject) => {
+            console.log('CAMERA OFFER:', cameraEndpoint, 'from:', socket.id, 'to:', offerMsgObject.to || 'broadcast');
+
+            const reorderedOfferMsgObject = {
+                offer: offerMsgObject.offer,
+                from: socket.id,
+                to: offerMsgObject.to || 'broadcast'
+            };
+
+            if (offerMsgObject.to) {
+                io.to(offerMsgObject.to).emit(cameraEndpoint + 'camera' + 'voiceoffer', reorderedOfferMsgObject);
+            } else {
+                io.emit(cameraEndpoint + 'camera' + 'voiceoffer', reorderedOfferMsgObject);
+            }
+        });
+
+        socket.on(cameraEndpoint + 'camera' + 'voiceanswer', (answerMsgObject) => {
+            console.log('CAMERA ANSWER:', cameraEndpoint, 'from:', socket.id, 'to:', answerMsgObject.to);
+
+            const reorderedAnswerMsgObject = {
+                answer: answerMsgObject.answer,
+                from: socket.id,
+                to: answerMsgObject.to
+            };
+
+            io.to(answerMsgObject.to).emit(cameraEndpoint + 'camera' + 'voiceanswer', reorderedAnswerMsgObject);
+        });
+
+        socket.on(cameraEndpoint + 'camera' + 'voiceicecandidate', (iceMsgObject) => {
+            console.log('CAMERA ICE:', cameraEndpoint, 'from:', socket.id, 'to:', iceMsgObject.to || 'broadcast');
+
+            const reorderedIceMsgObject = {
+                candidate: iceMsgObject.candidate,
+                from: socket.id,
+                to: iceMsgObject.to || 'broadcast'
+            };
+
+            if (iceMsgObject.to) {
+                io.to(iceMsgObject.to).emit(cameraEndpoint + 'camera' + 'voiceicecandidate', reorderedIceMsgObject);
+            } else {
+                io.emit(cameraEndpoint + 'camera' + 'voiceicecandidate', reorderedIceMsgObject);
             }
         });
     });
