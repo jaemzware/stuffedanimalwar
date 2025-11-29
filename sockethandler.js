@@ -1638,7 +1638,7 @@ function handleAcceptCameraChange(event) {
                                 // Create wrapper div
                                 const videoWrapper = document.createElement('div');
                                 videoWrapper.id = 'remoteVideoWrapper_' + peerId;
-                                videoWrapper.style.cssText = 'position: relative; background: #000; border-radius: 6px; overflow: hidden;';
+                                videoWrapper.style.cssText = 'position: relative; background: #000; border-radius: 6px; overflow: hidden; min-height: 200px; width: 100%;';
 
                                 // Create label
                                 const label = document.createElement('div');
@@ -1651,7 +1651,8 @@ function handleAcceptCameraChange(event) {
                                 videoElement.id = 'remoteVideo_' + peerId;
                                 videoElement.autoplay = true;
                                 videoElement.playsinline = true;
-                                videoElement.style.cssText = 'width: 100%; height: auto; display: block; border-radius: 6px;';
+                                videoElement.muted = false; // Don't mute remote video
+                                videoElement.style.cssText = 'width: 100%; height: auto; min-height: 200px; display: block; border-radius: 6px; background: #000;';
                                 videoWrapper.appendChild(videoElement);
 
                                 remoteCameraContainer.appendChild(videoWrapper);
@@ -2216,7 +2217,7 @@ function createPeerConnection(peerId) {
                 // Create wrapper div
                 videoWrapper = document.createElement('div');
                 videoWrapper.id = 'remoteVideoWrapper_' + peerId;
-                videoWrapper.style.cssText = 'position: relative; background: #000; border-radius: 6px; overflow: hidden;';
+                videoWrapper.style.cssText = 'position: relative; background: #000; border-radius: 6px; overflow: hidden; min-height: 200px; width: 100%;';
 
                 // Create label
                 const label = document.createElement('div');
@@ -2229,7 +2230,8 @@ function createPeerConnection(peerId) {
                 videoElement.id = 'remoteVideo_' + peerId;
                 videoElement.autoplay = true;
                 videoElement.playsinline = true;
-                videoElement.style.cssText = 'width: 100%; height: auto; display: block; border-radius: 6px;';
+                videoElement.muted = false; // Don't mute remote video
+                videoElement.style.cssText = 'width: 100%; height: auto; min-height: 200px; display: block; border-radius: 6px; background: #000;';
                 videoWrapper.appendChild(videoElement);
 
                 remoteCameraContainer.appendChild(videoWrapper);
