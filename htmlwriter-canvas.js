@@ -565,7 +565,6 @@ function writeChatFormFileUpload() {
                     document.write("<span class='upload-submit-icon'>⬆</span>");
                     document.write("<span class='upload-submit-text'>Upload</span>");
                 document.write("</button>");
-            document.write("</div>");
             document.write("<div class='upload-progress'>");
                 document.write("<div id=\"progressIndicator\" class='progress-text'>Ready to upload</div>");
                 document.write("<div class='progress-bar-container'><div id='imageProgressBar' class='progress-bar'></div></div>");
@@ -595,7 +594,6 @@ function writeChatFormVideoUpload() {
                     document.write("<span class='upload-submit-icon'>⬆</span>");
                     document.write("<span class='upload-submit-text'>Upload</span>");
                 document.write("</button>");
-            document.write("</div>");
             document.write("<div class='upload-progress'>");
                 document.write("<div id=\"videoProgressIndicator\" class='progress-text'>Ready to upload</div>");
                 document.write("<div class='progress-bar-container'><div id='videoProgressBar' class='progress-bar'></div></div>");
