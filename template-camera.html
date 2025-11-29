@@ -193,6 +193,13 @@
                 object-fit: contain;
             }
 
+            /* Prevent fullscreen on mobile tap */
+            @media (max-width: 768px) {
+                video {
+                    pointer-events: none;
+                }
+            }
+
             .local-camera {
                 border: 3px solid #28a745;
             }
@@ -282,7 +289,7 @@
                     <span id="localCameraNameLabel">📹 Your Camera</span>
                     <span class="badge">LOCAL</span>
                 </div>
-                <video id="localCameraVideo" autoplay playsinline muted></video>
+                <video id="localCameraVideo" autoplay playsinline webkit-playsinline muted disablePictureInPicture></video>
             </div>
         </div>
 
@@ -1084,6 +1091,8 @@
                             const video = document.createElement('video');
                             video.autoplay = true;
                             video.playsinline = true;
+                            video.setAttribute('webkit-playsinline', '');
+                            video.setAttribute('disablePictureInPicture', '');
                             video.srcObject = event.streams[0];
 
                             videoWrapper.appendChild(label);
