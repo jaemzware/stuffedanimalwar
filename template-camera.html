@@ -976,6 +976,72 @@
                 }
             }
 
+            async function switchCamera() {
+                console.log('🔄 Switching camera...');
+
+                if (!isCameraEnabled) {
+                    console.log('⚠️ Camera not enabled, cannot switch');
+                    return;
+                }
+
+                try {
+                    // Get list of video devices
+                    const devices = await navigator.mediaDevices.enumerateDevices();
+                    const videoDevices = devices.filter(device => device.kind === 'videoinput');
+
+                    if (videoDevices.length < 2) {
+                        console.log('⚠️ Only one camera available, cannot switch');
+                        return;
+                    }
+
+                    // Find current camera index
+                    const currentDeviceId = selectedCameraDeviceId;
+                    const currentIndex = videoDevices.findIndex(device => device.deviceId === currentDeviceId);
+
+                    // Get next camera (wrap around to 0 if at end)
+                    const nextIndex = (currentIndex + 1) % videoDevices.length;
+                    const nextDevice = videoDevices[nextIndex];
+
+                    console.log('📹 Switching from camera', currentIndex, 'to camera', nextIndex);
+                    console.log('   From:', videoDevices[currentIndex]?.label || 'Unknown');
+                    console.log('   To:', nextDevice.label || 'Unknown');
+
+                    // Update selected device
+                    selectedCameraDeviceId = nextDevice.deviceId;
+
+                    // Save to localStorage
+                    try {
+                        localStorage.setItem('selectedCameraDeviceId', nextDevice.deviceId);
+                        console.log('✅ Saved camera preference to localStorage');
+                    } catch (error) {
+                        console.warn('Could not save camera preference:', error);
+                    }
+
+                    // Update dropdown
+                    const cameraSelector = document.getElementById('cameraSelector');
+                    if (cameraSelector) {
+                        cameraSelector.value = nextDevice.deviceId;
+                    }
+
+                    // Stop current stream
+                    if (localCameraStream) {
+                        localCameraStream.getTracks().forEach(track => {
+                            console.log('   Stopping track:', track.label);
+                            track.stop();
+                        });
+                    }
+
+                    // Start new camera
+                    await startCamera();
+
+                    console.log('✅ Camera switched successfully');
+                } catch (error) {
+                    console.error('❌ Error switching camera:', error);
+                    document.getElementById('status').textContent = 'Error switching camera: ' + error.message;
+                    document.getElementById('status').className = 'status disconnected';
+                }
+            }
+
             async function toggleCamera() {
                 const button = document.getElementById('cameraToggleButton');
                 const cameraSwitchButton = document.getElementById('cameraSwitchButton');
