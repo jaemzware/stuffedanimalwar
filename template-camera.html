@@ -158,6 +158,7 @@
                 overflow: hidden;
                 box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
                 transition: transform 0.3s ease;
+                position: relative;
             }
 
             .camera-card:hover {
@@ -197,6 +198,23 @@
             @media (max-width: 768px) {
                 video {
                     pointer-events: none;
+                }
+
+                /* Overlay to catch all touches */
+                .camera-card::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    z-index: 1;
+                    pointer-events: auto;
+                }
+
+                .camera-label {
+                    position: relative;
+                    z-index: 2;
                 }
             }
 
@@ -289,7 +307,7 @@
                     <span id="localCameraNameLabel">📹 Your Camera</span>
                     <span class="badge">LOCAL</span>
                 </div>
-                <video id="localCameraVideo" autoplay playsinline webkit-playsinline muted disablePictureInPicture></video>
+                <video id="localCameraVideo" autoplay playsinline webkit-playsinline muted disablePictureInPicture x5-playsinline x5-video-player-type="h5"></video>
             </div>
         </div>
 
@@ -372,6 +390,14 @@
 
                 populateCameraDevices();
                 initializeSocketHandlers();
+
+                // Prevent video fullscreen on mobile - global handler
+                document.addEventListener('touchstart', (e) => {
+                    if (e.target.tagName === 'VIDEO') {
+                        // Allow tap but prevent fullscreen
+                        e.target.removeAttribute('controls');
+                    }
+                }, { passive: true });
 
                 // Handle page visibility changes (mobile backgrounding)
                 document.addEventListener('visibilitychange', function() {
@@ -615,6 +641,28 @@
                             videoWidth: localCameraVideo.videoWidth,
                             videoHeight: localCameraVideo.videoHeight,
                             srcObject: !!localCameraVideo.srcObject
+                        });
+
+                        // Prevent fullscreen on local video
+                        localCameraVideo.controls = false;
+                        localCameraVideo.addEventListener('webkitbeginfullscreen', (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                        }, true);
+                        localCameraVideo.addEventListener('webkitendfullscreen', (e) => {
+                            e.preventDefault();
+                        }, true);
+
+                        // Auto-resume if local video pauses unexpectedly
+                        localCameraVideo.addEventListener('pause', () => {
+                            console.log('⏸️ Local video paused - attempting to resume');
+                            setTimeout(() => {
+                                if (localCameraVideo.paused && localCameraVideo.srcObject) {
+                                    localCameraVideo.play().catch(err => {
+                                        console.log('⚠️ Could not resume local video:', err);
+                                    });
+                                }
+                            }, 100);
                         });
                     } catch (playError) {
                         console.error('❌ Video play error:', playError);
@@ -1091,13 +1139,45 @@
                             const video = document.createElement('video');
                             video.autoplay = true;
                             video.playsinline = true;
+                            video.muted = true; // Mute to help autoplay on mobile
                             video.setAttribute('webkit-playsinline', '');
                             video.setAttribute('disablePictureInPicture', '');
+                            video.setAttribute('x5-playsinline', ''); // Android WeChat
+                            video.setAttribute('x5-video-player-type', 'h5');
+                            video.setAttribute('x-webkit-airplay', 'allow');
+
+                            // Prevent default video controls and fullscreen
+                            video.controls = false;
+                            video.addEventListener('webkitbeginfullscreen', (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                            }, true);
+                            video.addEventListener('webkitendfullscreen', (e) => {
+                                e.preventDefault();
+                            }, true);
+
                             video.srcObject = event.streams[0];
 
                             videoWrapper.appendChild(label);
                             videoWrapper.appendChild(video);
                             remoteCameraGrid.appendChild(videoWrapper);
+
+                            // Force play to avoid play button
+                            video.play().catch(err => {
+                                console.log('⚠️ Autoplay prevented for peer:', peerId, err);
+                            });
+
+                            // Auto-resume if video pauses unexpectedly
+                            video.addEventListener('pause', () => {
+                                console.log('⏸️ Video paused unexpectedly for peer:', peerId, '- attempting to resume');
+                                setTimeout(() => {
+                                    if (video.paused && video.srcObject) {
+                                        video.play().catch(err => {
+                                            console.log('⚠️ Could not resume video for peer:', peerId, err);
+                                        });
+                                    }
+                                }, 100);
+                            });
 
                             remoteCameraStreams[peerId] = event.streams[0];
                             console.log('✅ Created video element for peer:', peerId);
