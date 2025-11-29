@@ -1502,6 +1502,78 @@ function handleAcceptCameraChange(event) {
         remoteCameraFeeds.style.display = isChecked ? 'block' : 'none';
     }
 
+    // If checkbox is now checked, process any existing peer connections to display their video tracks
+    if (isChecked) {
+        console.log('📹 Accept Camera enabled - checking existing peer connections for video tracks');
+        const remoteCameraContainer = document.getElementById('remoteCameraContainer');
+
+        if (remoteCameraContainer && peerConnections) {
+            Object.keys(peerConnections).forEach(peerId => {
+                const pc = peerConnections[peerId];
+                if (pc && pc.connectionState === 'connected') {
+                    // Check if this peer has video receivers
+                    const receivers = pc.getReceivers();
+                    const videoReceivers = receivers.filter(r => r.track && r.track.kind === 'video' && r.track.readyState === 'live');
+
+                    if (videoReceivers.length > 0) {
+                        console.log('   Found', videoReceivers.length, 'video track(s) from peer:', peerId);
+
+                        // Check if we already have a video element for this peer
+                        let videoElement = document.getElementById('remoteVideo_' + peerId);
+
+                        if (!videoElement) {
+                            console.log('   Creating video element for peer:', peerId);
+
+                            // Get the stream from the first video receiver
+                            const remoteStream = videoReceivers[0].track ? new MediaStream([videoReceivers[0].track]) : null;
+
+                            if (remoteStream) {
+                                // Create wrapper div
+                                const videoWrapper = document.createElement('div');
+                                videoWrapper.id = 'remoteVideoWrapper_' + peerId;
+                                videoWrapper.style.cssText = 'position: relative; background: #000; border-radius: 6px; overflow: hidden;';
+
+                                // Create label
+                                const label = document.createElement('div');
+                                label.style.cssText = 'position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,0.7); color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; z-index: 1;';
+                                label.textContent = 'Peer ' + peerId.substring(0, 8);
+                                videoWrapper.appendChild(label);
+
+                                // Create video element
+                                videoElement = document.createElement('video');
+                                videoElement.id = 'remoteVideo_' + peerId;
+                                videoElement.autoplay = true;
+                                videoElement.playsinline = true;
+                                videoElement.style.cssText = 'width: 100%; height: auto; display: block; border-radius: 6px;';
+                                videoWrapper.appendChild(videoElement);
+
+                                remoteCameraContainer.appendChild(videoWrapper);
+
+                                // Set the stream
+                                videoElement.srcObject = remoteStream;
+                                remoteCameraStreams[peerId] = remoteStream;
+
+                                // Try to play video
+                                videoElement.play().then(() => {
+                                    console.log('   ✅ Video playback started for peer:', peerId);
+                                }).catch(err => {
+                                    console.warn('   ⚠️ Video autoplay blocked:', err.message);
+                                });
+
+                                // Show the container
+                                if (remoteCameraFeeds) {
+                                    remoteCameraFeeds.style.display = 'block';
+                                }
+                            }
+                        } else {
+                            console.log('   Video element already exists for peer:', peerId);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
     // Update status text
     if (statusText && !isCameraEnabled) {
         if (isChecked) {
