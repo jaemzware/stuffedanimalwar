@@ -1671,6 +1671,21 @@ function handleAcceptCameraChange(event) {
                                 if (remoteCameraFeeds) {
                                     remoteCameraFeeds.style.display = 'block';
                                 }
+
+                                // Auto-expand the Camera section so users can see the remote peer
+                                const cameraContent = document.getElementById('camera-content');
+                                if (cameraContent && cameraContent.style.display === 'none') {
+                                    console.log('📹 Auto-expanding Camera section to show remote peer');
+                                    cameraContent.style.display = 'block';
+                                    // Update the collapse indicator
+                                    const cameraHeader = document.querySelector('[data-target="camera-content"]');
+                                    if (cameraHeader) {
+                                        const indicator = cameraHeader.querySelector('.collapse-indicator');
+                                        if (indicator) {
+                                            indicator.textContent = '▼';
+                                        }
+                                    }
+                                }
                             }
                         } else {
                             console.log('   Video element already exists for peer:', peerId);
@@ -2176,6 +2191,21 @@ function createPeerConnection(peerId) {
             // Show remote camera feeds container
             if (remoteCameraFeeds) {
                 remoteCameraFeeds.style.display = 'block';
+            }
+
+            // Auto-expand the Camera section so users can see the remote peer
+            const cameraContent = document.getElementById('camera-content');
+            if (cameraContent && cameraContent.style.display === 'none') {
+                console.log('📹 Auto-expanding Camera section to show remote peer');
+                cameraContent.style.display = 'block';
+                // Update the collapse indicator
+                const cameraHeader = document.querySelector('[data-target="camera-content"]');
+                if (cameraHeader) {
+                    const indicator = cameraHeader.querySelector('.collapse-indicator');
+                    if (indicator) {
+                        indicator.textContent = '▼';
+                    }
+                }
             }
 
             // Create or get video element for this peer
