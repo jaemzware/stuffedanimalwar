@@ -122,6 +122,31 @@
 </script>
 <!--COLOR PICKER-->
 <script src="/modal-color-picker.js"></script>
+
+<!-- Camera Room Link Button -->
+<style>
+    #openCameraRoomButton:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    }
+    #openCameraRoomButton:active {
+        transform: translateY(0);
+    }
+</style>
+<div style="position: fixed; top: 20px; right: 20px; z-index: 1000;">
+    <button id="openCameraRoomButton" style="padding: 12px 24px; background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); transition: all 0.3s ease; display: flex; align-items: center; gap: 8px;">
+        <span>📹</span>
+        <span>Open Camera Room</span>
+    </button>
+</div>
+<script>
+    document.getElementById('openCameraRoomButton').addEventListener('click', function() {
+        const cameraUrl = window.location.origin + '/' + endpoint + 'camera';
+        console.log('📹 Opening camera room:', cameraUrl);
+        window.open(cameraUrl, '_blank');
+    });
+</script>
+
 <footer style="text-align: center; padding: 20px; margin-top: 30px; border-top: 1px solid rgba(255, 255, 255, 0.1); color: #999; font-size: 12px;">
     <p style="margin: 5px 0;">&copy; 2025 jaemzware llc</p>
     <p style="margin: 5px 0;"><a href="https://jaemzware.com" target="_blank" style="color: #4a9eff; text-decoration: none;">jaemzware.com</a></p>
