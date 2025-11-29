@@ -1130,6 +1130,17 @@ io.on('connection', function(socket){
             // Broadcast to all clients (event name contains endpoint so only relevant clients receive it)
             io.emit(cameraEndpoint + 'camera' + 'reconnect', reorderedReconnectMsgObject);
         });
+
+        socket.on(cameraEndpoint + 'camera' + 'requestroster', (rosterRequestMsgObject) => {
+            console.log('CAMERA ROSTER REQUEST:', cameraEndpoint, 'from:', socket.id);
+
+            const reorderedRosterRequestMsgObject = {
+                userId: socket.id
+            };
+
+            // Broadcast to all clients so everyone announces themselves
+            io.emit(cameraEndpoint + 'camera' + 'requestroster', reorderedRosterRequestMsgObject);
+        });
     });
 
     //GENERIC CHATMESSAGE SENDER, FOR MULTIPLE, INDEPENDENT CHAT CHANNELS

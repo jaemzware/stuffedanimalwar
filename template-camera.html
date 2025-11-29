@@ -427,6 +427,14 @@
                 console.log('Connected to room:', endpoint + 'camera');
                 document.getElementById('status').textContent = 'Connected to room';
                 document.getElementById('status').className = 'status connected';
+
+                // Request roster from all existing peers to ensure full mesh connectivity
+                setTimeout(() => {
+                    console.log('📋 Requesting roster from existing peers');
+                    socket.emit(endpoint + 'cameracamera' + 'requestroster', {
+                        userId: socket.id
+                    });
+                }, 1000); // Small delay to let connect events propagate first
             });
 
             socket.on('disconnect', function() {
@@ -505,7 +513,12 @@
                         userId: socket.id
                     });
 
-                    console.log('🔄 Reconnection process initiated (emitted reconnect + connect)');
+                    // Request all peers to announce themselves (even those with higher IDs)
+                    socket.emit(endpoint + 'cameracamera' + 'requestroster', {
+                        userId: socket.id
+                    });
+
+                    console.log('🔄 Reconnection process initiated (emitted reconnect + connect + requestroster)');
 
                     // Re-enable button after a delay
                     setTimeout(() => {
@@ -1093,6 +1106,29 @@
                 socket.on(endpoint + 'cameracamera' + 'disconnect', handlePeerDisconnect);
                 socket.on(endpoint + 'cameracamera' + 'nameupdate', handleCameraNameUpdate);
                 socket.on(endpoint + 'cameracamera' + 'reconnect', handlePeerReconnect);
+                socket.on(endpoint + 'cameracamera' + 'requestroster', handleRosterRequest);
+            }
+
+            function handleRosterRequest(data) {
+                console.log('📋 Peer requesting roster:', data.userId);
+
+                // Only respond if this is a different peer
+                if (data.userId !== socket.id) {
+                    console.log('📢 Announcing my presence to:', data.userId);
+
+                    // Announce ourselves back by emitting a connect event
+                    // This triggers the standard connection flow
+                    socket.emit(connectSocketEvent, {
+                        userId: socket.id
+                    });
+
+                    // Also send our camera name if we have one
+                    if (myCameraName) {
+                        socket.emit(cameraNameUpdateSocketEvent, {
+                            cameraName: myCameraName
+                        });
+                    }
+                }
             }
 
             function handlePeerReconnect(data) {
