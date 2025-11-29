@@ -475,9 +475,9 @@ function writeCameraSection() {
         document.write("<span style='flex: 1;'>Accept Mic Chat</span>");
         document.write("</label>");
 
-        // Accept incoming camera video checkbox (unchecked by default)
+        // Accept incoming camera video checkbox (checked by default)
         document.write("<label style='padding: 8px 12px; background: #2a2a3e; color: white; border-radius: 6px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 8px; transition: all 0.3s; flex: 1 1 auto; min-width: 160px; user-select: none;'>");
-        document.write("<input type='checkbox' id='acceptCameraCheckbox' style='width: 18px; height: 18px; cursor: pointer; accent-color: #28a745;'>");
+        document.write("<input type='checkbox' id='acceptCameraCheckbox' checked style='width: 18px; height: 18px; cursor: pointer; accent-color: #28a745;'>");
         document.write("<span style='flex: 1;'>Accept Camera</span>");
         document.write("</label>");
 
