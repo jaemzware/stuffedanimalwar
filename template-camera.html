@@ -285,7 +285,7 @@
             </label>
 
             <label class="checkbox-label">
-                <input type="checkbox" id="acceptMicCheckbox" checked>
+                <input type="checkbox" id="acceptMicCheckbox">
                 <span>Accept Remote Audio</span>
             </label>
 
@@ -347,7 +347,7 @@
             let selectedCameraDeviceId = null;
             let peerConnections = {};
             let remoteCameraStreams = {};
-            let isRemoteAudioMuted = false;
+            let isRemoteAudioMuted = true; // Start muted (acceptMicCheckbox starts unchecked)
             let pendingIceCandidates = {}; // Queue for ICE candidates that arrive before remote description
             let myCameraName = ''; // User's custom camera name
             let peerCameraNames = {}; // Map of peerId -> camera name
@@ -370,11 +370,26 @@
 
             // Initialize
             document.addEventListener('DOMContentLoaded', function() {
+                // Initialize checkbox state variables from HTML
+                const acceptCameraCheckbox = document.getElementById('acceptCameraCheckbox');
+                const acceptMicCheckbox = document.getElementById('acceptMicCheckbox');
+                const remoteCameraSection = document.getElementById('remoteCameraSection');
+
+                // Sync isRemoteAudioMuted with checkbox initial state
+                isRemoteAudioMuted = !acceptMicCheckbox.checked;
+
+                // Sync remote camera section visibility with checkbox initial state
+                remoteCameraSection.style.display = acceptCameraCheckbox.checked ? 'block' : 'none';
+
+                console.log('🎬 Initial state - Show Remote Cameras:', acceptCameraCheckbox.checked, 'Accept Remote Audio:', acceptMicCheckbox.checked);
+                console.log('🔇 Remote audio muted:', isRemoteAudioMuted);
+
+                // Set up event listeners
                 document.getElementById('cameraToggleButton').addEventListener('click', toggleCamera);
                 document.getElementById('micToggleButton').addEventListener('click', toggleMic);
                 document.getElementById('cameraSelector').addEventListener('change', handleCameraChange);
-                document.getElementById('acceptCameraCheckbox').addEventListener('change', handleAcceptCameraChange);
-                document.getElementById('acceptMicCheckbox').addEventListener('change', handleAcceptMicChange);
+                acceptCameraCheckbox.addEventListener('change', handleAcceptCameraChange);
+                acceptMicCheckbox.addEventListener('change', handleAcceptMicChange);
                 document.getElementById('refreshPeersButton').addEventListener('click', refreshPeerConnections);
                 document.getElementById('resumeAllVideosButton').addEventListener('click', resumeAllVideos);
                 document.getElementById('cameraNameInput').addEventListener('input', function(e) {
@@ -710,17 +725,22 @@
 
             function handleAcceptCameraChange(event) {
                 const remoteCameraSection = document.getElementById('remoteCameraSection');
-                remoteCameraSection.style.display = event.target.checked ? 'block' : 'none';
+                const isChecked = event.target.checked;
+                remoteCameraSection.style.display = isChecked ? 'block' : 'none';
+                console.log('📹 Show Remote Cameras changed to:', isChecked, '- Section display:', remoteCameraSection.style.display);
             }
 
             function handleAcceptMicChange(event) {
-                isRemoteAudioMuted = !event.target.checked;
-                console.log('Accept remote audio:', event.target.checked, 'Muted:', isRemoteAudioMuted);
+                const isChecked = event.target.checked;
+                isRemoteAudioMuted = !isChecked;
+                console.log('🔊 Accept Remote Audio changed to:', isChecked, '→ isRemoteAudioMuted:', isRemoteAudioMuted);
 
                 // Mute/unmute all existing remote audio elements
-                document.querySelectorAll('audio[id^="remoteAudio_"]').forEach(audioElement => {
+                const audioElements = document.querySelectorAll('audio[id^="remoteAudio_"]');
+                console.log(`🔇 Updating ${audioElements.length} audio element(s)`);
+                audioElements.forEach(audioElement => {
                     audioElement.muted = isRemoteAudioMuted;
-                    console.log('Set audio element', audioElement.id, 'muted:', audioElement.muted);
+                    console.log('  ↳ Set', audioElement.id, 'muted:', audioElement.muted);
                 });
             }
 
