@@ -1535,10 +1535,7 @@
 
                         // Only monitor video rendering if this is a new element
                         if (isNewVideoElement) {
-                            const videoElement = videoWrapper.querySelector('video');
-                            if (videoElement) {
-                                monitorVideoRendering(videoElement, peerId, videoWrapper);
-                            }
+                            monitorVideoRendering(video, peerId, videoWrapper);
                         }
 
                         // Monitor video track state
@@ -1582,12 +1579,6 @@
                                 badge.style.background = '#6c757d';
                             }
                         };
-
-                        // Monitor if video is actually rendering (detect black screens)
-                        const video = videoWrapper.querySelector('video');
-                        if (video) {
-                            monitorVideoRendering(video, peerId, videoWrapper);
-                        }
 
                         updateEmptyState();
                     } else if (event.track.kind === 'audio') {
