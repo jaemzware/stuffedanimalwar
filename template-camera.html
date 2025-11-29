@@ -494,12 +494,18 @@
                     console.log('📢 Broadcasting reconnection request to room');
                     console.log('Current camera name:', myCameraName || '(none)');
 
-                    // Emit a special reconnect event that triggers others to send offers
+                    // Emit BOTH reconnect and connect events
+                    // reconnect: tells peers with lower IDs to create offers to us
+                    // connect: we create offers to peers with higher IDs (like when first joining)
                     socket.emit(endpoint + 'cameracamera' + 'reconnect', {
                         userId: socket.id
                     });
 
-                    console.log('🔄 Reconnection process initiated');
+                    socket.emit(connectSocketEvent, {
+                        userId: socket.id
+                    });
+
+                    console.log('🔄 Reconnection process initiated (emitted reconnect + connect)');
 
                     // Re-enable button after a delay
                     setTimeout(() => {
@@ -1121,6 +1127,8 @@
                             });
                     } else {
                         console.log('⏸️ Waiting for offer from peer:', data.userId, '(they have lower ID)');
+                        // Still create the peer connection so we're ready to receive their offer
+                        createPeerConnection(data.userId);
                     }
                 }
             }
