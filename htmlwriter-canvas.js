@@ -4,6 +4,11 @@ function writeStuffedAnimalWar(stuffedAnimalMediaObject, readonly = false){
         writeStuffedAnimalWarDiv(stuffedAnimalMediaObject, true);
     } else {
         // Normal mode: show everything with flexbox layout
+        // Collapse All button
+        document.write("<div style='margin-top: 15px; text-align: right;'>");
+        document.write("<button id='collapseAllButton' style='padding: 8px 16px; background: #444; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px;'>Collapse All Sections</button>");
+        document.write("</div>");
+
         // Collapsible header for entire canvas section (drawing area + controls)
         document.write("<div class='section-header collapsible' data-target='canvas-complete-content' style='cursor: pointer; user-select: none; margin-top: 15px; padding: 12px 20px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 8px;'>");
         document.write("<span class='section-icon'>🎨</span>");
@@ -531,14 +536,22 @@ function writeCameraSection() {
 }
 function writeChatFormFileUpload() {
     document.write("<div class='uploads-wrapper'>");
+
+    // Combined header for both photo and video uploads
+    document.write("<div class='upload-header collapsible' data-target='uploads-content' style='cursor: pointer; user-select: none; padding: 12px 20px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 8px; margin-bottom: 15px;'>");
+        document.write("<span class='upload-icon'>📤</span>");
+        document.write("<h3 class='upload-title' style='margin: 0; color: white;'>Media Upload</h3>");
+        document.write("<span class='collapse-indicator'>▼</span>");
+    document.write("</div>");
+
+    document.write("<div class='section-content' id='uploads-content'>");
+
     document.write("<div id='fileUploadContainer' class='upload-container'>");
         document.write("<form id=\"uploadForm\" enctype=\"multipart/form-data\" class='upload-form'>");
-            document.write("<div class='upload-header collapsible' data-target='photo-upload-content' style='cursor: pointer; user-select: none;'>");
+            document.write("<div class='upload-header' style='cursor: default;'>");
                 document.write("<span class='upload-icon'>📸</span>");
                 document.write("<h3 class='upload-title'>Photo Upload</h3>");
-                document.write("<span class='collapse-indicator'>▼</span>");
             document.write("</div>");
-            document.write("<div class='section-content' id='photo-upload-content'>");
             document.write("<div class='upload-content'>");
                 document.write("<label for='imageFileInput' class='file-input-wrapper'>");
                     document.write("<input type=\"file\" id='imageFileInput' name=\"image\" accept=\"image/*\" required class='file-input'>");
@@ -558,19 +571,17 @@ function writeChatFormFileUpload() {
                 document.write("<div class='progress-bar-container'><div id='imageProgressBar' class='progress-bar'></div></div>");
             document.write("</div>");
             document.write("<div class='upload-info'>Max size: 50MB</div>");
-            document.write("</div>"); // Close photo-upload-content
+            document.write("</div>"); // Close upload-content
         document.write("</form>");
     document.write("</div>");
 }
 function writeChatFormVideoUpload() {
     document.write("<div id='videoUploadContainer' class='upload-container'>");
         document.write("<form id=\"videoUploadForm\" enctype=\"multipart/form-data\" class='upload-form'>");
-            document.write("<div class='upload-header collapsible' data-target='video-upload-content' style='cursor: pointer; user-select: none;'>");
+            document.write("<div class='upload-header' style='cursor: default;'>");
                 document.write("<span class='upload-icon'>🎥</span>");
                 document.write("<h3 class='upload-title'>Video Upload</h3>");
-                document.write("<span class='collapse-indicator'>▼</span>");
             document.write("</div>");
-            document.write("<div class='section-content' id='video-upload-content'>");
             document.write("<div class='upload-content'>");
                 document.write("<label for='videoFileInput' class='file-input-wrapper'>");
                     document.write("<input type=\"file\" id='videoFileInput' name=\"video\" accept=\"video/*\" required class='file-input'>");
@@ -590,9 +601,11 @@ function writeChatFormVideoUpload() {
                 document.write("<div class='progress-bar-container'><div id='videoProgressBar' class='progress-bar'></div></div>");
             document.write("</div>");
             document.write("<div class='upload-info'>Max size: 50MB</div>");
-            document.write("</div>"); // Close video-upload-content
+            document.write("</div>"); // Close upload-content
         document.write("</form>");
     document.write("</div>");
+
+    document.write("</div>"); // Close uploads-content
     document.write("</div>"); // Close uploads-wrapper
 }
 function writeDefaultAutoResponderOptions(responsesObject){

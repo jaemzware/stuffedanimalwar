@@ -3,6 +3,19 @@
  */
 // Initialize the color picker after page is fully loaded
 document.addEventListener('DOMContentLoaded', function() {
+    // Fix for mobile canvas rendering issue - force repaint on load
+    const canvas = document.getElementById('stuffedanimalwarcanvas');
+    if (canvas && window.innerWidth <= 768) {
+        console.log('Mobile detected - forcing canvas repaint');
+        setTimeout(() => {
+            // Force repaint by toggling a style
+            canvas.style.transform = 'translateZ(0)';
+            // Trigger a redraw
+            if (typeof drawCanvas === 'function') {
+                drawCanvas();
+            }
+        }, 100);
+    }
     // COLOR PICKER BUTTON CALLBACK FOR RGB VALUES
     if (document.getElementById('colorPickerButton')) {
         // Connect color picker to your function
@@ -89,6 +102,50 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     console.log('Found', collapsibleHeaders.length, 'collapsible sections');
+
+    // Collapse All button functionality
+    const collapseAllButton = document.getElementById('collapseAllButton');
+    if (collapseAllButton) {
+        collapseAllButton.addEventListener('click', function() {
+            console.log('Collapsing all sections...');
+            const allSections = document.querySelectorAll('.section-content');
+            const allHeaders = document.querySelectorAll('.collapsible');
+
+            allSections.forEach(section => {
+                section.style.display = 'none';
+            });
+
+            allHeaders.forEach(header => {
+                const indicator = header.querySelector('.collapse-indicator');
+                if (indicator) {
+                    indicator.textContent = '▶';
+                }
+            });
+
+            // Update button text
+            this.textContent = 'Expand All Sections';
+            this.style.background = '#28a745';
+
+            // Toggle functionality
+            this.addEventListener('click', function expandAll() {
+                console.log('Expanding all sections...');
+                allSections.forEach(section => {
+                    section.style.display = 'block';
+                });
+
+                allHeaders.forEach(header => {
+                    const indicator = header.querySelector('.collapse-indicator');
+                    if (indicator) {
+                        indicator.textContent = '▼';
+                    }
+                });
+
+                this.textContent = 'Collapse All Sections';
+                this.style.background = '#444';
+                this.removeEventListener('click', expandAll);
+            }, { once: true });
+        });
+    }
 });
 /*
  * THESE ARE UTILITY FUNCTIONS FOR CONTROLLING THE AUDIO AND VIDEO PLAYERS ON THE PAGE  THESE ARE RESPONSES TO THE

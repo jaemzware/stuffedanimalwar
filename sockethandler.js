@@ -2173,19 +2173,28 @@ function createPeerConnection(peerId) {
         } else if (event.track.kind === 'video') {
             // Handle video track
             console.log('📹 Received video track from peer:', peerId);
+            console.log('   Stream ID:', remoteStream.id);
+            console.log('   Video tracks in stream:', remoteStream.getVideoTracks().length);
 
             // Check if user has accepted camera feeds
             const acceptCameraCheckbox = document.getElementById('acceptCameraCheckbox');
+            console.log('   Accept Camera checkbox found:', !!acceptCameraCheckbox);
+            console.log('   Accept Camera checkbox checked:', acceptCameraCheckbox ? acceptCameraCheckbox.checked : 'N/A');
+
             if (!acceptCameraCheckbox || !acceptCameraCheckbox.checked) {
                 console.log('⚠️ Camera feed rejected - user has not enabled "Accept Camera"');
+                console.log('   Please check the "Accept Camera" checkbox to see remote cameras');
                 return;
             }
 
             const remoteCameraContainer = document.getElementById('remoteCameraContainer');
             const remoteCameraFeeds = document.getElementById('remoteCameraFeeds');
 
+            console.log('   Remote camera container found:', !!remoteCameraContainer);
+            console.log('   Remote camera feeds found:', !!remoteCameraFeeds);
+
             if (!remoteCameraContainer) {
-                console.warn('Remote camera container not found');
+                console.warn('❌ Remote camera container not found - camera section may not be loaded');
                 return;
             }
 
@@ -2243,12 +2252,17 @@ function createPeerConnection(peerId) {
             videoElement.srcObject = remoteStream;
 
             console.log('   📹 Set video srcObject with', remoteStream.getVideoTracks().length, 'video tracks');
+            console.log('   📹 Video element ID:', videoElement.id);
+            console.log('   📹 Video element in DOM:', document.body.contains(videoElement));
+            console.log('   📹 Parent container:', remoteCameraContainer.id, 'children:', remoteCameraContainer.children.length);
 
             // Try to play video
             videoElement.play().then(() => {
-                console.log('✅ Video playback started for peer:', peerId);
+                console.log('✅✅✅ Video playback started for peer:', peerId, '✅✅✅');
+                console.log('   Video element visible size:', videoElement.offsetWidth, 'x', videoElement.offsetHeight);
             }).catch(err => {
                 console.warn('⚠️ Video autoplay blocked:', err.message);
+                console.log('💡 Click on the video to start playback');
             });
         }
     };
