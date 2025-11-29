@@ -256,6 +256,27 @@
         </style>
     </head>
     <body>
+        <!-- Navigation Links -->
+        <div style="position: fixed; top: 20px; left: 20px; z-index: 1000; display: flex; gap: 10px;">
+            <a id="canvasLink" href="#" style="padding: 12px 20px; background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; text-decoration: none; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); transition: all 0.3s ease; display: flex; align-items: center; gap: 8px;">
+                <span>🎨</span>
+                <span>Canvas</span>
+            </a>
+            <a id="cameraLink" href="#" style="padding: 12px 20px; background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; text-decoration: none; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); transition: all 0.3s ease; display: flex; align-items: center; gap: 8px;">
+                <span>📹</span>
+                <span>Camera</span>
+            </a>
+        </div>
+        <script>
+            // Set navigation links dynamically based on endpoint
+            (function() {
+                const endpoint = "{{ENDPOINT}}";
+                const baseUrl = window.location.origin;
+                document.getElementById('canvasLink').href = baseUrl + '/' + endpoint;
+                document.getElementById('cameraLink').href = baseUrl + '/' + endpoint + 'camera';
+            })();
+        </script>
+
         <div class="header">
             <h1>📹 {{ENDPOINT}} Camera Room</h1>
             <p>Share and view cameras with others in this room</p>
@@ -285,7 +306,7 @@
             </label>
 
             <label class="checkbox-label">
-                <input type="checkbox" id="acceptMicCheckbox" checked>
+                <input type="checkbox" id="acceptMicCheckbox">
                 <span>Accept Remote Audio</span>
             </label>
 
@@ -299,6 +320,11 @@
             <button id="resumeAllVideosButton" class="btn btn-camera" style="margin-top: 8px; background: #007bff;">
                 <span>▶️</span>
                 <span>Resume All Videos</span>
+            </button>
+
+            <button id="openCanvasPageButton" class="btn btn-camera" style="margin-top: 8px; background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);">
+                <span>🎨</span>
+                <span>Open Canvas Page</span>
             </button>
         </div>
 
@@ -347,7 +373,7 @@
             let selectedCameraDeviceId = null;
             let peerConnections = {};
             let remoteCameraStreams = {};
-            let isRemoteAudioMuted = false;
+            let isRemoteAudioMuted = true; // Start muted (acceptMicCheckbox starts unchecked)
             let pendingIceCandidates = {}; // Queue for ICE candidates that arrive before remote description
             let myCameraName = ''; // User's custom camera name
             let peerCameraNames = {}; // Map of peerId -> camera name
@@ -370,13 +396,33 @@
 
             // Initialize
             document.addEventListener('DOMContentLoaded', function() {
+                // Initialize checkbox state variables from HTML
+                const acceptCameraCheckbox = document.getElementById('acceptCameraCheckbox');
+                const acceptMicCheckbox = document.getElementById('acceptMicCheckbox');
+                const remoteCameraSection = document.getElementById('remoteCameraSection');
+
+                // Sync isRemoteAudioMuted with checkbox initial state
+                isRemoteAudioMuted = !acceptMicCheckbox.checked;
+
+                // Sync remote camera section visibility with checkbox initial state
+                remoteCameraSection.style.display = acceptCameraCheckbox.checked ? 'block' : 'none';
+
+                console.log('🎬 Initial state - Show Remote Cameras:', acceptCameraCheckbox.checked, 'Accept Remote Audio:', acceptMicCheckbox.checked);
+                console.log('🔇 Remote audio muted:', isRemoteAudioMuted);
+
+                // Set up event listeners
                 document.getElementById('cameraToggleButton').addEventListener('click', toggleCamera);
                 document.getElementById('micToggleButton').addEventListener('click', toggleMic);
                 document.getElementById('cameraSelector').addEventListener('change', handleCameraChange);
-                document.getElementById('acceptCameraCheckbox').addEventListener('change', handleAcceptCameraChange);
-                document.getElementById('acceptMicCheckbox').addEventListener('change', handleAcceptMicChange);
+                acceptCameraCheckbox.addEventListener('change', handleAcceptCameraChange);
+                acceptMicCheckbox.addEventListener('change', handleAcceptMicChange);
                 document.getElementById('refreshPeersButton').addEventListener('click', refreshPeerConnections);
                 document.getElementById('resumeAllVideosButton').addEventListener('click', resumeAllVideos);
+                document.getElementById('openCanvasPageButton').addEventListener('click', function() {
+                    const canvasUrl = window.location.origin + '/' + endpoint;
+                    window.open(canvasUrl, '_blank');
+                    console.log('🎨 Opening canvas page:', canvasUrl);
+                });
                 document.getElementById('cameraNameInput').addEventListener('input', function(e) {
                     myCameraName = e.target.value.trim();
                     console.log('Camera name set to:', myCameraName || '(default)');
@@ -710,17 +756,22 @@
 
             function handleAcceptCameraChange(event) {
                 const remoteCameraSection = document.getElementById('remoteCameraSection');
-                remoteCameraSection.style.display = event.target.checked ? 'block' : 'none';
+                const isChecked = event.target.checked;
+                remoteCameraSection.style.display = isChecked ? 'block' : 'none';
+                console.log('📹 Show Remote Cameras changed to:', isChecked, '- Section display:', remoteCameraSection.style.display);
             }
 
             function handleAcceptMicChange(event) {
-                isRemoteAudioMuted = !event.target.checked;
-                console.log('Accept remote audio:', event.target.checked, 'Muted:', isRemoteAudioMuted);
+                const isChecked = event.target.checked;
+                isRemoteAudioMuted = !isChecked;
+                console.log('🔊 Accept Remote Audio changed to:', isChecked, '→ isRemoteAudioMuted:', isRemoteAudioMuted);
 
                 // Mute/unmute all existing remote audio elements
-                document.querySelectorAll('audio[id^="remoteAudio_"]').forEach(audioElement => {
+                const audioElements = document.querySelectorAll('audio[id^="remoteAudio_"]');
+                console.log(`🔇 Updating ${audioElements.length} audio element(s)`);
+                audioElements.forEach(audioElement => {
                     audioElement.muted = isRemoteAudioMuted;
-                    console.log('Set audio element', audioElement.id, 'muted:', audioElement.muted);
+                    console.log('  ↳ Set', audioElement.id, 'muted:', audioElement.muted);
                 });
             }
 
