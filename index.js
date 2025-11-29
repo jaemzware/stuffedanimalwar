@@ -1141,6 +1141,18 @@ io.on('connection', function(socket){
             // Broadcast to all clients so everyone announces themselves
             io.emit(cameraEndpoint + 'camera' + 'requestroster', reorderedRosterRequestMsgObject);
         });
+
+        socket.on(cameraEndpoint + 'camera' + 'rosterresponse', (rosterResponseMsgObject) => {
+            console.log('CAMERA ROSTER RESPONSE:', cameraEndpoint, 'from:', socket.id, 'to:', rosterResponseMsgObject.to, 'name:', rosterResponseMsgObject.cameraName || '(none)');
+
+            const reorderedRosterResponseMsgObject = {
+                from: socket.id,
+                cameraName: rosterResponseMsgObject.cameraName
+            };
+
+            // Send to the specific requester
+            io.to(rosterResponseMsgObject.to).emit(cameraEndpoint + 'camera' + 'rosterresponse', reorderedRosterResponseMsgObject);
+        });
     });
 
     //GENERIC CHATMESSAGE SENDER, FOR MULTIPLE, INDEPENDENT CHAT CHANNELS
