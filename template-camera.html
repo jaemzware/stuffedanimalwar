@@ -409,13 +409,47 @@
                 document.addEventListener('visibilitychange', function() {
                     if (document.hidden) {
                         console.log('📱 Page hidden (backgrounded) - connections may pause');
+                        // Store the time when backgrounded
+                        window._backgroundedAt = Date.now();
                     } else {
                         console.log('📱 Page visible again - checking connections');
-                        // Check all peer connections
+
+                        // Calculate how long we were backgrounded
+                        const backgroundDuration = window._backgroundedAt ?
+                            (Date.now() - window._backgroundedAt) / 1000 : 0;
+                        console.log(`⏱️ Was backgrounded for ${backgroundDuration.toFixed(1)} seconds`);
+
+                        // Check all peer connections and attempt recovery if needed
                         Object.keys(peerConnections).forEach(peerId => {
                             const pc = peerConnections[peerId];
                             if (pc) {
                                 console.log('Peer', peerId, 'state:', pc.connectionState, 'ICE:', pc.iceConnectionState);
+
+                                // If connection degraded while backgrounded, attempt recovery
+                                if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed' ||
+                                    pc.iceConnectionState === 'disconnected' || pc.iceConnectionState === 'failed') {
+                                    console.log('🔄 Attempting to recover degraded connection for peer:', peerId);
+                                    attemptIceRestart(pc, peerId);
+                                }
+                            }
+                        });
+
+                        // Resume local video if it was paused
+                        const localVideo = document.getElementById('localCameraVideo');
+                        if (localVideo && localVideo.paused && localVideo.srcObject) {
+                            console.log('▶️ Resuming local video after backgrounding');
+                            localVideo.play().catch(err => {
+                                console.log('⚠️ Could not resume local video:', err);
+                            });
+                        }
+
+                        // Resume all remote videos
+                        document.querySelectorAll('video[id^="remoteVideoElement_"]').forEach(video => {
+                            if (video.paused && video.srcObject) {
+                                console.log('▶️ Resuming remote video:', video.id);
+                                video.play().catch(err => {
+                                    console.log('⚠️ Could not resume video:', err);
+                                });
                             }
                         });
                     }
@@ -806,23 +840,45 @@
                     document.getElementById('status').textContent = 'Camera active';
                     document.getElementById('status').className = 'status connected';
 
-                    // Add video tracks to all peer connections
-                    Object.keys(peerConnections).forEach(peerId => {
+                    // Add or replace video tracks in all peer connections
+                    Object.keys(peerConnections).forEach(async (peerId) => {
                         const pc = peerConnections[peerId];
                         if (pc && pc.connectionState === 'connected') {
-                            localCameraStream.getVideoTracks().forEach(track => {
-                                pc.addTrack(track, localCameraStream);
-                            });
+                            console.log('🔄 Updating camera track for peer:', peerId);
 
-                            // Renegotiate
-                            pc.createOffer().then(offer => pc.setLocalDescription(offer))
-                                .then(() => {
+                            // Find existing video sender
+                            const senders = pc.getSenders();
+                            const videoSender = senders.find(sender => sender.track && sender.track.kind === 'video');
+
+                            const newVideoTrack = localCameraStream.getVideoTracks()[0];
+
+                            if (videoSender) {
+                                // Replace existing video track
+                                try {
+                                    await videoSender.replaceTrack(newVideoTrack);
+                                    console.log('✅ Replaced video track for peer:', peerId);
+                                } catch (err) {
+                                    console.error('❌ Failed to replace track for peer:', peerId, err);
+                                }
+                            } else {
+                                // No existing video track, add new one
+                                pc.addTrack(newVideoTrack, localCameraStream);
+                                console.log('➕ Added new video track for peer:', peerId);
+
+                                // Renegotiate when adding new track
+                                try {
+                                    const offer = await pc.createOffer();
+                                    await pc.setLocalDescription(offer);
                                     socket.emit(voiceOfferSocketEvent, {
                                         offer: pc.localDescription,
                                         to: peerId,
                                         cameraName: myCameraName
                                     });
-                                });
+                                    console.log('📤 Sent renegotiation offer to peer:', peerId);
+                                } catch (err) {
+                                    console.error('❌ Renegotiation failed for peer:', peerId, err);
+                                }
+                            }
                         }
                     });
 
@@ -1082,10 +1138,14 @@
                     try {
                         const stats = await pc.getStats();
                         let currentBytesReceived = 0;
+                        let packetsLost = 0;
+                        let packetsReceived = 0;
 
                         stats.forEach(report => {
                             if (report.type === 'inbound-rtp' && report.kind === 'video') {
                                 currentBytesReceived = report.bytesReceived || 0;
+                                packetsLost = report.packetsLost || 0;
+                                packetsReceived = report.packetsReceived || 0;
                             }
                         });
 
@@ -1094,12 +1154,22 @@
                             noDataCount++;
                             console.warn(`⚠️ No new data from peer ${peerId} for ${noDataCount * checkInterval / 1000} seconds`);
 
-                            // If frozen for 15 seconds, log it prominently
+                            // If frozen for 15 seconds, attempt ICE restart
                             if (noDataCount >= 3) {
-                                console.error(`❌ Stream from peer ${peerId} appears frozen!`);
+                                console.error(`❌ Stream from peer ${peerId} appears frozen! Attempting ICE restart...`);
+                                attemptIceRestart(pc, peerId);
+                                noDataCount = 0; // Reset counter after restart attempt
                             }
                         } else {
                             noDataCount = 0;
+                        }
+
+                        // Log packet loss if significant
+                        if (packetsReceived > 0) {
+                            const lossRate = (packetsLost / (packetsLost + packetsReceived)) * 100;
+                            if (lossRate > 5) {
+                                console.warn(`📊 Peer ${peerId} packet loss: ${lossRate.toFixed(1)}%`);
+                            }
                         }
 
                         lastBytesReceived = currentBytesReceived;
@@ -1110,6 +1180,71 @@
 
                 // Store the interval so we can clear it later
                 pc._qualityMonitor = qualityMonitor;
+            }
+
+            // Attempt ICE restart to recover frozen connection
+            async function attemptIceRestart(pc, peerId) {
+                if (!pc || pc.connectionState === 'closed') return;
+
+                console.log('🔄 Attempting ICE restart for peer:', peerId);
+
+                try {
+                    // Create new offer with iceRestart option
+                    const offer = await pc.createOffer({ iceRestart: true });
+                    await pc.setLocalDescription(offer);
+
+                    socket.emit(voiceOfferSocketEvent, {
+                        offer: pc.localDescription,
+                        to: peerId,
+                        cameraName: myCameraName
+                    });
+
+                    console.log('✅ ICE restart offer sent to peer:', peerId);
+                } catch (err) {
+                    console.error('❌ ICE restart failed for peer:', peerId, err);
+                }
+            }
+
+            // Clean up peer connection and all associated resources
+            function cleanupPeerConnection(peerId) {
+                console.log('🧹 Cleaning up peer connection:', peerId);
+
+                const pc = peerConnections[peerId];
+                if (pc) {
+                    // Clean up quality monitor
+                    if (pc._qualityMonitor) {
+                        clearInterval(pc._qualityMonitor);
+                    }
+
+                    // Close the connection
+                    pc.close();
+                    delete peerConnections[peerId];
+                }
+
+                // Clean up video element and monitors
+                const videoWrapper = document.getElementById('remoteVideo_' + peerId);
+                if (videoWrapper) {
+                    const video = videoWrapper.querySelector('video');
+                    if (video && video._renderMonitor) {
+                        clearInterval(video._renderMonitor);
+                    }
+                    videoWrapper.remove();
+                }
+
+                // Clean up audio element
+                const audioElement = document.getElementById('remoteAudio_' + peerId);
+                if (audioElement) {
+                    audioElement.remove();
+                }
+
+                // Clean up data structures
+                delete remoteCameraStreams[peerId];
+                delete pendingIceCandidates[peerId];
+                delete peerCameraNames[peerId];
+
+                updatePeerCount();
+                updateEmptyState();
+                console.log('✅ Cleanup complete for peer:', peerId);
             }
 
             // WebRTC functions
@@ -1322,8 +1457,10 @@
 
                         const remoteCameraGrid = document.getElementById('remoteCameraGrid');
                         let videoWrapper = document.getElementById('remoteVideo_' + peerId);
+                        let isNewVideoElement = false;
 
                         if (!videoWrapper) {
+                            isNewVideoElement = true;
                             videoWrapper = document.createElement('div');
                             videoWrapper.id = 'remoteVideo_' + peerId;
                             videoWrapper.className = 'camera-card';
@@ -1334,6 +1471,7 @@
                             label.innerHTML = `<span>📹 ${displayName}</span><span class="badge">LIVE</span>`;
 
                             const video = document.createElement('video');
+                            video.id = 'remoteVideoElement_' + peerId;
                             video.autoplay = true;
                             video.playsinline = true;
                             video.muted = true; // Mute to help autoplay on mobile
@@ -1353,16 +1491,9 @@
                                 e.preventDefault();
                             }, true);
 
-                            video.srcObject = event.streams[0];
-
                             videoWrapper.appendChild(label);
                             videoWrapper.appendChild(video);
                             remoteCameraGrid.appendChild(videoWrapper);
-
-                            // Force play to avoid play button
-                            video.play().catch(err => {
-                                console.log('⚠️ Autoplay prevented for peer:', peerId, err);
-                            });
 
                             // Auto-resume if video pauses unexpectedly
                             video.addEventListener('pause', () => {
@@ -1376,8 +1507,38 @@
                                 }, 100);
                             });
 
-                            remoteCameraStreams[peerId] = event.streams[0];
                             console.log('✅ Created video element for peer:', peerId);
+                        }
+
+                        // Get the video element (whether new or existing)
+                        const video = videoWrapper.querySelector('video');
+
+                        // Update or set the stream (handles both new tracks and renegotiation)
+                        if (video.srcObject !== event.streams[0]) {
+                            console.log('🔄 Updating video stream for peer:', peerId);
+
+                            // Clean up old render monitor if exists
+                            if (video._renderMonitor) {
+                                clearInterval(video._renderMonitor);
+                            }
+
+                            video.srcObject = event.streams[0];
+                            remoteCameraStreams[peerId] = event.streams[0];
+
+                            // Force play
+                            video.play().catch(err => {
+                                console.log('⚠️ Autoplay prevented for peer:', peerId, err);
+                            });
+                        } else {
+                            console.log('ℹ️ Same stream already assigned for peer:', peerId);
+                        }
+
+                        // Only monitor video rendering if this is a new element
+                        if (isNewVideoElement) {
+                            const videoElement = videoWrapper.querySelector('video');
+                            if (videoElement) {
+                                monitorVideoRendering(videoElement, peerId, videoWrapper);
+                            }
                         }
 
                         // Monitor video track state
@@ -1458,58 +1619,119 @@
 
                 pc.onconnectionstatechange = function() {
                     console.log('Peer', peerId, 'connection state:', pc.connectionState);
-                    if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed' || pc.connectionState === 'closed') {
-                        // Clean up quality monitor
-                        if (pc._qualityMonitor) {
-                            clearInterval(pc._qualityMonitor);
-                        }
 
-                        // Clean up video element and monitors
+                    if (pc.connectionState === 'disconnected') {
+                        console.warn('⚠️ Peer disconnected:', peerId, '- will attempt recovery');
+                        // Mark connection as degraded but don't clean up yet
                         const videoWrapper = document.getElementById('remoteVideo_' + peerId);
                         if (videoWrapper) {
-                            const video = videoWrapper.querySelector('video');
-                            if (video && video._renderMonitor) {
-                                clearInterval(video._renderMonitor);
+                            const badge = videoWrapper.querySelector('.badge');
+                            if (badge) {
+                                badge.textContent = 'RECONNECTING';
+                                badge.style.background = '#ffc107';
                             }
-                            videoWrapper.remove();
                         }
 
-                        // Clean up audio element
-                        const audioElement = document.getElementById('remoteAudio_' + peerId);
-                        if (audioElement) {
-                            audioElement.remove();
+                        // Initialize recovery counter if not exists
+                        if (!pc._recoveryAttempts) {
+                            pc._recoveryAttempts = 0;
                         }
 
-                        delete peerConnections[peerId];
-                        delete remoteCameraStreams[peerId];
-
-                        // Clean up pending ICE candidates
-                        if (pendingIceCandidates[peerId]) {
-                            delete pendingIceCandidates[peerId];
+                        // Attempt recovery after a brief delay
+                        if (pc._recoveryAttempts < 3) {
+                            pc._recoveryAttempts++;
+                            setTimeout(() => {
+                                if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
+                                    console.log(`🔄 Recovery attempt ${pc._recoveryAttempts}/3 for peer:`, peerId);
+                                    attemptIceRestart(pc, peerId);
+                                }
+                            }, 2000 * pc._recoveryAttempts); // Exponential backoff
+                        } else {
+                            console.error('❌ Max recovery attempts reached for peer:', peerId);
+                            cleanupPeerConnection(peerId);
                         }
 
-                        // Clean up peer camera name
-                        if (peerCameraNames[peerId]) {
-                            delete peerCameraNames[peerId];
-                        }
+                    } else if (pc.connectionState === 'failed') {
+                        console.error('❌ Peer connection failed:', peerId, '- attempting ICE restart');
+                        attemptIceRestart(pc, peerId);
 
-                        updatePeerCount();
-                        updateEmptyState();
-                        console.log('❌ Cleaned up peer:', peerId);
+                    } else if (pc.connectionState === 'closed') {
+                        console.log('🔒 Peer connection closed:', peerId);
+                        cleanupPeerConnection(peerId);
+
                     } else if (pc.connectionState === 'connected') {
+                        // Reset recovery counter on successful connection
+                        pc._recoveryAttempts = 0;
+                        pc._isEstablished = true; // Mark as established for renegotiation
                         updatePeerCount();
                         console.log('✅ Peer connected:', peerId);
 
-                        // Monitor connection quality for mobile devices
-                        monitorConnectionQuality(pc, peerId);
+                        // Update badge to show connected
+                        const videoWrapper = document.getElementById('remoteVideo_' + peerId);
+                        if (videoWrapper) {
+                            const badge = videoWrapper.querySelector('.badge');
+                            if (badge && badge.textContent === 'RECONNECTING') {
+                                badge.textContent = 'LIVE';
+                                badge.style.background = '#28a745';
+                            }
+                        }
+
+                        // Monitor connection quality
+                        if (!pc._qualityMonitor) {
+                            monitorConnectionQuality(pc, peerId);
+                        }
                     }
                 };
 
                 // Monitor ICE connection state for mobile issues
                 pc.oniceconnectionstatechange = function() {
                     console.log('Peer', peerId, 'ICE connection state:', pc.iceConnectionState);
-                    if (pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'disconnected') {
-                        console.warn('⚠️ ICE connection issue for peer:', peerId, '- may need to reconnect');
+                    if (pc.iceConnectionState === 'failed') {
+                        console.error('❌ ICE connection failed for peer:', peerId);
+                    } else if (pc.iceConnectionState === 'disconnected') {
+                        console.warn('⚠️ ICE disconnected for peer:', peerId);
+                    } else if (pc.iceConnectionState === 'connected') {
+                        console.log('✅ ICE connected for peer:', peerId);
+                    } else if (pc.iceConnectionState === 'completed') {
+                        console.log('✅ ICE gathering completed for peer:', peerId);
+                    }
+                };
+
+                // Monitor ICE gathering state
+                pc.onicegatheringstatechange = function() {
+                    console.log('Peer', peerId, 'ICE gathering state:', pc.iceGatheringState);
+                    if (pc.iceGatheringState === 'complete') {
+                        console.log('✅ ICE gathering complete for peer:', peerId);
+                    }
+                };
+
+                // Monitor signaling state
+                pc.onsignalingstatechange = function() {
+                    console.log('Peer', peerId, 'signaling state:', pc.signalingState);
+                    if (pc.signalingState === 'stable') {
+                        console.log('✅ Signaling stable for peer:', peerId);
+                    } else if (pc.signalingState === 'closed') {
+                        console.log('🔒 Signaling closed for peer:', peerId);
+                    }
+                };
+
+                // Monitor negotiation needed
+                pc.onnegotiationneeded = async function() {
+                    console.log('🔄 Negotiation needed for peer:', peerId);
+                    // Only handle if we're stable and this is a renegotiation
+                    if (pc.signalingState === 'stable' && pc._isEstablished) {
+                        try {
+                            const offer = await pc.createOffer();
+                            await pc.setLocalDescription(offer);
+                            socket.emit(voiceOfferSocketEvent, {
+                                offer: pc.localDescription,
+                                to: peerId,
+                                cameraName: myCameraName
+                            });
+                            console.log('📤 Sent renegotiation offer to peer:', peerId);
+                        } catch (err) {
+                            console.error('❌ Renegotiation failed for peer:', peerId, err);
+                        }
                     }
                 };
 
