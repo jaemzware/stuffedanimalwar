@@ -295,6 +295,11 @@
                 <span>🔄</span>
                 <span>Refresh Connections</span>
             </button>
+
+            <button id="resumeAllVideosButton" class="btn btn-camera" style="margin-top: 8px; background: #007bff;">
+                <span>▶️</span>
+                <span>Resume All Videos</span>
+            </button>
         </div>
 
         <div id="status" class="status disconnected">
@@ -371,6 +376,7 @@
                 document.getElementById('acceptCameraCheckbox').addEventListener('change', handleAcceptCameraChange);
                 document.getElementById('acceptMicCheckbox').addEventListener('change', handleAcceptMicChange);
                 document.getElementById('refreshPeersButton').addEventListener('click', refreshPeerConnections);
+                document.getElementById('resumeAllVideosButton').addEventListener('click', resumeAllVideos);
                 document.getElementById('cameraNameInput').addEventListener('input', function(e) {
                     myCameraName = e.target.value.trim();
                     console.log('Camera name set to:', myCameraName || '(default)');
@@ -500,6 +506,78 @@
                         refreshButton.innerHTML = originalHTML;
                         refreshButton.disabled = false;
                     }, 2000);
+                }, 500);
+            }
+
+            // Resume all videos function
+            function resumeAllVideos() {
+                console.log('▶️ Resuming all videos...');
+
+                // Update button state
+                const resumeButton = document.getElementById('resumeAllVideosButton');
+                const originalHTML = resumeButton.innerHTML;
+                resumeButton.innerHTML = '<span>⏳</span><span>Resuming...</span>';
+                resumeButton.disabled = true;
+
+                let totalVideos = 0;
+                let resumedVideos = 0;
+                let alreadyPlayingVideos = 0;
+
+                // Find all video elements (local + remote)
+                const allVideos = document.querySelectorAll('video');
+                totalVideos = allVideos.length;
+
+                console.log(`Found ${totalVideos} video element(s)`);
+
+                allVideos.forEach((video, index) => {
+                    const videoId = video.id || `video-${index}`;
+                    const isPaused = video.paused;
+                    const hasSrc = !!video.srcObject;
+
+                    console.log(`Video ${videoId}:`, {
+                        paused: isPaused,
+                        hasSrc: hasSrc,
+                        readyState: video.readyState,
+                        muted: video.muted
+                    });
+
+                    if (hasSrc) {
+                        if (isPaused) {
+                            // Try to resume
+                            video.play().then(() => {
+                                resumedVideos++;
+                                console.log(`✅ Resumed ${videoId}`);
+                            }).catch(err => {
+                                console.warn(`⚠️ Could not resume ${videoId}:`, err.message);
+                            });
+                        } else {
+                            alreadyPlayingVideos++;
+                            console.log(`✅ ${videoId} already playing`);
+                        }
+                    } else {
+                        console.log(`⚠️ ${videoId} has no video source`);
+                    }
+                });
+
+                // Show results after a brief delay
+                setTimeout(() => {
+                    const message = `Checked ${totalVideos} video(s): ${alreadyPlayingVideos} playing, ${resumedVideos} resumed`;
+                    console.log(`📊 ${message}`);
+
+                    // Update button with result
+                    if (resumedVideos > 0) {
+                        resumeButton.innerHTML = `<span>✅</span><span>Resumed ${resumedVideos}</span>`;
+                    } else if (alreadyPlayingVideos === totalVideos && totalVideos > 0) {
+                        resumeButton.innerHTML = '<span>✅</span><span>All Playing</span>';
+                    } else {
+                        resumeButton.innerHTML = '<span>⚠️</span><span>Check Console</span>';
+                    }
+
+                    // Reset button after 3 seconds
+                    setTimeout(() => {
+                        resumeButton.innerHTML = originalHTML;
+                        resumeButton.disabled = false;
+                    }, 3000);
                 }, 500);
             }
 
