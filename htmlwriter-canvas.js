@@ -470,6 +470,11 @@ function writeChatForm(responsesObject) {
         // Peers counter
         document.write("<span id='voiceChatPeers' style='color: #999; font-size: 11px;'>Peers: 0</span>");
 
+        // Refresh peers button
+        document.write("<button id='refreshPeersButton' type='button' style='padding: 6px 12px; background: #17a2b8; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; flex: 1 1 auto; min-width: 140px;'>");
+        document.write("🔄 Refresh Peers");
+        document.write("</button>");
+
         // Add CSS animation for pulse
         document.write("<style>@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }</style>");
 

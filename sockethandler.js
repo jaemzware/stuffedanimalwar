@@ -925,7 +925,17 @@ let peerConnections = {};
 let isMicEnabled = false;
 let isCameraEnabled = false;
 let localCameraStream = null;
+// Load saved camera preference from localStorage
 let selectedCameraDeviceId = null;
+try {
+    const savedDeviceId = localStorage.getItem('selectedCameraDeviceId');
+    if (savedDeviceId) {
+        selectedCameraDeviceId = savedDeviceId;
+        console.log('📷 Loaded saved camera preference from localStorage:', savedDeviceId);
+    }
+} catch (error) {
+    console.warn('Could not load camera preference from localStorage:', error);
+}
 let remoteCameraStreams = {}; // Store remote camera streams by peer ID
 let isVoiceChatMuted = true; // Start muted by default
 let connectedPeers = new Set();
@@ -976,6 +986,71 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Set up WebRTC socket listeners
     initializeVoiceChatSocketHandlers();
+
+    // Refresh peers button
+    const refreshPeersButton = document.getElementById('refreshPeersButton');
+    if (refreshPeersButton) {
+        refreshPeersButton.addEventListener('click', async function() {
+            console.log('🔄 Refreshing peer connections...');
+
+            // Update button state
+            const originalHTML = refreshPeersButton.innerHTML;
+            refreshPeersButton.innerHTML = '⏳ Refreshing...';
+            refreshPeersButton.disabled = true;
+
+            // Clean up all existing peer connections
+            Object.keys(peerConnections).forEach(peerId => {
+                const pc = peerConnections[peerId];
+                if (pc) {
+                    console.log('   Closing connection to peer:', peerId);
+                    pc.close();
+                }
+
+                // Remove video element
+                const videoWrapper = document.getElementById('remoteVideoWrapper_' + peerId);
+                if (videoWrapper) {
+                    videoWrapper.remove();
+                }
+
+                // Remove audio element
+                const audioElement = document.getElementById('remoteAudio_' + peerId);
+                if (audioElement) {
+                    audioElement.remove();
+                }
+            });
+
+            // Clear all peer connection data
+            peerConnections = {};
+            remoteCameraStreams = {};
+            connectedPeers.clear();
+
+            // Update UI
+            updatePeerCount();
+
+            console.log('✅ Cleared all peer connections');
+
+            // Wait a moment, then re-broadcast if we have mic or camera enabled
+            setTimeout(async () => {
+                if (isMicEnabled && localStream) {
+                    console.log('📢 Re-broadcasting audio offer to room');
+                    await createOfferForNewPeer();
+                } else if (isCameraEnabled && localCameraStream) {
+                    console.log('📢 Re-broadcasting camera offer to room');
+                    await createOfferForNewPeer();
+                } else {
+                    console.log('⚠️ No mic or camera enabled - cannot re-establish connections');
+                }
+
+                console.log('🔄 Peer refresh complete');
+
+                // Re-enable button
+                setTimeout(() => {
+                    refreshPeersButton.innerHTML = originalHTML;
+                    refreshPeersButton.disabled = false;
+                }, 1500);
+            }, 500);
+        });
+    }
 
     // Test speakers button
     const testSpeakersButton = document.getElementById('testSpeakersButton');
@@ -1465,6 +1540,17 @@ async function populateCameraDevices() {
 
         if (!cameraSelector) return;
 
+        // Load saved preference
+        let savedDeviceId = null;
+        try {
+            savedDeviceId = localStorage.getItem('selectedCameraDeviceId');
+            if (savedDeviceId) {
+                console.log('📷 Found saved camera preference:', savedDeviceId);
+            }
+        } catch (error) {
+            console.warn('Could not load camera preference:', error);
+        }
+
         // Clear existing options except the first placeholder
         cameraSelector.innerHTML = '<option value="">Select Camera...</option>';
 
@@ -1472,6 +1558,14 @@ async function populateCameraDevices() {
             const option = document.createElement('option');
             option.value = device.deviceId;
             option.text = device.label || `Camera ${cameraSelector.options.length}`;
+
+            // Select the saved device if it matches
+            if (savedDeviceId && device.deviceId === savedDeviceId) {
+                option.selected = true;
+                selectedCameraDeviceId = savedDeviceId;
+                console.log('✅ Auto-selected saved camera:', device.label || option.text);
+            }
+
             cameraSelector.appendChild(option);
         });
 
@@ -1487,6 +1581,14 @@ async function handleCameraChange(event) {
     if (!newDeviceId) return;
 
     selectedCameraDeviceId = newDeviceId;
+
+    // Save to localStorage for persistence
+    try {
+        localStorage.setItem('selectedCameraDeviceId', newDeviceId);
+        console.log('✅ Saved camera preference to localStorage:', newDeviceId);
+    } catch (error) {
+        console.warn('Could not save camera preference:', error);
+    }
 
     // If camera is already enabled, restart with new device
     if (isCameraEnabled) {

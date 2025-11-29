@@ -288,6 +288,11 @@
                 <span id="cameraLabel">Enable Camera</span>
             </button>
 
+            <button id="cameraSwitchButton" class="btn btn-camera" disabled style="background: #666;">
+                <span>🔄</span>
+                <span>Switch Camera</span>
+            </button>
+
             <button id="micToggleButton" class="btn btn-camera">
                 <span id="micIcon">🎤</span>
                 <span id="micLabel">Enable Mic</span>
@@ -312,9 +317,9 @@
 
             <span id="peerCount" style="color: #aaa; font-size: 13px;">Peers: 0</span>
 
-            <button id="refreshPeersButton" class="btn btn-camera" style="margin-top: 8px;">
+            <button id="refreshPeersButton" class="btn btn-camera" style="margin-top: 8px; background: #17a2b8;">
                 <span>🔄</span>
-                <span>Refresh Connections</span>
+                <span>Refresh Peers</span>
             </button>
 
             <button id="resumeAllVideosButton" class="btn btn-camera" style="margin-top: 8px; background: #007bff;">
@@ -365,7 +370,17 @@
             let localMicStream = null;
             let isCameraEnabled = false;
             let isMicEnabled = false;
+            // Load saved camera preference from localStorage
             let selectedCameraDeviceId = null;
+            try {
+                const savedDeviceId = localStorage.getItem('selectedCameraDeviceId');
+                if (savedDeviceId) {
+                    selectedCameraDeviceId = savedDeviceId;
+                    console.log('📷 Loaded saved camera preference from localStorage:', savedDeviceId);
+                }
+            } catch (error) {
+                console.warn('Could not load camera preference from localStorage:', error);
+            }
             let peerConnections = {};
             let remoteCameraStreams = {};
             let isRemoteAudioMuted = true; // Start muted (acceptMicCheckbox starts unchecked)
@@ -407,6 +422,10 @@
 
                 // Set up event listeners
                 document.getElementById('cameraToggleButton').addEventListener('click', toggleCamera);
+                const cameraSwitchButton = document.getElementById('cameraSwitchButton');
+                if (cameraSwitchButton) {
+                    cameraSwitchButton.addEventListener('click', switchCamera);
+                }
                 document.getElementById('micToggleButton').addEventListener('click', toggleMic);
                 document.getElementById('cameraSelector').addEventListener('change', handleCameraChange);
                 acceptCameraCheckbox.addEventListener('change', handleAcceptCameraChange);
@@ -723,6 +742,14 @@
 
                 selectedCameraDeviceId = newDeviceId;
 
+                // Save to localStorage for persistence
+                try {
+                    localStorage.setItem('selectedCameraDeviceId', newDeviceId);
+                    console.log('✅ Saved camera preference to localStorage:', newDeviceId);
+                } catch (error) {
+                    console.warn('Could not save camera preference:', error);
+                }
+
                 // If camera is already enabled, switch to the new device
                 if (isCameraEnabled) {
                     console.log('Camera already enabled, switching devices...');
@@ -951,6 +978,7 @@
 
             async function toggleCamera() {
                 const button = document.getElementById('cameraToggleButton');
+                const cameraSwitchButton = document.getElementById('cameraSwitchButton');
                 const icon = document.getElementById('cameraIcon');
                 const label = document.getElementById('cameraLabel');
                 const localCameraSection = document.getElementById('localCameraSection');
@@ -964,6 +992,12 @@
                         button.classList.add('active');
                         label.textContent = 'Camera On';
                         isCameraEnabled = true;
+
+                        // Enable camera switch button
+                        if (cameraSwitchButton) {
+                            cameraSwitchButton.disabled = false;
+                            cameraSwitchButton.style.background = '#007bff';
+                        }
 
                         console.log('Camera enabled successfully');
                     } catch (error) {
@@ -987,6 +1021,12 @@
                     label.textContent = 'Enable Camera';
 
                     isCameraEnabled = false;
+
+                    // Disable camera switch button
+                    if (cameraSwitchButton) {
+                        cameraSwitchButton.disabled = true;
+                        cameraSwitchButton.style.background = '#666';
+                    }
 
                     document.getElementById('status').textContent = 'Camera disabled';
                     document.getElementById('status').className = 'status disconnected';
