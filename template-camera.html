@@ -158,6 +158,7 @@
                 overflow: hidden;
                 box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
                 transition: transform 0.3s ease;
+                position: relative;
             }
 
             .camera-card:hover {
@@ -191,6 +192,30 @@
                 min-height: 180px;
                 max-height: 300px;
                 object-fit: contain;
+            }
+
+            /* Prevent fullscreen on mobile tap */
+            @media (max-width: 768px) {
+                video {
+                    pointer-events: none;
+                }
+
+                /* Overlay to catch all touches */
+                .camera-card::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    z-index: 1;
+                    pointer-events: auto;
+                }
+
+                .camera-label {
+                    position: relative;
+                    z-index: 2;
+                }
             }
 
             .local-camera {
@@ -270,6 +295,11 @@
                 <span>🔄</span>
                 <span>Refresh Connections</span>
             </button>
+
+            <button id="resumeAllVideosButton" class="btn btn-camera" style="margin-top: 8px; background: #007bff;">
+                <span>▶️</span>
+                <span>Resume All Videos</span>
+            </button>
         </div>
 
         <div id="status" class="status disconnected">
@@ -282,7 +312,7 @@
                     <span id="localCameraNameLabel">📹 Your Camera</span>
                     <span class="badge">LOCAL</span>
                 </div>
-                <video id="localCameraVideo" autoplay playsinline muted></video>
+                <video id="localCameraVideo" autoplay playsinline webkit-playsinline muted disablePictureInPicture x5-playsinline x5-video-player-type="h5"></video>
             </div>
         </div>
 
@@ -346,6 +376,7 @@
                 document.getElementById('acceptCameraCheckbox').addEventListener('change', handleAcceptCameraChange);
                 document.getElementById('acceptMicCheckbox').addEventListener('change', handleAcceptMicChange);
                 document.getElementById('refreshPeersButton').addEventListener('click', refreshPeerConnections);
+                document.getElementById('resumeAllVideosButton').addEventListener('click', resumeAllVideos);
                 document.getElementById('cameraNameInput').addEventListener('input', function(e) {
                     myCameraName = e.target.value.trim();
                     console.log('Camera name set to:', myCameraName || '(default)');
@@ -365,6 +396,14 @@
 
                 populateCameraDevices();
                 initializeSocketHandlers();
+
+                // Prevent video fullscreen on mobile - global handler
+                document.addEventListener('touchstart', (e) => {
+                    if (e.target.tagName === 'VIDEO') {
+                        // Allow tap but prevent fullscreen
+                        e.target.removeAttribute('controls');
+                    }
+                }, { passive: true });
 
                 // Handle page visibility changes (mobile backgrounding)
                 document.addEventListener('visibilitychange', function() {
@@ -388,6 +427,28 @@
                 console.log('Connected to room:', endpoint + 'camera');
                 document.getElementById('status').textContent = 'Connected to room';
                 document.getElementById('status').className = 'status connected';
+
+                // Request roster from all existing peers to ensure full mesh connectivity
+                setTimeout(() => {
+                    console.log('📋 Requesting roster from existing peers');
+                    socket.emit(endpoint + 'cameracamera' + 'requestroster', {
+                        userId: socket.id
+                    });
+                }, 1000); // Small delay to let connect events propagate first
+
+                // Start periodic presence announcements to help peers discover us
+                // This helps even when peers have different code versions
+                if (window.presenceInterval) {
+                    clearInterval(window.presenceInterval);
+                }
+                window.presenceInterval = setInterval(() => {
+                    // Always announce presence, even if no camera name is set
+                    // This helps with peer discovery
+                    console.log('💓 Heartbeat: announcing presence with name:', myCameraName || '(none)');
+                    socket.emit(cameraNameUpdateSocketEvent, {
+                        cameraName: myCameraName || ''
+                    });
+                }, 30000); // Every 30 seconds
             });
 
             socket.on('disconnect', function() {
@@ -455,18 +516,101 @@
                     console.log('📢 Broadcasting reconnection request to room');
                     console.log('Current camera name:', myCameraName || '(none)');
 
-                    // Emit a special reconnect event that triggers others to send offers
+                    // Emit BOTH reconnect and connect events
+                    // reconnect: tells peers with lower IDs to create offers to us
+                    // connect: we create offers to peers with higher IDs (like when first joining)
                     socket.emit(endpoint + 'cameracamera' + 'reconnect', {
                         userId: socket.id
                     });
 
-                    console.log('🔄 Reconnection process initiated');
+                    socket.emit(connectSocketEvent, {
+                        userId: socket.id
+                    });
+
+                    // Request all peers to announce themselves (even those with higher IDs)
+                    socket.emit(endpoint + 'cameracamera' + 'requestroster', {
+                        userId: socket.id
+                    });
+
+                    console.log('🔄 Reconnection process initiated (emitted reconnect + connect + requestroster)');
 
                     // Re-enable button after a delay
                     setTimeout(() => {
                         refreshButton.innerHTML = originalHTML;
                         refreshButton.disabled = false;
                     }, 2000);
+                }, 500);
+            }
+
+            // Resume all videos function
+            function resumeAllVideos() {
+                console.log('▶️ Resuming all videos...');
+
+                // Update button state
+                const resumeButton = document.getElementById('resumeAllVideosButton');
+                const originalHTML = resumeButton.innerHTML;
+                resumeButton.innerHTML = '<span>⏳</span><span>Resuming...</span>';
+                resumeButton.disabled = true;
+
+                let totalVideos = 0;
+                let resumedVideos = 0;
+                let alreadyPlayingVideos = 0;
+
+                // Find all video elements (local + remote)
+                const allVideos = document.querySelectorAll('video');
+                totalVideos = allVideos.length;
+
+                console.log(`Found ${totalVideos} video element(s)`);
+
+                allVideos.forEach((video, index) => {
+                    const videoId = video.id || `video-${index}`;
+                    const isPaused = video.paused;
+                    const hasSrc = !!video.srcObject;
+
+                    console.log(`Video ${videoId}:`, {
+                        paused: isPaused,
+                        hasSrc: hasSrc,
+                        readyState: video.readyState,
+                        muted: video.muted
+                    });
+
+                    if (hasSrc) {
+                        if (isPaused) {
+                            // Try to resume
+                            video.play().then(() => {
+                                resumedVideos++;
+                                console.log(`✅ Resumed ${videoId}`);
+                            }).catch(err => {
+                                console.warn(`⚠️ Could not resume ${videoId}:`, err.message);
+                            });
+                        } else {
+                            alreadyPlayingVideos++;
+                            console.log(`✅ ${videoId} already playing`);
+                        }
+                    } else {
+                        console.log(`⚠️ ${videoId} has no video source`);
+                    }
+                });
+
+                // Show results after a brief delay
+                setTimeout(() => {
+                    const message = `Checked ${totalVideos} video(s): ${alreadyPlayingVideos} playing, ${resumedVideos} resumed`;
+                    console.log(`📊 ${message}`);
+
+                    // Update button with result
+                    if (resumedVideos > 0) {
+                        resumeButton.innerHTML = `<span>✅</span><span>Resumed ${resumedVideos}</span>`;
+                    } else if (alreadyPlayingVideos === totalVideos && totalVideos > 0) {
+                        resumeButton.innerHTML = '<span>✅</span><span>All Playing</span>';
+                    } else {
+                        resumeButton.innerHTML = '<span>⚠️</span><span>Check Console</span>';
+                    }
+
+                    // Reset button after 3 seconds
+                    setTimeout(() => {
+                        resumeButton.innerHTML = originalHTML;
+                        resumeButton.disabled = false;
+                    }, 3000);
                 }, 500);
             }
 
@@ -608,6 +752,28 @@
                             videoWidth: localCameraVideo.videoWidth,
                             videoHeight: localCameraVideo.videoHeight,
                             srcObject: !!localCameraVideo.srcObject
+                        });
+
+                        // Prevent fullscreen on local video
+                        localCameraVideo.controls = false;
+                        localCameraVideo.addEventListener('webkitbeginfullscreen', (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                        }, true);
+                        localCameraVideo.addEventListener('webkitendfullscreen', (e) => {
+                            e.preventDefault();
+                        }, true);
+
+                        // Auto-resume if local video pauses unexpectedly
+                        localCameraVideo.addEventListener('pause', () => {
+                            console.log('⏸️ Local video paused - attempting to resume');
+                            setTimeout(() => {
+                                if (localCameraVideo.paused && localCameraVideo.srcObject) {
+                                    localCameraVideo.play().catch(err => {
+                                        console.log('⚠️ Could not resume local video:', err);
+                                    });
+                                }
+                            }, 100);
                         });
                     } catch (playError) {
                         console.error('❌ Video play error:', playError);
@@ -954,6 +1120,56 @@
                 socket.on(endpoint + 'cameracamera' + 'disconnect', handlePeerDisconnect);
                 socket.on(endpoint + 'cameracamera' + 'nameupdate', handleCameraNameUpdate);
                 socket.on(endpoint + 'cameracamera' + 'reconnect', handlePeerReconnect);
+                socket.on(endpoint + 'cameracamera' + 'requestroster', handleRosterRequest);
+            }
+
+            function handleRosterRequest(data) {
+                console.log('📋 Peer requesting roster:', data.userId, '(my ID:', socket.id, ')');
+
+                // Only respond if this is a different peer
+                if (data.userId !== socket.id) {
+                    console.log('📢 Announcing my presence to:', data.userId, 'with name:', myCameraName || '(none)');
+
+                    // Directly create peer connection if we don't already have one
+                    if (!peerConnections[data.userId]) {
+                        console.log('Creating peer connection for roster requester:', data.userId);
+
+                        const pc = createPeerConnection(data.userId);
+
+                        // Use glare resolution to decide who creates offer
+                        const shouldCreateOffer = socket.id < data.userId;
+                        console.log('Glare resolution - should I create offer?', shouldCreateOffer, '(my ID:', socket.id, 'vs their ID:', data.userId, ')');
+
+                        if (shouldCreateOffer) {
+                            // Create and send offer
+                            pc.createOffer().then(offer => pc.setLocalDescription(offer))
+                                .then(() => {
+                                    socket.emit(voiceOfferSocketEvent, {
+                                        offer: pc.localDescription,
+                                        to: data.userId,
+                                        cameraName: myCameraName
+                                    });
+                                    console.log('📤 Sent offer to roster requester:', data.userId);
+                                })
+                                .catch(err => {
+                                    console.error('❌ Error creating offer for roster requester:', err);
+                                });
+                        } else {
+                            console.log('⏸️ Created peer connection, waiting for offer from:', data.userId);
+                        }
+                    } else {
+                        console.log('ℹ️ Already have peer connection for:', data.userId);
+                    }
+
+                    // Also send our camera name if we have one
+                    if (myCameraName) {
+                        socket.emit(cameraNameUpdateSocketEvent, {
+                            cameraName: myCameraName
+                        });
+                    }
+                } else {
+                    console.log('ℹ️ Ignoring roster request from myself');
+                }
             }
 
             function handlePeerReconnect(data) {
@@ -988,6 +1204,8 @@
                             });
                     } else {
                         console.log('⏸️ Waiting for offer from peer:', data.userId, '(they have lower ID)');
+                        // Still create the peer connection so we're ready to receive their offer
+                        createPeerConnection(data.userId);
                     }
                 }
             }
@@ -1019,6 +1237,40 @@
                     }
                 } else {
                     console.log('⚠️ No video element found for peer:', data.userId);
+
+                    // IMPORTANT: If we received a name update but have no peer connection,
+                    // it means the peer exists but we're not connected. Try to establish connection!
+                    if (!peerConnections[data.userId]) {
+                        console.log('🔗 Attempting to establish connection with:', data.userId);
+
+                        const pc = createPeerConnection(data.userId);
+
+                        // Use glare resolution to decide who creates offer
+                        const shouldCreateOffer = socket.id < data.userId;
+                        console.log('Glare resolution:', shouldCreateOffer ? 'I create offer' : 'I wait for offer', '(my ID:', socket.id, 'vs their ID:', data.userId, ')');
+
+                        if (shouldCreateOffer) {
+                            // Create and send offer
+                            pc.createOffer().then(offer => pc.setLocalDescription(offer))
+                                .then(() => {
+                                    socket.emit(voiceOfferSocketEvent, {
+                                        offer: pc.localDescription,
+                                        to: data.userId,
+                                        cameraName: myCameraName
+                                    });
+                                    console.log('📤 Sent offer to discovered peer:', data.userId);
+                                })
+                                .catch(err => {
+                                    console.error('❌ Error creating offer for discovered peer:', err);
+                                });
+                        } else {
+                            console.log('⏸️ Created peer connection, waiting for offer from discovered peer:', data.userId);
+                            // Request the peer to send us an offer
+                            socket.emit(endpoint + 'cameracamera' + 'reconnect', {
+                                userId: socket.id
+                            });
+                        }
+                    }
                 }
             }
 
@@ -1084,11 +1336,45 @@
                             const video = document.createElement('video');
                             video.autoplay = true;
                             video.playsinline = true;
+                            video.muted = true; // Mute to help autoplay on mobile
+                            video.setAttribute('webkit-playsinline', '');
+                            video.setAttribute('disablePictureInPicture', '');
+                            video.setAttribute('x5-playsinline', ''); // Android WeChat
+                            video.setAttribute('x5-video-player-type', 'h5');
+                            video.setAttribute('x-webkit-airplay', 'allow');
+
+                            // Prevent default video controls and fullscreen
+                            video.controls = false;
+                            video.addEventListener('webkitbeginfullscreen', (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                            }, true);
+                            video.addEventListener('webkitendfullscreen', (e) => {
+                                e.preventDefault();
+                            }, true);
+
                             video.srcObject = event.streams[0];
 
                             videoWrapper.appendChild(label);
                             videoWrapper.appendChild(video);
                             remoteCameraGrid.appendChild(videoWrapper);
+
+                            // Force play to avoid play button
+                            video.play().catch(err => {
+                                console.log('⚠️ Autoplay prevented for peer:', peerId, err);
+                            });
+
+                            // Auto-resume if video pauses unexpectedly
+                            video.addEventListener('pause', () => {
+                                console.log('⏸️ Video paused unexpectedly for peer:', peerId, '- attempting to resume');
+                                setTimeout(() => {
+                                    if (video.paused && video.srcObject) {
+                                        video.play().catch(err => {
+                                            console.log('⚠️ Could not resume video for peer:', peerId, err);
+                                        });
+                                    }
+                                }, 100);
+                            });
 
                             remoteCameraStreams[peerId] = event.streams[0];
                             console.log('✅ Created video element for peer:', peerId);

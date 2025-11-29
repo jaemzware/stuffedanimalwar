@@ -1,0 +1,14 @@
+{
+  "server_url": "https://localhost:55556",
+  "camera_name": "📹 Pi Camera",
+  "endpoints": [
+    "jim",
+    "katie",
+    "jacob",
+    "maddie",
+    "mark",
+    "nina",
+    "onboard"
+  ],
+  "verify_ssl": false
+}

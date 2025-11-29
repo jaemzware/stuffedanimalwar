@@ -1,0 +1,26 @@
+[Unit]
+Description=Raspberry Pi Camera WebRTC Broadcaster for Stuffed Animal War
+After=network.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/stuffedanimalwar
+Environment="PYTHONUNBUFFERED=1"
+ExecStart=/usr/bin/python3 /home/pi/stuffedanimalwar/pi_camera_broadcaster.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/pi/stuffedanimalwar
+
+[Install]
+WantedBy=multi-user.target
