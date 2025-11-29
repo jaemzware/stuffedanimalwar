@@ -1726,16 +1726,77 @@ async function switchCamera() {
         // Update selected device
         selectedCameraDeviceId = nextDevice.deviceId;
 
+        // Save to localStorage
+        try {
+            localStorage.setItem('selectedCameraDeviceId', nextDevice.deviceId);
+            console.log('✅ Saved camera preference to localStorage');
+        } catch (err) {
+            console.warn('Could not save camera preference:', err);
+        }
+
+        // Update dropdown
+        const cameraSelector = document.getElementById('cameraSelector');
+        if (cameraSelector) {
+            cameraSelector.value = nextDevice.deviceId;
+        }
+
         // Stop current stream
         if (localCameraStream) {
             localCameraStream.getTracks().forEach(track => {
                 console.log('   Stopping track:', track.label);
                 track.stop();
             });
+            localCameraStream = null;
         }
 
-        // Start new camera
-        await startCamera();
+        // Start new camera with the selected device
+        const localCameraVideo = document.getElementById('localCameraVideo');
+        const localCameraPreview = document.getElementById('localCameraPreview');
+
+        const constraints = {
+            video: {
+                width: { ideal: 1280 },
+                height: { ideal: 720 },
+                deviceId: { exact: nextDevice.deviceId }
+            }
+        };
+
+        localCameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+
+        console.log('✅ New camera stream acquired');
+        console.log('Video tracks:', localCameraStream.getVideoTracks().map(t => ({
+            label: t.label,
+            enabled: t.enabled,
+            readyState: t.readyState
+        })));
+
+        // Show local preview
+        if (localCameraVideo) {
+            localCameraVideo.srcObject = localCameraStream;
+        }
+        if (localCameraPreview) {
+            localCameraPreview.style.display = 'block';
+        }
+
+        // Replace video tracks in all peer connections
+        Object.keys(peerConnections).forEach(peerId => {
+            const pc = peerConnections[peerId];
+            if (pc && (pc.connectionState === 'connected' || pc.connectionState === 'connecting')) {
+                console.log('📤 Updating video track for peer:', peerId);
+
+                const senders = pc.getSenders();
+                const videoSender = senders.find(sender => sender.track && sender.track.kind === 'video');
+
+                if (videoSender && localCameraStream.getVideoTracks().length > 0) {
+                    const newVideoTrack = localCameraStream.getVideoTracks()[0];
+                    videoSender.replaceTrack(newVideoTrack).then(() => {
+                        console.log('   ✅ Replaced video track for peer:', peerId);
+                    }).catch(err => {
+                        console.error('   ❌ Error replacing track for peer', peerId, ':', err);
+                    });
+                }
+            }
+        });
 
         console.log('✅ Camera switched successfully');
     } catch (error) {
