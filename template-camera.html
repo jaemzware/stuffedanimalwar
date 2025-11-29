@@ -605,29 +605,37 @@
                     console.log('📢 Broadcasting reconnection request to room');
                     console.log('Current camera name:', myCameraName || '(none)');
 
-                    // Emit BOTH reconnect and connect events
-                    // reconnect: tells peers with lower IDs to create offers to us
-                    // connect: we create offers to peers with higher IDs (like when first joining)
-                    socket.emit(endpoint + 'cameracamera' + 'reconnect', {
-                        userId: socket.id
-                    });
+                    // Store a list to track which peers respond
+                    window._refreshPeerList = new Set();
 
-                    socket.emit(connectSocketEvent, {
-                        userId: socket.id
-                    });
-
-                    // Request all peers to announce themselves (even those with higher IDs)
+                    // Request all peers to announce themselves
                     socket.emit(endpoint + 'cameracamera' + 'requestroster', {
                         userId: socket.id
                     });
 
-                    console.log('🔄 Reconnection process initiated (emitted reconnect + connect + requestroster)');
+                    // Wait a bit for roster responses, then force reconnection
+                    setTimeout(() => {
+                        console.log('🔄 Forcing reconnection to all known peers');
+
+                        // Emit reconnect to tell others to connect to us
+                        socket.emit(endpoint + 'cameracamera' + 'reconnect', {
+                            userId: socket.id
+                        });
+
+                        // Also emit connect so we actively try to connect to them
+                        // This ensures bidirectional connection attempts
+                        socket.emit(connectSocketEvent, {
+                            userId: socket.id
+                        });
+
+                        console.log('🔄 Reconnection process initiated (emitted requestroster + reconnect + connect)');
+                    }, 500);
 
                     // Re-enable button after a delay
                     setTimeout(() => {
                         refreshButton.innerHTML = originalHTML;
                         refreshButton.disabled = false;
-                    }, 2000);
+                    }, 2500);
                 }, 500);
             }
 
@@ -1403,6 +1411,39 @@
                 socket.on(endpoint + 'cameracamera' + 'nameupdate', handleCameraNameUpdate);
                 socket.on(endpoint + 'cameracamera' + 'reconnect', handlePeerReconnect);
                 socket.on(endpoint + 'cameracamera' + 'requestroster', handleRosterRequest);
+                socket.on(endpoint + 'cameracamera' + 'rosterresponse', handleRosterResponse);
+            }
+
+            function handleRosterResponse(data) {
+                console.log('📥 Received roster response from:', data.from, 'name:', data.cameraName || '(none)');
+
+                // Store camera name if provided
+                if (data.cameraName) {
+                    peerCameraNames[data.from] = data.cameraName;
+                }
+
+                // If we don't have a peer connection yet, create one
+                if (!peerConnections[data.from]) {
+                    console.log('🔗 Creating peer connection to roster responder:', data.from);
+                    const pc = createPeerConnection(data.from);
+
+                    // Always create offer as the refreshing peer
+                    // This ensures connection establishment works regardless of ID ordering
+                    pc.createOffer().then(offer => pc.setLocalDescription(offer))
+                        .then(() => {
+                            socket.emit(voiceOfferSocketEvent, {
+                                offer: pc.localDescription,
+                                to: data.from,
+                                cameraName: myCameraName
+                            });
+                            console.log('📤 Sent offer to roster responder:', data.from);
+                        })
+                        .catch(err => {
+                            console.error('❌ Error creating offer for roster responder:', err);
+                        });
+                } else {
+                    console.log('ℹ️ Already connected to:', data.from);
+                }
             }
 
             function handleRosterRequest(data) {
@@ -1411,6 +1452,12 @@
                 // Only respond if this is a different peer
                 if (data.userId !== socket.id) {
                     console.log('📢 Announcing my presence to:', data.userId, 'with name:', myCameraName || '(none)');
+
+                    // Send a roster response so the requester knows we exist
+                    socket.emit(endpoint + 'cameracamera' + 'rosterresponse', {
+                        to: data.userId,
+                        cameraName: myCameraName || ''
+                    });
 
                     // Directly create peer connection if we don't already have one
                     if (!peerConnections[data.userId]) {
