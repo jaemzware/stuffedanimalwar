@@ -4,19 +4,19 @@ function writeStuffedAnimalWar(stuffedAnimalMediaObject, readonly = false){
         writeStuffedAnimalWarDiv(stuffedAnimalMediaObject, true);
     } else {
         // Normal mode: show everything with flexbox layout
-        // Collapsible header for canvas drawing area
-        document.write("<div class='section-header collapsible' data-target='canvas-drawing-content' style='cursor: pointer; user-select: none; margin-top: 15px; padding: 12px 20px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 8px;'>");
+        // Collapsible header for entire canvas section (drawing area + controls)
+        document.write("<div class='section-header collapsible' data-target='canvas-complete-content' style='cursor: pointer; user-select: none; margin-top: 15px; padding: 12px 20px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 8px;'>");
         document.write("<span class='section-icon'>🎨</span>");
         document.write("<h3 class='section-title' style='margin: 0; color: white;'>Canvas</h3>");
         document.write("<span class='collapse-indicator'>▼</span>");
         document.write("</div>");
 
-        document.write("<div id='canvas-drawing-content' class='section-content'>");
+        document.write("<div id='canvas-complete-content' class='section-content'>");
         document.write("<div id='sawflexdiv'>");
         writeStuffedAnimalWarDiv(stuffedAnimalMediaObject, false);
         writeStuffedAnimalWarForm(stuffedAnimalMediaObject);
         document.write("</div>");
-        document.write("</div>"); // Close canvas-drawing-content
+        document.write("</div>"); // Close canvas-complete-content
         document.write("<hr />");
     }
 }
@@ -82,14 +82,6 @@ function writeStuffedAnimalWarForm(stuffedAnimalMediaObject){
     document.write(".direction-radio:checked + .direction-label { background-color: #0066cc; font-weight: bold; }");
     document.write("</style>");
 
-    // Collapsible header for canvas controls
-    document.write("<div class='section-header collapsible' data-target='canvas-controls-content' style='cursor: pointer; user-select: none; margin-top: 15px; padding: 12px 20px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 8px;'>");
-    document.write("<span class='section-icon'>🎨</span>");
-    document.write("<h3 class='section-title' style='margin: 0; color: white;'>Canvas Controls</h3>");
-    document.write("<span class='collapse-indicator'>▼</span>");
-    document.write("</div>");
-
-    document.write("<div id='canvas-controls-content' class='section-content'>");
     document.write("<form id='stuffedanimalwarform'>");
     document.write("<table id='stuffedanimalwarformtable'>");
 
@@ -224,7 +216,6 @@ function writeStuffedAnimalWarForm(stuffedAnimalMediaObject){
     document.write("</tr>");
     document.write("</table>");
     document.write("</form>");
-    document.write("</div>"); // Close canvas-controls-content
 }
 //STUFFEDANIMALWAR//////////////////////////////////////////////STUFFEDANIMALWAR//////////////////////////////////////////////////STUFFEDANIMALWAR
 //AUDIOVIDEOPHOTOS//////////////////////////////////////////////AUDIOVIDEOPHOTOS//////////////////////////////////////////////////AUDIOVIDEOPHOTOS
