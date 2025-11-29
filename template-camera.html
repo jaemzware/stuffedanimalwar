@@ -435,6 +435,20 @@
                         userId: socket.id
                     });
                 }, 1000); // Small delay to let connect events propagate first
+
+                // Start periodic presence announcements to help peers discover us
+                // This helps even when peers have different code versions
+                if (window.presenceInterval) {
+                    clearInterval(window.presenceInterval);
+                }
+                window.presenceInterval = setInterval(() => {
+                    // Always announce presence, even if no camera name is set
+                    // This helps with peer discovery
+                    console.log('💓 Heartbeat: announcing presence with name:', myCameraName || '(none)');
+                    socket.emit(cameraNameUpdateSocketEvent, {
+                        cameraName: myCameraName || ''
+                    });
+                }, 30000); // Every 30 seconds
             });
 
             socket.on('disconnect', function() {
@@ -1110,17 +1124,42 @@
             }
 
             function handleRosterRequest(data) {
-                console.log('📋 Peer requesting roster:', data.userId);
+                console.log('📋 Peer requesting roster:', data.userId, '(my ID:', socket.id, ')');
 
                 // Only respond if this is a different peer
                 if (data.userId !== socket.id) {
-                    console.log('📢 Announcing my presence to:', data.userId);
+                    console.log('📢 Announcing my presence to:', data.userId, 'with name:', myCameraName || '(none)');
 
-                    // Announce ourselves back by emitting a connect event
-                    // This triggers the standard connection flow
-                    socket.emit(connectSocketEvent, {
-                        userId: socket.id
-                    });
+                    // Directly create peer connection if we don't already have one
+                    if (!peerConnections[data.userId]) {
+                        console.log('Creating peer connection for roster requester:', data.userId);
+
+                        const pc = createPeerConnection(data.userId);
+
+                        // Use glare resolution to decide who creates offer
+                        const shouldCreateOffer = socket.id < data.userId;
+                        console.log('Glare resolution - should I create offer?', shouldCreateOffer, '(my ID:', socket.id, 'vs their ID:', data.userId, ')');
+
+                        if (shouldCreateOffer) {
+                            // Create and send offer
+                            pc.createOffer().then(offer => pc.setLocalDescription(offer))
+                                .then(() => {
+                                    socket.emit(voiceOfferSocketEvent, {
+                                        offer: pc.localDescription,
+                                        to: data.userId,
+                                        cameraName: myCameraName
+                                    });
+                                    console.log('📤 Sent offer to roster requester:', data.userId);
+                                })
+                                .catch(err => {
+                                    console.error('❌ Error creating offer for roster requester:', err);
+                                });
+                        } else {
+                            console.log('⏸️ Created peer connection, waiting for offer from:', data.userId);
+                        }
+                    } else {
+                        console.log('ℹ️ Already have peer connection for:', data.userId);
+                    }
 
                     // Also send our camera name if we have one
                     if (myCameraName) {
@@ -1128,6 +1167,8 @@
                             cameraName: myCameraName
                         });
                     }
+                } else {
+                    console.log('ℹ️ Ignoring roster request from myself');
                 }
             }
 
@@ -1196,6 +1237,40 @@
                     }
                 } else {
                     console.log('⚠️ No video element found for peer:', data.userId);
+
+                    // IMPORTANT: If we received a name update but have no peer connection,
+                    // it means the peer exists but we're not connected. Try to establish connection!
+                    if (!peerConnections[data.userId]) {
+                        console.log('🔗 Attempting to establish connection with:', data.userId);
+
+                        const pc = createPeerConnection(data.userId);
+
+                        // Use glare resolution to decide who creates offer
+                        const shouldCreateOffer = socket.id < data.userId;
+                        console.log('Glare resolution:', shouldCreateOffer ? 'I create offer' : 'I wait for offer', '(my ID:', socket.id, 'vs their ID:', data.userId, ')');
+
+                        if (shouldCreateOffer) {
+                            // Create and send offer
+                            pc.createOffer().then(offer => pc.setLocalDescription(offer))
+                                .then(() => {
+                                    socket.emit(voiceOfferSocketEvent, {
+                                        offer: pc.localDescription,
+                                        to: data.userId,
+                                        cameraName: myCameraName
+                                    });
+                                    console.log('📤 Sent offer to discovered peer:', data.userId);
+                                })
+                                .catch(err => {
+                                    console.error('❌ Error creating offer for discovered peer:', err);
+                                });
+                        } else {
+                            console.log('⏸️ Created peer connection, waiting for offer from discovered peer:', data.userId);
+                            // Request the peer to send us an offer
+                            socket.emit(endpoint + 'cameracamera' + 'reconnect', {
+                                userId: socket.id
+                            });
+                        }
+                    }
                 }
             }
 
