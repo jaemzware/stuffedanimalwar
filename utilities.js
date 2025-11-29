@@ -64,6 +64,31 @@ document.addEventListener('DOMContentLoaded', function() {
 
     //speed slider
     initSpeedSlider();
+
+    // Collapsible sections functionality
+    console.log('Initializing collapsible sections...');
+    const collapsibleHeaders = document.querySelectorAll('.collapsible');
+
+    collapsibleHeaders.forEach(header => {
+        header.addEventListener('click', function() {
+            const targetId = this.getAttribute('data-target');
+            const targetContent = document.getElementById(targetId);
+            const indicator = this.querySelector('.collapse-indicator');
+
+            if (targetContent) {
+                if (targetContent.style.display === 'none') {
+                    targetContent.style.display = 'block';
+                    if (indicator) indicator.textContent = '▼';
+                } else {
+                    targetContent.style.display = 'none';
+                    if (indicator) indicator.textContent = '▶';
+                }
+                console.log('Toggled section:', targetId);
+            }
+        });
+    });
+
+    console.log('Found', collapsibleHeaders.length, 'collapsible sections');
 });
 /*
  * THESE ARE UTILITY FUNCTIONS FOR CONTROLLING THE AUDIO AND VIDEO PLAYERS ON THE PAGE  THESE ARE RESPONSES TO THE

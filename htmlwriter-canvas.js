@@ -219,12 +219,13 @@ function writeAudioFromJson(mediaObject){
         document.write("<div id='audioPlayerContainer' class='section-container'>");
         document.write("<form id='audioform' class='modern-form'>");
 
-            document.write("<div class='section-header'>");
+            document.write("<div class='section-header collapsible' data-target='audio-content' style='cursor: pointer; user-select: none;'>");
             document.write("<span class='section-icon'>🎵</span>");
             document.write("<h3 class='section-title'>Audio Player</h3>");
+            document.write("<span class='collapse-indicator'>▼</span>");
             document.write("</div>");
 
-            document.write("<div class='audio-content'>");
+            document.write("<div class='audio-content section-content' id='audio-content'>");
                 document.write("<div class='input-group full-width'>");
                     document.write("<label for='selectsongs' class='input-label'>Select Track</label>");
                     document.write("<select id=\"selectsongs\" class='modern-select'>");
@@ -279,12 +280,13 @@ function writeVideoFromJson(mediaObject){
         document.write("<div id='videoPlayerContainer' class='section-container'>");
         document.write("<form id='videoform' class='modern-form'>");
 
-            document.write("<div class='section-header'>");
+            document.write("<div class='section-header collapsible' data-target='video-content' style='cursor: pointer; user-select: none;'>");
             document.write("<span class='section-icon'>🎬</span>");
             document.write("<h3 class='section-title'>Video Player</h3>");
+            document.write("<span class='collapse-indicator'>▼</span>");
             document.write("</div>");
 
-            document.write("<div class='video-content'>");
+            document.write("<div class='video-content section-content' id='video-content'>");
                 document.write("<div class='input-group full-width'>");
                     document.write("<label for='selectvideos' class='input-label'>Select Video</label>");
                     document.write("<select id=\"selectvideos\" class='modern-select'>");
@@ -354,12 +356,13 @@ function writePhotosFromJson(mediaObject){
     //PHOTOS
     if(mediaObject.photospath && mediaObject.photos && mediaObject.photos[0]){
         document.write("<div id='photoGalleryContainer' class='section-container'>");
-            document.write("<div class='section-header'>");
+            document.write("<div class='section-header collapsible' data-target='photo-gallery' style='cursor: pointer; user-select: none;'>");
             document.write("<span class='section-icon'>🖼️</span>");
             document.write("<h3 class='section-title'>Photo Gallery</h3>");
+            document.write("<span class='collapse-indicator'>▼</span>");
             document.write("</div>");
 
-            document.write("<div class=\"photo-gallery\">");
+            document.write("<div class=\"photo-gallery section-content\" id='photo-gallery'>");
             //paint the photos
             for (let i=0;i<mediaObject.photos.length;i++){
                 let filepath = (mediaObject.photos[i].file.startsWith("http://") || mediaObject.photos[i].file.startsWith("https://")) ? mediaObject.photos[i].file : mediaObject.photospath+mediaObject.photos[i].file;
@@ -383,11 +386,13 @@ function writeChatForm(responsesObject) {
         document.write("Default: <span id='unspecifiedAliasDisplay'></span>");
         document.write("</div>");
 
-        document.write("<div class='section-header'>");
+        document.write("<div class='section-header collapsible' data-target='chat-content' style='cursor: pointer; user-select: none;'>");
         document.write("<span class='section-icon'>💬</span>");
         document.write("<h3 class='section-title'>Chat</h3>");
+        document.write("<span class='collapse-indicator'>▼</span>");
         document.write("</div>");
 
+        document.write("<div class='chat-content section-content' id='chat-content'>");
         document.write("<div class='chat-controls'>");
             document.write("<div class='input-group'>");
                 document.write("<label for='chatClientUser' class='input-label'>Alias</label>");
@@ -429,6 +434,12 @@ function writeChatForm(responsesObject) {
         document.write("<button id='cameraToggleButton' type='button' style='padding: 6px 12px; background: #666; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 5px; transition: all 0.3s; flex: 1 1 auto; min-width: 120px;'>");
         document.write("<span id='cameraIcon'>📹</span>");
         document.write("<span id='cameraLabel'>Enable Camera</span>");
+        document.write("</button>");
+
+        // Camera switch button
+        document.write("<button id='cameraSwitchButton' type='button' style='padding: 6px 12px; background: #666; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 5px; transition: all 0.3s; flex: 1 1 auto; min-width: 120px;' disabled>");
+        document.write("<span>🔄</span>");
+        document.write("<span>Switch Camera</span>");
         document.write("</button>");
 
         // Accept incoming mic audio checkbox (unchecked by default)
@@ -480,6 +491,7 @@ function writeChatForm(responsesObject) {
         document.write("</div>");
         document.write("<div id='remoteCameraContainer' style='display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px;'></div>");
         document.write("</div>");
+        document.write("</div>"); // Close chat-content
 
     document.write("</form>");
     document.write("</div>");
@@ -488,10 +500,12 @@ function writeChatFormFileUpload() {
     document.write("<div class='uploads-wrapper'>");
     document.write("<div id='fileUploadContainer' class='upload-container'>");
         document.write("<form id=\"uploadForm\" enctype=\"multipart/form-data\" class='upload-form'>");
-            document.write("<div class='upload-header'>");
+            document.write("<div class='upload-header collapsible' data-target='photo-upload-content' style='cursor: pointer; user-select: none;'>");
                 document.write("<span class='upload-icon'>📸</span>");
                 document.write("<h3 class='upload-title'>Photo Upload</h3>");
+                document.write("<span class='collapse-indicator'>▼</span>");
             document.write("</div>");
+            document.write("<div class='section-content' id='photo-upload-content'>");
             document.write("<div class='upload-content'>");
                 document.write("<label for='imageFileInput' class='file-input-wrapper'>");
                     document.write("<input type=\"file\" id='imageFileInput' name=\"image\" accept=\"image/*\" required class='file-input'>");
@@ -511,16 +525,19 @@ function writeChatFormFileUpload() {
                 document.write("<div class='progress-bar-container'><div id='imageProgressBar' class='progress-bar'></div></div>");
             document.write("</div>");
             document.write("<div class='upload-info'>Max size: 50MB</div>");
+            document.write("</div>"); // Close photo-upload-content
         document.write("</form>");
     document.write("</div>");
 }
 function writeChatFormVideoUpload() {
     document.write("<div id='videoUploadContainer' class='upload-container'>");
         document.write("<form id=\"videoUploadForm\" enctype=\"multipart/form-data\" class='upload-form'>");
-            document.write("<div class='upload-header'>");
+            document.write("<div class='upload-header collapsible' data-target='video-upload-content' style='cursor: pointer; user-select: none;'>");
                 document.write("<span class='upload-icon'>🎥</span>");
                 document.write("<h3 class='upload-title'>Video Upload</h3>");
+                document.write("<span class='collapse-indicator'>▼</span>");
             document.write("</div>");
+            document.write("<div class='section-content' id='video-upload-content'>");
             document.write("<div class='upload-content'>");
                 document.write("<label for='videoFileInput' class='file-input-wrapper'>");
                     document.write("<input type=\"file\" id='videoFileInput' name=\"video\" accept=\"video/*\" required class='file-input'>");
@@ -540,6 +557,7 @@ function writeChatFormVideoUpload() {
                 document.write("<div class='progress-bar-container'><div id='videoProgressBar' class='progress-bar'></div></div>");
             document.write("</div>");
             document.write("<div class='upload-info'>Max size: 50MB</div>");
+            document.write("</div>"); // Close video-upload-content
         document.write("</form>");
     document.write("</div>");
     document.write("</div>"); // Close uploads-wrapper

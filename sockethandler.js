@@ -944,6 +944,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const micButton = document.getElementById('micToggleButton');
     const acceptMicChatCheckbox = document.getElementById('acceptMicChatCheckbox');
     const cameraButton = document.getElementById('cameraToggleButton');
+    const cameraSwitchButton = document.getElementById('cameraSwitchButton');
     const acceptCameraCheckbox = document.getElementById('acceptCameraCheckbox');
     const cameraSelector = document.getElementById('cameraSelector');
 
@@ -957,6 +958,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (cameraButton) {
         cameraButton.addEventListener('click', toggleCamera);
+    }
+
+    if (cameraSwitchButton) {
+        cameraSwitchButton.addEventListener('click', switchCamera);
     }
 
     if (acceptCameraCheckbox) {
@@ -1586,8 +1591,64 @@ function handleAcceptCameraChange(event) {
     }
 }
 
+async function switchCamera() {
+    console.log('🔄 Switching camera...');
+
+    if (!isCameraEnabled) {
+        console.log('⚠️ Camera not enabled, cannot switch');
+        return;
+    }
+
+    try {
+        // Get list of video devices
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = devices.filter(device => device.kind === 'videoinput');
+
+        if (videoDevices.length < 2) {
+            console.log('⚠️ Only one camera available, cannot switch');
+            return;
+        }
+
+        // Find current camera index
+        const currentDeviceId = selectedCameraDeviceId;
+        const currentIndex = videoDevices.findIndex(device => device.deviceId === currentDeviceId);
+
+        // Get next camera (wrap around to 0 if at end)
+        const nextIndex = (currentIndex + 1) % videoDevices.length;
+        const nextDevice = videoDevices[nextIndex];
+
+        console.log('📹 Switching from camera', currentIndex, 'to camera', nextIndex);
+        console.log('   From:', videoDevices[currentIndex]?.label || 'Unknown');
+        console.log('   To:', nextDevice.label || 'Unknown');
+
+        // Update selected device
+        selectedCameraDeviceId = nextDevice.deviceId;
+
+        // Stop current stream
+        if (localCameraStream) {
+            localCameraStream.getTracks().forEach(track => {
+                console.log('   Stopping track:', track.label);
+                track.stop();
+            });
+        }
+
+        // Start new camera
+        await startCamera();
+
+        console.log('✅ Camera switched successfully');
+    } catch (error) {
+        console.error('❌ Error switching camera:', error);
+        const statusText = document.getElementById('voiceChatStatus');
+        if (statusText) {
+            statusText.textContent = 'Error switching camera: ' + error.message;
+            statusText.style.color = '#dc3545';
+        }
+    }
+}
+
 async function toggleCamera() {
     const cameraButton = document.getElementById('cameraToggleButton');
+    const cameraSwitchButton = document.getElementById('cameraSwitchButton');
     const cameraIcon = document.getElementById('cameraIcon');
     const cameraLabel = document.getElementById('cameraLabel');
     const cameraStatus = document.getElementById('cameraStatus');
@@ -1662,6 +1723,12 @@ async function toggleCamera() {
             if (cameraStatus) {
                 cameraStatus.textContent = 'Broadcasting...';
                 cameraStatus.style.color = '#28a745';
+            }
+
+            // Enable camera switch button
+            if (cameraSwitchButton) {
+                cameraSwitchButton.disabled = false;
+                cameraSwitchButton.style.background = '#007bff';
             }
 
             console.log('Camera enabled, adding to peer connections');
@@ -1758,6 +1825,12 @@ async function toggleCamera() {
         if (cameraStatus) {
             cameraStatus.textContent = 'Camera off';
             cameraStatus.style.color = '#999';
+        }
+
+        // Disable camera switch button
+        if (cameraSwitchButton) {
+            cameraSwitchButton.disabled = true;
+            cameraSwitchButton.style.background = '#666';
         }
 
         console.log('Camera disabled');

@@ -321,11 +321,6 @@
                 <span>▶️</span>
                 <span>Resume All Videos</span>
             </button>
-
-            <button id="openCanvasPageButton" class="btn btn-camera" style="margin-top: 8px; background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);">
-                <span>🎨</span>
-                <span>Open Canvas Page</span>
-            </button>
         </div>
 
         <div id="status" class="status disconnected">
@@ -418,11 +413,6 @@
                 acceptMicCheckbox.addEventListener('change', handleAcceptMicChange);
                 document.getElementById('refreshPeersButton').addEventListener('click', refreshPeerConnections);
                 document.getElementById('resumeAllVideosButton').addEventListener('click', resumeAllVideos);
-                document.getElementById('openCanvasPageButton').addEventListener('click', function() {
-                    const canvasUrl = window.location.origin + '/' + endpoint;
-                    window.open(canvasUrl, '_blank');
-                    console.log('🎨 Opening canvas page:', canvasUrl);
-                });
                 document.getElementById('cameraNameInput').addEventListener('input', function(e) {
                     myCameraName = e.target.value.trim();
                     console.log('Camera name set to:', myCameraName || '(default)');
