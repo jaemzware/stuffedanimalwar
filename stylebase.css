@@ -589,6 +589,19 @@ div.seattlenativelinks{
     display: flex;
     flex-direction: column;
     gap: 12px;
+    box-sizing: border-box;
+    max-width: 100%;
+}
+
+#uploads-content {
+    box-sizing: border-box;
+    max-width: 100%;
+}
+
+#uploads-content .upload-container {
+    max-width: 100%;
+    margin-left: 0;
+    margin-right: 0;
 }
 
 .upload-header {
@@ -623,6 +636,8 @@ div.seattlenativelinks{
     flex-direction: column;
     gap: 8px;
     cursor: pointer;
+    box-sizing: border-box;
+    max-width: 100%;
 }
 
 .file-input {
@@ -640,6 +655,8 @@ div.seattlenativelinks{
     border-radius: 8px;
     color: #1a1a1a;
     font-weight: 600;
+    box-sizing: border-box;
+    max-width: 100%;
     font-size: 15px;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -680,6 +697,8 @@ div.seattlenativelinks{
     background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
     border: none;
     border-radius: 8px;
+    box-sizing: border-box;
+    max-width: 100%;
     color: white;
     font-weight: 700;
     font-size: 16px;

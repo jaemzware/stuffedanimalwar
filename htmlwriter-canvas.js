@@ -535,22 +535,22 @@ function writeCameraSection() {
     document.write("</div>");
 }
 function writeChatFormFileUpload() {
-    document.write("<div class='uploads-wrapper'>");
+    document.write("<div class='section-container' style='margin-top: 15px;'>");
 
     // Combined header for both photo and video uploads
-    document.write("<div class='upload-header collapsible' data-target='uploads-content' style='cursor: pointer; user-select: none; padding: 12px 20px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 8px; margin-bottom: 15px;'>");
-        document.write("<span class='upload-icon'>📤</span>");
-        document.write("<h3 class='upload-title' style='margin: 0; color: white;'>Media Upload</h3>");
+    document.write("<div class='section-header collapsible' data-target='uploads-content' style='cursor: pointer; user-select: none; padding: 12px 20px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 8px; margin-bottom: 0;'>");
+        document.write("<span class='section-icon'>📤</span>");
+        document.write("<h3 class='section-title' style='margin: 0; color: white;'>Media Upload</h3>");
         document.write("<span class='collapse-indicator'>▼</span>");
     document.write("</div>");
 
-    document.write("<div class='section-content' id='uploads-content'>");
+    document.write("<div class='section-content' id='uploads-content' style='padding: 15px 0; overflow-x: hidden;'>");
 
-    document.write("<div id='fileUploadContainer' class='upload-container'>");
+    document.write("<div id='fileUploadContainer' class='upload-container' style='margin-bottom: 20px;'>");
         document.write("<form id=\"uploadForm\" enctype=\"multipart/form-data\" class='upload-form'>");
-            document.write("<div class='upload-header' style='cursor: default;'>");
-                document.write("<span class='upload-icon'>📸</span>");
-                document.write("<h3 class='upload-title'>Photo Upload</h3>");
+            document.write("<div style='padding: 10px 0; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1);'>");
+                document.write("<span style='font-size: 18px; margin-right: 8px;'>📸</span>");
+                document.write("<span style='font-size: 14px; font-weight: 600; color: #fff;'>Photo Upload</span>");
             document.write("</div>");
             document.write("<div class='upload-content'>");
                 document.write("<label for='imageFileInput' class='file-input-wrapper'>");
@@ -576,11 +576,11 @@ function writeChatFormFileUpload() {
     document.write("</div>");
 }
 function writeChatFormVideoUpload() {
-    document.write("<div id='videoUploadContainer' class='upload-container'>");
+    document.write("<div id='videoUploadContainer' class='upload-container' style='margin-bottom: 20px;'>");
         document.write("<form id=\"videoUploadForm\" enctype=\"multipart/form-data\" class='upload-form'>");
-            document.write("<div class='upload-header' style='cursor: default;'>");
-                document.write("<span class='upload-icon'>🎥</span>");
-                document.write("<h3 class='upload-title'>Video Upload</h3>");
+            document.write("<div style='padding: 10px 0; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1);'>");
+                document.write("<span style='font-size: 18px; margin-right: 8px;'>🎥</span>");
+                document.write("<span style='font-size: 14px; font-weight: 600; color: #fff;'>Video Upload</span>");
             document.write("</div>");
             document.write("<div class='upload-content'>");
                 document.write("<label for='videoFileInput' class='file-input-wrapper'>");
@@ -606,7 +606,7 @@ function writeChatFormVideoUpload() {
     document.write("</div>");
 
     document.write("</div>"); // Close uploads-content
-    document.write("</div>"); // Close uploads-wrapper
+    document.write("</div>"); // Close section-container
 }
 function writeDefaultAutoResponderOptions(responsesObject){
     document.write("<option value=\"blank\" selected>--I don't know what to say--</option>");

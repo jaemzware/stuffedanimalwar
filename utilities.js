@@ -106,28 +106,31 @@ document.addEventListener('DOMContentLoaded', function() {
     // Collapse All button functionality
     const collapseAllButton = document.getElementById('collapseAllButton');
     if (collapseAllButton) {
+        let allExpanded = true; // Track current state
+
         collapseAllButton.addEventListener('click', function() {
-            console.log('Collapsing all sections...');
             const allSections = document.querySelectorAll('.section-content');
             const allHeaders = document.querySelectorAll('.collapsible');
 
-            allSections.forEach(section => {
-                section.style.display = 'none';
-            });
+            if (allExpanded) {
+                // Collapse all
+                console.log('Collapsing all sections...');
+                allSections.forEach(section => {
+                    section.style.display = 'none';
+                });
 
-            allHeaders.forEach(header => {
-                const indicator = header.querySelector('.collapse-indicator');
-                if (indicator) {
-                    indicator.textContent = '▶';
-                }
-            });
+                allHeaders.forEach(header => {
+                    const indicator = header.querySelector('.collapse-indicator');
+                    if (indicator) {
+                        indicator.textContent = '▶';
+                    }
+                });
 
-            // Update button text
-            this.textContent = 'Expand All Sections';
-            this.style.background = '#28a745';
-
-            // Toggle functionality
-            this.addEventListener('click', function expandAll() {
+                this.textContent = 'Expand All Sections';
+                this.style.background = '#28a745';
+                allExpanded = false;
+            } else {
+                // Expand all
                 console.log('Expanding all sections...');
                 allSections.forEach(section => {
                     section.style.display = 'block';
@@ -142,8 +145,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 this.textContent = 'Collapse All Sections';
                 this.style.background = '#444';
-                this.removeEventListener('click', expandAll);
-            }, { once: true });
+                allExpanded = true;
+            }
         });
     }
 });
