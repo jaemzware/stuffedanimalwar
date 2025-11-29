@@ -589,6 +589,19 @@ div.seattlenativelinks{
     display: flex;
     flex-direction: column;
     gap: 12px;
+    box-sizing: border-box;
+    max-width: 100%;
+}
+
+#uploads-content {
+    box-sizing: border-box;
+    max-width: 100%;
+}
+
+#uploads-content .upload-container {
+    max-width: 100%;
+    margin-left: 0;
+    margin-right: 0;
 }
 
 .upload-header {
@@ -623,6 +636,8 @@ div.seattlenativelinks{
     flex-direction: column;
     gap: 8px;
     cursor: pointer;
+    box-sizing: border-box;
+    max-width: 100%;
 }
 
 .file-input {
@@ -640,6 +655,8 @@ div.seattlenativelinks{
     border-radius: 8px;
     color: #1a1a1a;
     font-weight: 600;
+    box-sizing: border-box;
+    max-width: 100%;
     font-size: 15px;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -680,6 +697,8 @@ div.seattlenativelinks{
     background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
     border: none;
     border-radius: 8px;
+    box-sizing: border-box;
+    max-width: 100%;
     color: white;
     font-weight: 700;
     font-size: 16px;
@@ -1482,5 +1501,72 @@ a.jaemzwarelogo:active, .skateparkdetail a:active {
     #album-art-container {
         width: 24px;
         height: 24px;
+    }
+}
+/* Collapsible Sections */
+.section-header.collapsible {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    transition: background-color 0.3s ease;
+}
+
+.section-header.collapsible:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.upload-header.collapsible {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: background-color 0.3s ease;
+}
+
+.upload-header.collapsible:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.collapse-indicator {
+    font-size: 16px;
+    transition: transform 0.3s ease;
+    user-select: none;
+    margin-left: auto;
+    padding-left: 10px;
+    color: #ffffff !important;
+    font-weight: bold;
+    text-shadow: 0 0 3px rgba(255, 255, 255, 0.8);
+}
+
+.section-content {
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+/* Mobile optimizations for collapsible sections */
+@media screen and (max-width: 768px) {
+    .section-header.collapsible,
+    .upload-header.collapsible {
+        padding: 10px 15px;
+        font-size: 16px;
+    }
+
+    .collapse-indicator {
+        font-size: 14px;
+    }
+
+    .section-content {
+        padding: 10px;
+    }
+}
+
+/* Portrait mode specific adjustments */
+@media screen and (max-width: 768px) and (orientation: portrait) {
+    .section-container {
+        margin-bottom: 15px;
+    }
+
+    .upload-container {
+        margin-bottom: 15px;
     }
 }

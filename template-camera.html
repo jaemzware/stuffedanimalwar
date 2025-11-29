@@ -257,7 +257,7 @@
     </head>
     <body>
         <!-- Navigation Links -->
-        <div style="position: fixed; top: 20px; left: 20px; z-index: 1000; display: flex; gap: 10px;">
+        <div style="position: fixed; bottom: 20px; right: 20px; z-index: 1000; display: flex; gap: 10px;">
             <a id="canvasLink" href="#" style="padding: 12px 20px; background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; text-decoration: none; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); transition: all 0.3s ease; display: flex; align-items: center; gap: 8px;">
                 <span>🎨</span>
                 <span>Canvas</span>
@@ -288,6 +288,11 @@
                 <span id="cameraLabel">Enable Camera</span>
             </button>
 
+            <button id="cameraSwitchButton" class="btn btn-camera" disabled style="background: #666;">
+                <span>🔄</span>
+                <span>Switch Camera</span>
+            </button>
+
             <button id="micToggleButton" class="btn btn-camera">
                 <span id="micIcon">🎤</span>
                 <span id="micLabel">Enable Mic</span>
@@ -312,19 +317,14 @@
 
             <span id="peerCount" style="color: #aaa; font-size: 13px;">Peers: 0</span>
 
-            <button id="refreshPeersButton" class="btn btn-camera" style="margin-top: 8px;">
+            <button id="refreshPeersButton" class="btn btn-camera" style="margin-top: 8px; background: #17a2b8;">
                 <span>🔄</span>
-                <span>Refresh Connections</span>
+                <span>Refresh Peers</span>
             </button>
 
             <button id="resumeAllVideosButton" class="btn btn-camera" style="margin-top: 8px; background: #007bff;">
                 <span>▶️</span>
                 <span>Resume All Videos</span>
-            </button>
-
-            <button id="openCanvasPageButton" class="btn btn-camera" style="margin-top: 8px; background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);">
-                <span>🎨</span>
-                <span>Open Canvas Page</span>
             </button>
         </div>
 
@@ -370,7 +370,17 @@
             let localMicStream = null;
             let isCameraEnabled = false;
             let isMicEnabled = false;
+            // Load saved camera preference from localStorage
             let selectedCameraDeviceId = null;
+            try {
+                const savedDeviceId = localStorage.getItem('selectedCameraDeviceId');
+                if (savedDeviceId) {
+                    selectedCameraDeviceId = savedDeviceId;
+                    console.log('📷 Loaded saved camera preference from localStorage:', savedDeviceId);
+                }
+            } catch (error) {
+                console.warn('Could not load camera preference from localStorage:', error);
+            }
             let peerConnections = {};
             let remoteCameraStreams = {};
             let isRemoteAudioMuted = true; // Start muted (acceptMicCheckbox starts unchecked)
@@ -412,17 +422,16 @@
 
                 // Set up event listeners
                 document.getElementById('cameraToggleButton').addEventListener('click', toggleCamera);
+                const cameraSwitchButton = document.getElementById('cameraSwitchButton');
+                if (cameraSwitchButton) {
+                    cameraSwitchButton.addEventListener('click', switchCamera);
+                }
                 document.getElementById('micToggleButton').addEventListener('click', toggleMic);
                 document.getElementById('cameraSelector').addEventListener('change', handleCameraChange);
                 acceptCameraCheckbox.addEventListener('change', handleAcceptCameraChange);
                 acceptMicCheckbox.addEventListener('change', handleAcceptMicChange);
                 document.getElementById('refreshPeersButton').addEventListener('click', refreshPeerConnections);
                 document.getElementById('resumeAllVideosButton').addEventListener('click', resumeAllVideos);
-                document.getElementById('openCanvasPageButton').addEventListener('click', function() {
-                    const canvasUrl = window.location.origin + '/' + endpoint;
-                    window.open(canvasUrl, '_blank');
-                    console.log('🎨 Opening canvas page:', canvasUrl);
-                });
                 document.getElementById('cameraNameInput').addEventListener('input', function(e) {
                     myCameraName = e.target.value.trim();
                     console.log('Camera name set to:', myCameraName || '(default)');
@@ -733,6 +742,14 @@
 
                 selectedCameraDeviceId = newDeviceId;
 
+                // Save to localStorage for persistence
+                try {
+                    localStorage.setItem('selectedCameraDeviceId', newDeviceId);
+                    console.log('✅ Saved camera preference to localStorage:', newDeviceId);
+                } catch (error) {
+                    console.warn('Could not save camera preference:', error);
+                }
+
                 // If camera is already enabled, switch to the new device
                 if (isCameraEnabled) {
                     console.log('Camera already enabled, switching devices...');
@@ -959,8 +976,75 @@
                 }
             }
 
+            async function switchCamera() {
+                console.log('🔄 Switching camera...');
+
+                if (!isCameraEnabled) {
+                    console.log('⚠️ Camera not enabled, cannot switch');
+                    return;
+                }
+
+                try {
+                    // Get list of video devices
+                    const devices = await navigator.mediaDevices.enumerateDevices();
+                    const videoDevices = devices.filter(device => device.kind === 'videoinput');
+
+                    if (videoDevices.length < 2) {
+                        console.log('⚠️ Only one camera available, cannot switch');
+                        return;
+                    }
+
+                    // Find current camera index
+                    const currentDeviceId = selectedCameraDeviceId;
+                    const currentIndex = videoDevices.findIndex(device => device.deviceId === currentDeviceId);
+
+                    // Get next camera (wrap around to 0 if at end)
+                    const nextIndex = (currentIndex + 1) % videoDevices.length;
+                    const nextDevice = videoDevices[nextIndex];
+
+                    console.log('📹 Switching from camera', currentIndex, 'to camera', nextIndex);
+                    console.log('   From:', videoDevices[currentIndex]?.label || 'Unknown');
+                    console.log('   To:', nextDevice.label || 'Unknown');
+
+                    // Update selected device
+                    selectedCameraDeviceId = nextDevice.deviceId;
+
+                    // Save to localStorage
+                    try {
+                        localStorage.setItem('selectedCameraDeviceId', nextDevice.deviceId);
+                        console.log('✅ Saved camera preference to localStorage');
+                    } catch (error) {
+                        console.warn('Could not save camera preference:', error);
+                    }
+
+                    // Update dropdown
+                    const cameraSelector = document.getElementById('cameraSelector');
+                    if (cameraSelector) {
+                        cameraSelector.value = nextDevice.deviceId;
+                    }
+
+                    // Stop current stream
+                    if (localCameraStream) {
+                        localCameraStream.getTracks().forEach(track => {
+                            console.log('   Stopping track:', track.label);
+                            track.stop();
+                        });
+                    }
+
+                    // Start new camera
+                    await startCamera();
+
+                    console.log('✅ Camera switched successfully');
+                } catch (error) {
+                    console.error('❌ Error switching camera:', error);
+                    document.getElementById('status').textContent = 'Error switching camera: ' + error.message;
+                    document.getElementById('status').className = 'status disconnected';
+                }
+            }
+
             async function toggleCamera() {
                 const button = document.getElementById('cameraToggleButton');
+                const cameraSwitchButton = document.getElementById('cameraSwitchButton');
                 const icon = document.getElementById('cameraIcon');
                 const label = document.getElementById('cameraLabel');
                 const localCameraSection = document.getElementById('localCameraSection');
@@ -974,6 +1058,12 @@
                         button.classList.add('active');
                         label.textContent = 'Camera On';
                         isCameraEnabled = true;
+
+                        // Enable camera switch button
+                        if (cameraSwitchButton) {
+                            cameraSwitchButton.disabled = false;
+                            cameraSwitchButton.style.background = '#007bff';
+                        }
 
                         console.log('Camera enabled successfully');
                     } catch (error) {
@@ -997,6 +1087,12 @@
                     label.textContent = 'Enable Camera';
 
                     isCameraEnabled = false;
+
+                    // Disable camera switch button
+                    if (cameraSwitchButton) {
+                        cameraSwitchButton.disabled = true;
+                        cameraSwitchButton.style.background = '#666';
+                    }
 
                     document.getElementById('status').textContent = 'Camera disabled';
                     document.getElementById('status').className = 'status disconnected';
