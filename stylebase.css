@@ -1699,10 +1699,20 @@ a.jaemzwarelogo:active, .skateparkdetail a:active {
         width: 50px !important;
     }
 
-    /* Color preview - full width on mobile */
+    /* Color preview - thin strip on mobile */
     #colorPickerButton {
         width: 100% !important;
-        height: 60px !important;
+        height: 20px !important;
         max-width: none !important;
+        border-radius: 4px !important;
+    }
+
+    #colorPickerButton .color-picker-button-sample {
+        border-radius: 2px !important;
+    }
+
+    /* Hide the COLOR label on mobile since the swatch is self-explanatory */
+    .direction-color-container > div:last-child > label {
+        display: none !important;
     }
 }
