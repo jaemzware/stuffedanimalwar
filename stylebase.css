@@ -1570,3 +1570,157 @@ a.jaemzwarelogo:active, .skateparkdetail a:active {
         margin-bottom: 15px;
     }
 }
+
+/* Inline Color Picker Responsive Styles */
+#inlineColorPicker {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+#inlineColorPicker input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    background: linear-gradient(to right, #333, #666);
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#inlineColorPicker input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    background: #ccccff;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid #fff;
+    box-shadow: 0 0 4px rgba(0,0,0,0.3);
+}
+
+#inlineColorPicker input[type="range"]::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    background: #ccccff;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid #fff;
+    box-shadow: 0 0 4px rgba(0,0,0,0.3);
+}
+
+/* Mobile styles for inline color picker */
+@media screen and (max-width: 768px) {
+    #inlineColorPicker {
+        padding: 12px !important;
+    }
+
+    #inlineColorPicker input[type="number"] {
+        width: 45px !important;
+        font-size: 14px !important;
+        padding: 6px 2px !important;
+    }
+
+    #inlineColorPicker input[type="range"] {
+        height: 12px !important;
+    }
+
+    #inlineColorPicker input[type="range"]::-webkit-slider-thumb {
+        width: 24px;
+        height: 24px;
+    }
+
+    #inlineColorPicker input[type="range"]::-moz-range-thumb {
+        width: 24px;
+        height: 24px;
+    }
+
+    #presets {
+        grid-template-columns: repeat(8, 1fr) !important;
+        gap: 6px !important;
+    }
+
+    #presets > div {
+        min-height: 28px !important;
+    }
+
+    /* Stack direction and color vertically on mobile */
+    .direction-color-container {
+        grid-template-columns: 1fr !important;
+        gap: 20px !important;
+    }
+
+    /* Color preview on mobile */
+    #colorPickerButton {
+        height: 80px !important;
+        max-width: 100% !important;
+    }
+
+    /* Fix clipping on mobile - game controls */
+    #stuffedanimalwarform {
+        overflow-x: hidden !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    #stuffedanimalwarformtable {
+        width: 100% !important;
+        table-layout: fixed !important;
+    }
+
+    #stuffedanimalwarformtable td {
+        overflow: hidden !important;
+        word-wrap: break-word !important;
+    }
+
+    /* Direction + color container - stack vertically on mobile */
+    .direction-color-container {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 15px !important;
+        width: 100% !important;
+    }
+
+    /* Direction buttons grid - constrain and center */
+    .direction-buttons-grid {
+        width: 100% !important;
+        max-width: 100% !important;
+        grid-template-columns: auto 60px auto !important;
+        gap: 3px !important;
+        overflow: hidden !important;
+    }
+
+    /* Direction button labels - smaller on mobile */
+    .direction-label {
+        padding: 6px 8px !important;
+        font-size: 12px !important;
+        margin: 0 1px !important;
+    }
+
+    .direction-label-vertical {
+        width: 50px !important;
+    }
+
+    /* Color preview - thin full-width strip on mobile */
+    .direction-color-container > div:last-child {
+        width: 100vw !important;
+        margin-left: calc(-50vw + 50%) !important;
+        padding: 0 !important;
+    }
+
+    #colorPickerButton {
+        width: 100% !important;
+        height: 20px !important;
+        max-width: none !important;
+        border-radius: 0 !important;
+        border-left: none !important;
+        border-right: none !important;
+    }
+
+    #colorPickerButton .color-picker-button-sample {
+        border-radius: 0 !important;
+    }
+
+    /* Hide the COLOR label on mobile since the swatch is self-explanatory */
+    .direction-color-container > div:last-child > label {
+        display: none !important;
+    }
+}
