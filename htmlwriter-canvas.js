@@ -213,12 +213,6 @@ function writeStuffedAnimalWarForm(stuffedAnimalMediaObject){
     document.write("</div>"); // End of combined row
     document.write("</td>");
     document.write("</tr>");
-    //MESSAGES FROM CHAT FORM
-    document.write("<tr>");
-    document.write("<td colspan='4'>");
-    document.write("<div id=\"messagesdiv\" style=\"height: 350px; overflow-y: auto; overflow-x: hidden;\"></div>");
-    document.write("</td>");
-    document.write("</tr>");
     document.write("</table>");
     document.write("</form>");
 }
@@ -437,6 +431,23 @@ function writeChatForm(responsesObject) {
         document.write("</div>"); // Close chat-content
 
     document.write("</form>");
+    document.write("</div>");
+}
+
+// Chat Messages section - separate collapsible section for chat messages
+function writeChatMessagesSection() {
+    document.write("<div id='chatMessagesContainer' class='section-container'>");
+
+        document.write("<div class='section-header collapsible' data-target='chat-messages-content' style='cursor: pointer; user-select: none;'>");
+        document.write("<span class='section-icon'>📜</span>");
+        document.write("<h3 class='section-title'>Chat Messages</h3>");
+        document.write("<span class='collapse-indicator'>▼</span>");
+        document.write("</div>");
+
+        document.write("<div class='chat-messages-content section-content' id='chat-messages-content'>");
+        document.write("<div id=\"messagesdiv\" style=\"height: 350px; overflow-y: auto; overflow-x: hidden;\"></div>");
+        document.write("</div>");
+
     document.write("</div>");
 }
 
