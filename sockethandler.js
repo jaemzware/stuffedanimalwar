@@ -417,6 +417,15 @@ function setupCanvasDrawingEvents() {
     let tempCtx = null;
     let currentDrawLineWidth = 2;
 
+    // Destroy tempCanvas on resize so it gets recreated with correct dimensions
+    window.addEventListener('resize', function() {
+        if (tempCanvas && tempCanvas.parentNode) {
+            tempCanvas.parentNode.removeChild(tempCanvas);
+            tempCanvas = null;
+            tempCtx = null;
+        }
+    });
+
     $(CANVAS).on("mousedown", function (e) {
         let colorPickerButton = $("#colorPickerButton");
         let color = "rgb(" + colorPickerButton.attr("data-red") + "," + colorPickerButton.attr("data-green") + "," + colorPickerButton.attr("data-blue") + ")";
