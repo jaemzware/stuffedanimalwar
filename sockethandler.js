@@ -421,8 +421,14 @@ function setupCanvasDrawingEvents() {
         let colorPickerButton = $("#colorPickerButton");
         let color = "rgb(" + colorPickerButton.attr("data-red") + "," + colorPickerButton.attr("data-green") + "," + colorPickerButton.attr("data-blue") + ")";
         currentDrawLineWidth = parseInt(colorPickerButton.attr("data-line-width")) || 2;
+        // Scale coordinates to match canvas internal dimensions vs displayed size
+        const canvasRect = CANVAS.getBoundingClientRect();
+        const scaleX = CANVAS.width / canvasRect.width;
+        const scaleY = CANVAS.height / canvasRect.height;
+        const x = e.offsetX * scaleX;
+        const y = e.offsetY * scaleY;
         isDrawing = true;
-        points = [[e.offsetX, e.offsetY]];
+        points = [[x, y]];
         currentDrawColor = color;
 
         // Create temporary canvas overlay for real-time drawing
@@ -441,7 +447,13 @@ function setupCanvasDrawingEvents() {
 
     $(CANVAS).on("mousemove", function (e) {
         if (!isDrawing) return;
-        points.push([e.offsetX, e.offsetY]);
+        // Scale coordinates to match canvas internal dimensions vs displayed size
+        const canvasRect = CANVAS.getBoundingClientRect();
+        const scaleX = CANVAS.width / canvasRect.width;
+        const scaleY = CANVAS.height / canvasRect.height;
+        const x = e.offsetX * scaleX;
+        const y = e.offsetY * scaleY;
+        points.push([x, y]);
 
         // Draw on temporary canvas
         if (tempCtx) {
