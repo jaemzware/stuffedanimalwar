@@ -433,14 +433,18 @@ function setupCanvasDrawingEvents() {
 
         // Create temporary canvas overlay for real-time drawing
         if (!tempCanvas) {
+            const canvasRect = CANVAS.getBoundingClientRect();
+            const parentRect = CANVAS.parentNode.getBoundingClientRect();
             tempCanvas = document.createElement('canvas');
+            // Match internal dimensions
             tempCanvas.width = CANVAS.width;
             tempCanvas.height = CANVAS.height;
+            // Match displayed size and position exactly
             tempCanvas.style.position = 'absolute';
-            tempCanvas.style.top = '0';
-            tempCanvas.style.left = '0';
-            tempCanvas.style.width = '100%';
-            tempCanvas.style.height = '100%';
+            tempCanvas.style.top = (canvasRect.top - parentRect.top) + 'px';
+            tempCanvas.style.left = (canvasRect.left - parentRect.left) + 'px';
+            tempCanvas.style.width = canvasRect.width + 'px';
+            tempCanvas.style.height = canvasRect.height + 'px';
             tempCanvas.style.pointerEvents = 'none';
             tempCanvas.style.zIndex = '10';
             // Make parent relative so absolute positioning works
@@ -511,14 +515,17 @@ function setupCanvasDrawingEvents() {
         currentDrawColor = color;
 
         if (!tempCanvas) {
+            const parentRect = CANVAS.parentNode.getBoundingClientRect();
             tempCanvas = document.createElement('canvas');
+            // Match internal dimensions
             tempCanvas.width = CANVAS.width;
             tempCanvas.height = CANVAS.height;
+            // Match displayed size and position exactly (canvasRect already defined above)
             tempCanvas.style.position = 'absolute';
-            tempCanvas.style.top = '0';
-            tempCanvas.style.left = '0';
-            tempCanvas.style.width = '100%';
-            tempCanvas.style.height = '100%';
+            tempCanvas.style.top = (canvasRect.top - parentRect.top) + 'px';
+            tempCanvas.style.left = (canvasRect.left - parentRect.left) + 'px';
+            tempCanvas.style.width = canvasRect.width + 'px';
+            tempCanvas.style.height = canvasRect.height + 'px';
             tempCanvas.style.pointerEvents = 'none';
             tempCanvas.style.zIndex = '10';
             // Make parent relative so absolute positioning works
