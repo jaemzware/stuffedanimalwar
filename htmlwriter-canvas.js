@@ -118,12 +118,12 @@ function writeStuffedAnimalWarForm(stuffedAnimalMediaObject){
     document.write("</td>");
     document.write("</tr>");
     document.write("<tr>");
-    document.write("<td colspan='4'>");
+    document.write("<td colspan='4' style=\"overflow: hidden;\">");
     // Two column layout: directional buttons on left, color picker on right
-    document.write("<div class=\"direction-color-container\" style=\"display: grid; grid-template-columns: 1fr 1fr; gap: 15px; align-items: center;\">");
+    document.write("<div class=\"direction-color-container\" style=\"display: grid; grid-template-columns: 1fr 1fr; gap: 15px; align-items: center; width: 100%; box-sizing: border-box;\">");
 
     // LEFT COLUMN - MOVEMENT DIRECTION - 3 ROW LAYOUT
-    document.write("<div style=\"display: grid; grid-template-columns: auto 80px auto; grid-template-rows: auto auto auto; gap: 5px; justify-items: center; align-items: center; justify-content: center;\">");
+    document.write("<div class=\"direction-buttons-grid\" style=\"display: grid; grid-template-columns: auto 80px auto; grid-template-rows: auto auto auto; gap: 5px; justify-items: center; align-items: center; justify-content: center; width: 100%; max-width: 100%; box-sizing: border-box;\">");
 
     // TOP ROW - UPLEFT (grid column 1, row 1)
     document.write("<div style=\"grid-column: 1; grid-row: 1;\">");

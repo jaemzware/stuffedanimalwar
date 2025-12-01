@@ -1653,4 +1653,56 @@ a.jaemzwarelogo:active, .skateparkdetail a:active {
         height: 80px !important;
         max-width: 100% !important;
     }
+
+    /* Fix clipping on mobile - game controls */
+    #stuffedanimalwarform {
+        overflow-x: hidden !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    #stuffedanimalwarformtable {
+        width: 100% !important;
+        table-layout: fixed !important;
+    }
+
+    #stuffedanimalwarformtable td {
+        overflow: hidden !important;
+        word-wrap: break-word !important;
+    }
+
+    /* Direction + color container - stack vertically on mobile */
+    .direction-color-container {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 15px !important;
+        width: 100% !important;
+    }
+
+    /* Direction buttons grid - constrain and center */
+    .direction-buttons-grid {
+        width: 100% !important;
+        max-width: 100% !important;
+        grid-template-columns: auto 60px auto !important;
+        gap: 3px !important;
+        overflow: hidden !important;
+    }
+
+    /* Direction button labels - smaller on mobile */
+    .direction-label {
+        padding: 6px 8px !important;
+        font-size: 12px !important;
+        margin: 0 1px !important;
+    }
+
+    .direction-label-vertical {
+        width: 50px !important;
+    }
+
+    /* Color preview - full width on mobile */
+    #colorPickerButton {
+        width: 100% !important;
+        height: 60px !important;
+        max-width: none !important;
+    }
 }
