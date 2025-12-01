@@ -417,23 +417,47 @@ function setupCanvasDrawingEvents() {
     let tempCtx = null;
     let currentDrawLineWidth = 2;
 
+    // Destroy tempCanvas on resize so it gets recreated with correct dimensions
+    window.addEventListener('resize', function() {
+        if (tempCanvas && tempCanvas.parentNode) {
+            tempCanvas.parentNode.removeChild(tempCanvas);
+            tempCanvas = null;
+            tempCtx = null;
+        }
+    });
+
     $(CANVAS).on("mousedown", function (e) {
         let colorPickerButton = $("#colorPickerButton");
         let color = "rgb(" + colorPickerButton.attr("data-red") + "," + colorPickerButton.attr("data-green") + "," + colorPickerButton.attr("data-blue") + ")";
         currentDrawLineWidth = parseInt(colorPickerButton.attr("data-line-width")) || 2;
+        // Scale coordinates to match canvas internal dimensions vs displayed size
+        const canvasRect = CANVAS.getBoundingClientRect();
+        const scaleX = CANVAS.width / canvasRect.width;
+        const scaleY = CANVAS.height / canvasRect.height;
+        const x = e.offsetX * scaleX;
+        const y = e.offsetY * scaleY;
         isDrawing = true;
-        points = [[e.offsetX, e.offsetY]];
+        points = [[x, y]];
         currentDrawColor = color;
 
         // Create temporary canvas overlay for real-time drawing
         if (!tempCanvas) {
+            const canvasRect = CANVAS.getBoundingClientRect();
+            const parentRect = CANVAS.parentNode.getBoundingClientRect();
             tempCanvas = document.createElement('canvas');
+            // Match internal dimensions
             tempCanvas.width = CANVAS.width;
             tempCanvas.height = CANVAS.height;
+            // Match displayed size and position exactly
             tempCanvas.style.position = 'absolute';
-            tempCanvas.style.top = CANVAS.offsetTop + 'px';
-            tempCanvas.style.left = CANVAS.offsetLeft + 'px';
+            tempCanvas.style.top = (canvasRect.top - parentRect.top) + 'px';
+            tempCanvas.style.left = (canvasRect.left - parentRect.left) + 'px';
+            tempCanvas.style.width = canvasRect.width + 'px';
+            tempCanvas.style.height = canvasRect.height + 'px';
             tempCanvas.style.pointerEvents = 'none';
+            tempCanvas.style.zIndex = '10';
+            // Make parent relative so absolute positioning works
+            CANVAS.parentNode.style.position = 'relative';
             CANVAS.parentNode.appendChild(tempCanvas);
             tempCtx = tempCanvas.getContext('2d');
         }
@@ -441,7 +465,13 @@ function setupCanvasDrawingEvents() {
 
     $(CANVAS).on("mousemove", function (e) {
         if (!isDrawing) return;
-        points.push([e.offsetX, e.offsetY]);
+        // Scale coordinates to match canvas internal dimensions vs displayed size
+        const canvasRect = CANVAS.getBoundingClientRect();
+        const scaleX = CANVAS.width / canvasRect.width;
+        const scaleY = CANVAS.height / canvasRect.height;
+        const x = e.offsetX * scaleX;
+        const y = e.offsetY * scaleY;
+        points.push([x, y]);
 
         // Draw on temporary canvas
         if (tempCtx) {
@@ -483,21 +513,32 @@ function setupCanvasDrawingEvents() {
         currentDrawLineWidth = parseInt(colorPickerButton.attr("data-line-width")) || 2;
         const touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0];
         const canvasRect = CANVAS.getBoundingClientRect();
-        const x = touch.clientX - canvasRect.left;
-        const y = touch.clientY - canvasRect.top;
+        // Scale coordinates to match canvas internal dimensions vs displayed size
+        const scaleX = CANVAS.width / canvasRect.width;
+        const scaleY = CANVAS.height / canvasRect.height;
+        const x = (touch.clientX - canvasRect.left) * scaleX;
+        const y = (touch.clientY - canvasRect.top) * scaleY;
 
         isDrawing = true;
         points = [[x, y]];
         currentDrawColor = color;
 
         if (!tempCanvas) {
+            const parentRect = CANVAS.parentNode.getBoundingClientRect();
             tempCanvas = document.createElement('canvas');
+            // Match internal dimensions
             tempCanvas.width = CANVAS.width;
             tempCanvas.height = CANVAS.height;
+            // Match displayed size and position exactly (canvasRect already defined above)
             tempCanvas.style.position = 'absolute';
-            tempCanvas.style.top = CANVAS.offsetTop + 'px';
-            tempCanvas.style.left = CANVAS.offsetLeft + 'px';
+            tempCanvas.style.top = (canvasRect.top - parentRect.top) + 'px';
+            tempCanvas.style.left = (canvasRect.left - parentRect.left) + 'px';
+            tempCanvas.style.width = canvasRect.width + 'px';
+            tempCanvas.style.height = canvasRect.height + 'px';
             tempCanvas.style.pointerEvents = 'none';
+            tempCanvas.style.zIndex = '10';
+            // Make parent relative so absolute positioning works
+            CANVAS.parentNode.style.position = 'relative';
             CANVAS.parentNode.appendChild(tempCanvas);
             tempCtx = tempCanvas.getContext('2d');
         }
@@ -508,8 +549,11 @@ function setupCanvasDrawingEvents() {
         if (!isDrawing) return;
         const touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0];
         const canvasRect = CANVAS.getBoundingClientRect();
-        const x = touch.clientX - canvasRect.left;
-        const y = touch.clientY - canvasRect.top;
+        // Scale coordinates to match canvas internal dimensions vs displayed size
+        const scaleX = CANVAS.width / canvasRect.width;
+        const scaleY = CANVAS.height / canvasRect.height;
+        const x = (touch.clientX - canvasRect.left) * scaleX;
+        const y = (touch.clientY - canvasRect.top) * scaleY;
         points.push([x, y]);
 
         if (tempCtx) {
