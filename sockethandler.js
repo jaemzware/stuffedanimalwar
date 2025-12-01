@@ -483,8 +483,11 @@ function setupCanvasDrawingEvents() {
         currentDrawLineWidth = parseInt(colorPickerButton.attr("data-line-width")) || 2;
         const touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0];
         const canvasRect = CANVAS.getBoundingClientRect();
-        const x = touch.clientX - canvasRect.left;
-        const y = touch.clientY - canvasRect.top;
+        // Scale coordinates to match canvas internal dimensions vs displayed size
+        const scaleX = CANVAS.width / canvasRect.width;
+        const scaleY = CANVAS.height / canvasRect.height;
+        const x = (touch.clientX - canvasRect.left) * scaleX;
+        const y = (touch.clientY - canvasRect.top) * scaleY;
 
         isDrawing = true;
         points = [[x, y]];
@@ -508,8 +511,11 @@ function setupCanvasDrawingEvents() {
         if (!isDrawing) return;
         const touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0];
         const canvasRect = CANVAS.getBoundingClientRect();
-        const x = touch.clientX - canvasRect.left;
-        const y = touch.clientY - canvasRect.top;
+        // Scale coordinates to match canvas internal dimensions vs displayed size
+        const scaleX = CANVAS.width / canvasRect.width;
+        const scaleY = CANVAS.height / canvasRect.height;
+        const x = (touch.clientX - canvasRect.left) * scaleX;
+        const y = (touch.clientY - canvasRect.top) * scaleY;
         points.push([x, y]);
 
         if (tempCtx) {
