@@ -437,13 +437,14 @@ function setupCanvasDrawingEvents() {
             tempCanvas.width = CANVAS.width;
             tempCanvas.height = CANVAS.height;
             tempCanvas.style.position = 'absolute';
-            // Match the displayed size and position of the main canvas
-            const rect = CANVAS.getBoundingClientRect();
-            tempCanvas.style.width = rect.width + 'px';
-            tempCanvas.style.height = rect.height + 'px';
-            tempCanvas.style.top = CANVAS.offsetTop + 'px';
-            tempCanvas.style.left = CANVAS.offsetLeft + 'px';
+            tempCanvas.style.top = '0';
+            tempCanvas.style.left = '0';
+            tempCanvas.style.width = '100%';
+            tempCanvas.style.height = '100%';
             tempCanvas.style.pointerEvents = 'none';
+            tempCanvas.style.zIndex = '10';
+            // Make parent relative so absolute positioning works
+            CANVAS.parentNode.style.position = 'relative';
             CANVAS.parentNode.appendChild(tempCanvas);
             tempCtx = tempCanvas.getContext('2d');
         }
@@ -514,12 +515,14 @@ function setupCanvasDrawingEvents() {
             tempCanvas.width = CANVAS.width;
             tempCanvas.height = CANVAS.height;
             tempCanvas.style.position = 'absolute';
-            // Match the displayed size and position of the main canvas
-            tempCanvas.style.width = canvasRect.width + 'px';
-            tempCanvas.style.height = canvasRect.height + 'px';
-            tempCanvas.style.top = CANVAS.offsetTop + 'px';
-            tempCanvas.style.left = CANVAS.offsetLeft + 'px';
+            tempCanvas.style.top = '0';
+            tempCanvas.style.left = '0';
+            tempCanvas.style.width = '100%';
+            tempCanvas.style.height = '100%';
             tempCanvas.style.pointerEvents = 'none';
+            tempCanvas.style.zIndex = '10';
+            // Make parent relative so absolute positioning works
+            CANVAS.parentNode.style.position = 'relative';
             CANVAS.parentNode.appendChild(tempCanvas);
             tempCtx = tempCanvas.getContext('2d');
         }
