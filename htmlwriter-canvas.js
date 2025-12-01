@@ -185,21 +185,73 @@ function writeStuffedAnimalWarForm(stuffedAnimalMediaObject){
 
     document.write("</div>"); // End of directional buttons grid
 
-    // RIGHT COLUMN - LINE STYLE PICKER (color and width)
+    // RIGHT COLUMN - COLOR PREVIEW (compact)
     document.write("<div style=\"display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;\">");
-    document.write("<label style=\"color: #ccccff; font-weight: 600; font-size: 14px; letter-spacing: 0.5px;\">LINE STYLE</label>");
-    document.write("<button type=\"button\" id=\"colorPickerButton\" class=\"color-picker-button\" style=\"width: 100%; height: 150px; padding: 0; border-radius: 8px; max-width: 250px;\">");
-    document.write("<span class=\"color-picker-button-sample\" style=\"width: 100%; height: 100%; margin: 0; border-radius: 6px; display: block;\"></span>");
-    document.write("</button>");
+    document.write("<label style=\"color: #ccccff; font-weight: 600; font-size: 14px; letter-spacing: 0.5px;\">COLOR</label>");
+    document.write("<div id=\"colorPickerButton\" data-red=\"255\" data-green=\"255\" data-blue=\"255\" data-line-width=\"5\" style=\"width: 100%; height: 150px; padding: 0; border-radius: 8px; max-width: 250px; border: 2px solid #ccccff;\">");
+    document.write("<span class=\"color-picker-button-sample\" style=\"width: 100%; height: 100%; margin: 0; border-radius: 6px; display: block; background-color: rgb(255, 255, 255);\"></span>");
+    document.write("</div>");
     document.write("</div>");
 
     document.write("</div>"); // End of two-column layout
     document.write("</td>");
     document.write("</tr>");
+
+    // LINE STYLE CONTROLS ROW (inline, no modal)
+    document.write("<tr>");
+    document.write("<td colspan='4'>");
+    document.write("<div id='inlineColorPicker' style=\"padding: 15px; background: rgba(0, 0, 0, 0.3); border-radius: 8px; margin-top: 10px;\">");
+
+    // Section header
+    document.write("<div style=\"font-weight: 600; font-size: 14px; color: #ccccff; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.2);\">LINE STYLE</div>");
+
+    // Color sliders
+    document.write("<div style=\"display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px;\">");
+
+    // Red slider
+    document.write("<div style=\"display: flex; align-items: center; gap: 8px;\">");
+    document.write("<span style=\"color: #ff6b6b; font-weight: bold; width: 20px;\">R:</span>");
+    document.write("<input type=\"range\" min=\"0\" max=\"255\" value=\"255\" id=\"redSlider\" style=\"flex: 1; height: 8px;\">");
+    document.write("<input type=\"number\" min=\"0\" max=\"255\" value=\"255\" id=\"redInput\" style=\"width: 50px; padding: 4px; text-align: center; border: 1px solid #ccc; border-radius: 4px; background: #2a2a3e; color: white;\">");
+    document.write("</div>");
+
+    // Green slider
+    document.write("<div style=\"display: flex; align-items: center; gap: 8px;\">");
+    document.write("<span style=\"color: #51cf66; font-weight: bold; width: 20px;\">G:</span>");
+    document.write("<input type=\"range\" min=\"0\" max=\"255\" value=\"255\" id=\"greenSlider\" style=\"flex: 1; height: 8px;\">");
+    document.write("<input type=\"number\" min=\"0\" max=\"255\" value=\"255\" id=\"greenInput\" style=\"width: 50px; padding: 4px; text-align: center; border: 1px solid #ccc; border-radius: 4px; background: #2a2a3e; color: white;\">");
+    document.write("</div>");
+
+    // Blue slider
+    document.write("<div style=\"display: flex; align-items: center; gap: 8px;\">");
+    document.write("<span style=\"color: #339af0; font-weight: bold; width: 20px;\">B:</span>");
+    document.write("<input type=\"range\" min=\"0\" max=\"255\" value=\"255\" id=\"blueSlider\" style=\"flex: 1; height: 8px;\">");
+    document.write("<input type=\"number\" min=\"0\" max=\"255\" value=\"255\" id=\"blueInput\" style=\"width: 50px; padding: 4px; text-align: center; border: 1px solid #ccc; border-radius: 4px; background: #2a2a3e; color: white;\">");
+    document.write("</div>");
+
+    document.write("</div>"); // End color sliders
+
+    // Line width section
+    document.write("<div style=\"font-weight: 600; font-size: 12px; color: #999; margin-bottom: 8px;\">WIDTH</div>");
+    document.write("<div style=\"display: flex; align-items: center; gap: 8px; margin-bottom: 15px;\">");
+    document.write("<span style=\"width: 6px; height: 6px; background: #666; border-radius: 50%;\"></span>");
+    document.write("<input type=\"range\" min=\"1\" max=\"20\" value=\"5\" id=\"lineWidthSlider\" style=\"flex: 1; height: 8px;\">");
+    document.write("<span style=\"width: 16px; height: 16px; background: #666; border-radius: 50%;\"></span>");
+    document.write("<span id=\"lineWidthValue\" style=\"min-width: 40px; text-align: center; font-size: 12px; color: #339af0; font-weight: bold; background: #2a2a3e; padding: 4px 8px; border-radius: 4px;\">5px</span>");
+    document.write("</div>");
+
+    // Color presets section
+    document.write("<div style=\"font-weight: 600; font-size: 12px; color: #999; margin-bottom: 8px;\">PRESETS</div>");
+    document.write("<div id=\"presets\" style=\"display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px;\"></div>");
+
+    document.write("</div>"); // End inlineColorPicker
+    document.write("</td>");
+    document.write("</tr>");
+
     document.write("<tr>");
     document.write("<td colspan='4'>");
     // Combined points and speed slider row
-    document.write("<div style=\"display: flex; align-items: center; width: 100%;\">");
+    document.write("<div style=\"display: flex; align-items: center; width: 100%; margin-top: 10px;\">");
     // Points display that will adjust its width based on content
     document.write("<div style=\"display: flex; align-items: center; white-space: nowrap; margin-right: 10px;\">");
     document.write("Points: <span id='points'>0</span><span></span>");
