@@ -327,6 +327,7 @@ stuffedAnimalWarEndpoints.forEach(endpoint => {
 
         res.status(200).json({ success: true, message: 'Image uploaded and broadcasted.' });
     });
+
     //UPLOAD AN VIDEO ENDPOINT
     app.post('/' + endpoint + stuffedAnimalWarChatVideoSocketEvent, upload.single('video'), (req, res) => {
         if (!req.file) {

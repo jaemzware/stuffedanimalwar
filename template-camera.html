@@ -239,6 +239,82 @@
                 opacity: 0.5;
             }
 
+            /* Diagnostic overlay for peer videos */
+            .peer-diagnostics {
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: rgba(0, 0, 0, 0.85);
+                color: #0f0;
+                font-family: 'Courier New', monospace;
+                font-size: 10px;
+                padding: 6px 8px;
+                display: none;
+                z-index: 10;
+                max-height: 120px;
+                overflow-y: auto;
+            }
+
+            .peer-diagnostics.visible {
+                display: block;
+            }
+
+            .peer-diagnostics div {
+                margin: 2px 0;
+                white-space: nowrap;
+            }
+
+            .peer-diagnostics .label {
+                color: #888;
+            }
+
+            .peer-diagnostics .value {
+                color: #0f0;
+            }
+
+            .peer-diagnostics .warn {
+                color: #ffc107;
+            }
+
+            .peer-diagnostics .error {
+                color: #dc3545;
+            }
+
+            /* Peer video action buttons */
+            .peer-actions {
+                position: absolute;
+                top: 8px;
+                right: 8px;
+                display: flex;
+                gap: 4px;
+                z-index: 15;
+            }
+
+            .peer-action-btn {
+                width: 28px;
+                height: 28px;
+                border: none;
+                border-radius: 4px;
+                background: rgba(0, 0, 0, 0.6);
+                color: white;
+                cursor: pointer;
+                font-size: 14px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.2s ease;
+            }
+
+            .peer-action-btn:hover {
+                background: rgba(0, 0, 0, 0.8);
+                transform: scale(1.1);
+            }
+
+            .peer-action-btn.active {
+                background: rgba(40, 167, 69, 0.8);
+            }
+
             @media (max-width: 768px) {
                 .camera-grid {
                     grid-template-columns: 1fr;
@@ -575,8 +651,13 @@
                     const videoWrapper = document.getElementById('remoteVideo_' + peerId);
                     if (videoWrapper) {
                         const video = videoWrapper.querySelector('video');
-                        if (video && video._renderMonitor) {
-                            clearInterval(video._renderMonitor);
+                        if (video) {
+                            if (video._renderMonitor) {
+                                clearInterval(video._renderMonitor);
+                            }
+                            if (video._diagInterval) {
+                                clearInterval(video._diagInterval);
+                            }
                         }
                         videoWrapper.remove();
                     }
@@ -1360,6 +1441,176 @@
                 }
             }
 
+            // Refresh a single peer connection (triggered by individual refresh button)
+            async function refreshSinglePeer(peerId) {
+                console.log('🔄 Refreshing single peer connection:', peerId);
+
+                const pc = peerConnections[peerId];
+                if (!pc) {
+                    console.warn('⚠️ No peer connection found for:', peerId);
+                    return;
+                }
+
+                // Update UI to show refreshing
+                const videoWrapper = document.getElementById('remoteVideo_' + peerId);
+                if (videoWrapper) {
+                    const badge = videoWrapper.querySelector('.badge');
+                    if (badge) {
+                        badge.textContent = 'REFRESHING';
+                        badge.style.background = '#17a2b8';
+                    }
+                }
+
+                // First try ICE restart
+                try {
+                    await attemptIceRestart(pc, peerId);
+                    console.log('✅ ICE restart initiated for:', peerId);
+                } catch (err) {
+                    console.error('❌ ICE restart failed, attempting full reconnection:', err);
+
+                    // Full reconnection: close and recreate
+                    cleanupPeerConnection(peerId);
+
+                    // Request peer to reconnect
+                    socket.emit(endpoint + 'cameracamera' + 'requestroster', {
+                        userId: socket.id
+                    });
+                }
+            }
+
+            // Start diagnostic updates for a peer video
+            function startPeerDiagnostics(peerId, videoElement) {
+                const diagInterval = setInterval(async () => {
+                    const diagDiv = document.getElementById('diagnostics_' + peerId);
+                    const pc = peerConnections[peerId];
+
+                    if (!diagDiv || !pc) {
+                        clearInterval(diagInterval);
+                        return;
+                    }
+
+                    // Only update if visible
+                    if (!diagDiv.classList.contains('visible')) {
+                        return;
+                    }
+
+                    let html = '';
+
+                    // Video dimensions
+                    const hasVideo = videoElement.videoWidth > 0 && videoElement.videoHeight > 0;
+                    if (hasVideo) {
+                        html += `<div><span class="label">Resolution:</span> <span class="value">${videoElement.videoWidth}x${videoElement.videoHeight}</span></div>`;
+                    } else {
+                        html += `<div><span class="label">Resolution:</span> <span class="error">NO VIDEO (0x0)</span></div>`;
+                    }
+
+                    // Video element state
+                    const videoState = videoElement.paused ? 'PAUSED' : (videoElement.ended ? 'ENDED' : 'PLAYING');
+                    const videoStateClass = videoElement.paused ? 'warn' : 'value';
+                    html += `<div><span class="label">Video State:</span> <span class="${videoStateClass}">${videoState}</span></div>`;
+                    html += `<div><span class="label">Ready State:</span> <span class="value">${videoElement.readyState}/4</span></div>`;
+
+                    // Source object
+                    const srcObj = videoElement.srcObject;
+                    if (srcObj) {
+                        const tracks = srcObj.getVideoTracks();
+                        if (tracks.length > 0) {
+                            const track = tracks[0];
+                            const trackState = track.readyState; // 'live' or 'ended'
+                            const trackMuted = track.muted;
+                            const trackEnabled = track.enabled;
+                            const trackClass = (trackState === 'ended' || trackMuted || !trackEnabled) ? 'error' : 'value';
+                            html += `<div><span class="label">Track:</span> <span class="${trackClass}">${trackState}${trackMuted ? ' MUTED' : ''}${!trackEnabled ? ' DISABLED' : ''}</span></div>`;
+                        } else {
+                            html += `<div><span class="label">Track:</span> <span class="error">NO VIDEO TRACKS</span></div>`;
+                        }
+                    } else {
+                        html += `<div><span class="label">Source:</span> <span class="error">NO SOURCE</span></div>`;
+                    }
+
+                    // Connection states
+                    const connState = pc.connectionState;
+                    const iceState = pc.iceConnectionState;
+                    const connClass = (connState === 'connected') ? 'value' : (connState === 'failed' || connState === 'closed') ? 'error' : 'warn';
+                    const iceClass = (iceState === 'connected' || iceState === 'completed') ? 'value' : (iceState === 'failed' || iceState === 'closed') ? 'error' : 'warn';
+                    html += `<div><span class="label">Connection:</span> <span class="${connClass}">${connState}</span></div>`;
+                    html += `<div><span class="label">ICE:</span> <span class="${iceClass}">${iceState}</span></div>`;
+
+                    // Get WebRTC stats
+                    try {
+                        const stats = await pc.getStats();
+                        let bytesReceived = 0;
+                        let packetsLost = 0;
+                        let packetsReceived = 0;
+                        let framesReceived = 0;
+                        let framesDecoded = 0;
+                        let framesDropped = 0;
+                        let jitter = 0;
+                        let timestamp = 0;
+
+                        stats.forEach(report => {
+                            if (report.type === 'inbound-rtp' && report.kind === 'video') {
+                                bytesReceived = report.bytesReceived || 0;
+                                packetsLost = report.packetsLost || 0;
+                                packetsReceived = report.packetsReceived || 0;
+                                framesReceived = report.framesReceived || 0;
+                                framesDecoded = report.framesDecoded || 0;
+                                framesDropped = report.framesDropped || 0;
+                                jitter = report.jitter || 0;
+                                timestamp = report.timestamp || 0;
+                            }
+                        });
+
+                        // Calculate data rate (compare with last update)
+                        const lastBytes = videoElement._lastBytesReceived || 0;
+                        const lastTime = videoElement._lastStatsTime || timestamp;
+                        const timeDiff = (timestamp - lastTime) / 1000; // seconds
+                        const bytesDiff = bytesReceived - lastBytes;
+                        const dataRate = timeDiff > 0 ? (bytesDiff * 8 / timeDiff / 1000).toFixed(1) : 0; // kbps
+
+                        videoElement._lastBytesReceived = bytesReceived;
+                        videoElement._lastStatsTime = timestamp;
+
+                        // Format bytes
+                        const bytesFormatted = bytesReceived > 1000000 ?
+                            (bytesReceived / 1000000).toFixed(2) + ' MB' :
+                            (bytesReceived / 1000).toFixed(1) + ' KB';
+
+                        html += `<div><span class="label">Data:</span> <span class="value">${bytesFormatted} (${dataRate} kbps)</span></div>`;
+
+                        // Packet loss
+                        const lossRate = packetsReceived > 0 ?
+                            ((packetsLost / (packetsLost + packetsReceived)) * 100).toFixed(1) : 0;
+                        const lossClass = lossRate > 5 ? 'error' : lossRate > 1 ? 'warn' : 'value';
+                        html += `<div><span class="label">Packet Loss:</span> <span class="${lossClass}">${lossRate}% (${packetsLost}/${packetsReceived + packetsLost})</span></div>`;
+
+                        // Frames
+                        const droppedClass = framesDropped > 0 ? 'warn' : 'value';
+                        html += `<div><span class="label">Frames:</span> <span class="value">recv: ${framesReceived} dec: ${framesDecoded}</span> <span class="${droppedClass}">drop: ${framesDropped}</span></div>`;
+
+                        // Jitter
+                        html += `<div><span class="label">Jitter:</span> <span class="value">${(jitter * 1000).toFixed(1)} ms</span></div>`;
+
+                        // Data rate warning
+                        if (dataRate == 0 && bytesReceived > 0) {
+                            html += `<div><span class="error">⚠️ NO DATA FLOW - stream may be frozen!</span></div>`;
+                        }
+
+                    } catch (err) {
+                        html += `<div><span class="error">Stats error: ${err.message}</span></div>`;
+                    }
+
+                    // Timestamp
+                    html += `<div><span class="label">Updated:</span> <span class="value">${new Date().toLocaleTimeString()}</span></div>`;
+
+                    diagDiv.innerHTML = html;
+
+                }, 2000); // Update every 2 seconds
+
+                // Store interval for cleanup
+                videoElement._diagInterval = diagInterval;
+            }
+
             // Clean up peer connection and all associated resources
             function cleanupPeerConnection(peerId) {
                 console.log('🧹 Cleaning up peer connection:', peerId);
@@ -1380,8 +1631,13 @@
                 const videoWrapper = document.getElementById('remoteVideo_' + peerId);
                 if (videoWrapper) {
                     const video = videoWrapper.querySelector('video');
-                    if (video && video._renderMonitor) {
-                        clearInterval(video._renderMonitor);
+                    if (video) {
+                        if (video._renderMonitor) {
+                            clearInterval(video._renderMonitor);
+                        }
+                        if (video._diagInterval) {
+                            clearInterval(video._diagInterval);
+                        }
                     }
                     videoWrapper.remove();
                 }
@@ -1664,6 +1920,43 @@
                             const displayName = peerCameraNames[peerId] || `Peer ${peerId.substring(0, 8)}`;
                             label.innerHTML = `<span>📹 ${displayName}</span><span class="badge">LIVE</span>`;
 
+                            // Action buttons (refresh, diagnostics toggle)
+                            const actions = document.createElement('div');
+                            actions.className = 'peer-actions';
+
+                            // Refresh button for this peer
+                            const refreshBtn = document.createElement('button');
+                            refreshBtn.className = 'peer-action-btn';
+                            refreshBtn.innerHTML = '🔄';
+                            refreshBtn.title = 'Refresh this peer connection';
+                            refreshBtn.onclick = (e) => {
+                                e.stopPropagation();
+                                refreshSinglePeer(peerId);
+                            };
+
+                            // Diagnostics toggle button
+                            const diagBtn = document.createElement('button');
+                            diagBtn.className = 'peer-action-btn';
+                            diagBtn.innerHTML = '📊';
+                            diagBtn.title = 'Toggle diagnostics';
+                            diagBtn.onclick = (e) => {
+                                e.stopPropagation();
+                                const diag = videoWrapper.querySelector('.peer-diagnostics');
+                                if (diag) {
+                                    diag.classList.toggle('visible');
+                                    diagBtn.classList.toggle('active');
+                                }
+                            };
+
+                            actions.appendChild(refreshBtn);
+                            actions.appendChild(diagBtn);
+
+                            // Diagnostics overlay
+                            const diagnostics = document.createElement('div');
+                            diagnostics.className = 'peer-diagnostics';
+                            diagnostics.id = 'diagnostics_' + peerId;
+                            diagnostics.innerHTML = '<div><span class="label">Loading diagnostics...</span></div>';
+
                             const video = document.createElement('video');
                             video.id = 'remoteVideoElement_' + peerId;
                             video.autoplay = true;
@@ -1686,8 +1979,13 @@
                             }, true);
 
                             videoWrapper.appendChild(label);
+                            videoWrapper.appendChild(actions);
                             videoWrapper.appendChild(video);
+                            videoWrapper.appendChild(diagnostics);
                             remoteCameraGrid.appendChild(videoWrapper);
+
+                            // Start diagnostic updates for this peer
+                            startPeerDiagnostics(peerId, video);
 
                             // Auto-resume if video pauses unexpectedly
                             video.addEventListener('pause', () => {
@@ -1711,9 +2009,12 @@
                         if (video.srcObject !== event.streams[0]) {
                             console.log('🔄 Updating video stream for peer:', peerId);
 
-                            // Clean up old render monitor if exists
+                            // Clean up old monitors if exists
                             if (video._renderMonitor) {
                                 clearInterval(video._renderMonitor);
+                            }
+                            if (video._diagInterval) {
+                                clearInterval(video._diagInterval);
                             }
 
                             video.srcObject = event.streams[0];
@@ -2040,8 +2341,13 @@
                 const videoWrapper = document.getElementById('remoteVideo_' + data.userId);
                 if (videoWrapper) {
                     const video = videoWrapper.querySelector('video');
-                    if (video && video._renderMonitor) {
-                        clearInterval(video._renderMonitor);
+                    if (video) {
+                        if (video._renderMonitor) {
+                            clearInterval(video._renderMonitor);
+                        }
+                        if (video._diagInterval) {
+                            clearInterval(video._diagInterval);
+                        }
                     }
                     videoWrapper.remove();
                 }
