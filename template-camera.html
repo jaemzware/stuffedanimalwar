@@ -1524,131 +1524,170 @@
 
             // Start diagnostic updates for a peer video
             function startPeerDiagnostics(peerId, videoElement) {
-                // Function to update diagnostics
+                // Function to update diagnostics - wrapped in try/catch to never fail silently
                 async function updateDiagnostics() {
-                    const diagDiv = document.getElementById('diagnostics_' + peerId);
-                    const pc = peerConnections[peerId];
-
-                    if (!diagDiv || !pc) {
-                        return false; // Signal to stop interval
-                    }
-
-                    // Only update if visible
-                    if (!diagDiv.classList.contains('visible')) {
-                        return true; // Keep interval running
-                    }
-
-                    let html = '';
-
-                    // Video dimensions
-                    const hasVideo = videoElement.videoWidth > 0 && videoElement.videoHeight > 0;
-                    if (hasVideo) {
-                        html += `<div><span class="label">Resolution:</span> <span class="value">${videoElement.videoWidth}x${videoElement.videoHeight}</span></div>`;
-                    } else {
-                        html += `<div><span class="label">Resolution:</span> <span class="error">NO VIDEO (0x0)</span></div>`;
-                    }
-
-                    // Video element state
-                    const videoState = videoElement.paused ? 'PAUSED' : (videoElement.ended ? 'ENDED' : 'PLAYING');
-                    const videoStateClass = videoElement.paused ? 'warn' : 'value';
-                    html += `<div><span class="label">Video State:</span> <span class="${videoStateClass}">${videoState}</span></div>`;
-                    html += `<div><span class="label">Ready State:</span> <span class="value">${videoElement.readyState}/4</span></div>`;
-
-                    // Source object
-                    const srcObj = videoElement.srcObject;
-                    if (srcObj) {
-                        const tracks = srcObj.getVideoTracks();
-                        if (tracks.length > 0) {
-                            const track = tracks[0];
-                            const trackState = track.readyState; // 'live' or 'ended'
-                            const trackMuted = track.muted;
-                            const trackEnabled = track.enabled;
-                            const trackClass = (trackState === 'ended' || trackMuted || !trackEnabled) ? 'error' : 'value';
-                            html += `<div><span class="label">Track:</span> <span class="${trackClass}">${trackState}${trackMuted ? ' MUTED' : ''}${!trackEnabled ? ' DISABLED' : ''}</span></div>`;
-                        } else {
-                            html += `<div><span class="label">Track:</span> <span class="error">NO VIDEO TRACKS</span></div>`;
-                        }
-                    } else {
-                        html += `<div><span class="label">Source:</span> <span class="error">NO SOURCE</span></div>`;
-                    }
-
-                    // Connection states
-                    const connState = pc.connectionState;
-                    const iceState = pc.iceConnectionState;
-                    const connClass = (connState === 'connected') ? 'value' : (connState === 'failed' || connState === 'closed') ? 'error' : 'warn';
-                    const iceClass = (iceState === 'connected' || iceState === 'completed') ? 'value' : (iceState === 'failed' || iceState === 'closed') ? 'error' : 'warn';
-                    html += `<div><span class="label">Connection:</span> <span class="${connClass}">${connState}</span></div>`;
-                    html += `<div><span class="label">ICE:</span> <span class="${iceClass}">${iceState}</span></div>`;
-
-                    // Get WebRTC stats
                     try {
-                        const stats = await pc.getStats();
-                        let bytesReceived = 0;
-                        let packetsLost = 0;
-                        let packetsReceived = 0;
-                        let framesReceived = 0;
-                        let framesDecoded = 0;
-                        let framesDropped = 0;
-                        let jitter = 0;
-                        let timestamp = 0;
+                        const diagDiv = document.getElementById('diagnostics_' + peerId);
 
-                        stats.forEach(report => {
-                            if (report.type === 'inbound-rtp' && report.kind === 'video') {
-                                bytesReceived = report.bytesReceived || 0;
-                                packetsLost = report.packetsLost || 0;
-                                packetsReceived = report.packetsReceived || 0;
-                                framesReceived = report.framesReceived || 0;
-                                framesDecoded = report.framesDecoded || 0;
-                                framesDropped = report.framesDropped || 0;
-                                jitter = report.jitter || 0;
-                                timestamp = report.timestamp || 0;
-                            }
-                        });
-
-                        // Calculate data rate (compare with last update)
-                        const lastBytes = videoElement._lastBytesReceived || 0;
-                        const lastTime = videoElement._lastStatsTime || timestamp;
-                        const timeDiff = (timestamp - lastTime) / 1000; // seconds
-                        const bytesDiff = bytesReceived - lastBytes;
-                        const dataRate = timeDiff > 0 ? (bytesDiff * 8 / timeDiff / 1000).toFixed(1) : 0; // kbps
-
-                        videoElement._lastBytesReceived = bytesReceived;
-                        videoElement._lastStatsTime = timestamp;
-
-                        // Format bytes
-                        const bytesFormatted = bytesReceived > 1000000 ?
-                            (bytesReceived / 1000000).toFixed(2) + ' MB' :
-                            (bytesReceived / 1000).toFixed(1) + ' KB';
-
-                        html += `<div><span class="label">Data:</span> <span class="value">${bytesFormatted} (${dataRate} kbps)</span></div>`;
-
-                        // Packet loss
-                        const lossRate = packetsReceived > 0 ?
-                            ((packetsLost / (packetsLost + packetsReceived)) * 100).toFixed(1) : 0;
-                        const lossClass = lossRate > 5 ? 'error' : lossRate > 1 ? 'warn' : 'value';
-                        html += `<div><span class="label">Packet Loss:</span> <span class="${lossClass}">${lossRate}% (${packetsLost}/${packetsReceived + packetsLost})</span></div>`;
-
-                        // Frames
-                        const droppedClass = framesDropped > 0 ? 'warn' : 'value';
-                        html += `<div><span class="label">Frames:</span> <span class="value">recv: ${framesReceived} dec: ${framesDecoded}</span> <span class="${droppedClass}">drop: ${framesDropped}</span></div>`;
-
-                        // Jitter
-                        html += `<div><span class="label">Jitter:</span> <span class="value">${(jitter * 1000).toFixed(1)} ms</span></div>`;
-
-                        // Data rate warning
-                        if (dataRate == 0 && bytesReceived > 0) {
-                            html += `<div><span class="error">⚠️ NO DATA FLOW - stream may be frozen!</span></div>`;
+                        if (!diagDiv) {
+                            return false; // Element gone, stop interval
                         }
 
-                    } catch (err) {
-                        html += `<div><span class="error">Stats error: ${err.message}</span></div>`;
+                        // Only update if visible
+                        if (!diagDiv.classList.contains('visible')) {
+                            return true; // Keep interval running
+                        }
+
+                        const pc = peerConnections[peerId];
+                        let html = '';
+
+                        // Always show peer ID first
+                        html += `<div><span class="label">Peer:</span> <span class="value">${peerId.substring(0, 12)}...</span></div>`;
+
+                        // Check if peer connection exists
+                        if (!pc) {
+                            html += `<div><span class="error">NO PEER CONNECTION</span></div>`;
+                            html += `<div><span class="label">Updated:</span> <span class="value">${new Date().toLocaleTimeString()}</span></div>`;
+                            html += `<div><span class="warn">Try clicking 🔄 to refresh</span></div>`;
+                            diagDiv.innerHTML = html;
+                            return true; // Keep running in case connection comes back
+                        }
+
+                        // Video dimensions
+                        const hasVideo = videoElement && videoElement.videoWidth > 0 && videoElement.videoHeight > 0;
+                        if (hasVideo) {
+                            html += `<div><span class="label">Resolution:</span> <span class="value">${videoElement.videoWidth}x${videoElement.videoHeight}</span></div>`;
+                        } else {
+                            html += `<div><span class="label">Resolution:</span> <span class="error">NO VIDEO (0x0)</span></div>`;
+                        }
+
+                        // Video element state
+                        if (videoElement) {
+                            const videoState = videoElement.paused ? 'PAUSED' : (videoElement.ended ? 'ENDED' : 'PLAYING');
+                            const videoStateClass = videoElement.paused ? 'warn' : 'value';
+                            html += `<div><span class="label">Video State:</span> <span class="${videoStateClass}">${videoState}</span></div>`;
+                            html += `<div><span class="label">Ready State:</span> <span class="value">${videoElement.readyState}/4</span></div>`;
+
+                            // Source object
+                            const srcObj = videoElement.srcObject;
+                            if (srcObj) {
+                                try {
+                                    const tracks = srcObj.getVideoTracks();
+                                    if (tracks.length > 0) {
+                                        const track = tracks[0];
+                                        const trackState = track.readyState; // 'live' or 'ended'
+                                        const trackMuted = track.muted;
+                                        const trackEnabled = track.enabled;
+                                        const trackClass = (trackState === 'ended' || trackMuted || !trackEnabled) ? 'error' : 'value';
+                                        html += `<div><span class="label">Track:</span> <span class="${trackClass}">${trackState}${trackMuted ? ' MUTED' : ''}${!trackEnabled ? ' DISABLED' : ''}</span></div>`;
+                                    } else {
+                                        html += `<div><span class="label">Track:</span> <span class="error">NO VIDEO TRACKS</span></div>`;
+                                    }
+                                } catch (trackErr) {
+                                    html += `<div><span class="label">Track:</span> <span class="error">ERROR: ${trackErr.message}</span></div>`;
+                                }
+                            } else {
+                                html += `<div><span class="label">Source:</span> <span class="error">NO SOURCE</span></div>`;
+                            }
+                        } else {
+                            html += `<div><span class="error">NO VIDEO ELEMENT</span></div>`;
+                        }
+
+                        // Connection states
+                        const connState = pc.connectionState || 'unknown';
+                        const iceState = pc.iceConnectionState || 'unknown';
+                        const connClass = (connState === 'connected') ? 'value' : (connState === 'failed' || connState === 'closed') ? 'error' : 'warn';
+                        const iceClass = (iceState === 'connected' || iceState === 'completed') ? 'value' : (iceState === 'failed' || iceState === 'closed' || iceState === 'disconnected') ? 'error' : 'warn';
+                        html += `<div><span class="label">Connection:</span> <span class="${connClass}">${connState}</span></div>`;
+                        html += `<div><span class="label">ICE:</span> <span class="${iceClass}">${iceState}</span></div>`;
+
+                        // If connection is bad, show a hint and skip stats
+                        const connectionBad = (connState === 'failed' || connState === 'closed' || connState === 'disconnected' ||
+                            iceState === 'failed' || iceState === 'closed' || iceState === 'disconnected');
+
+                        if (connectionBad) {
+                            html += `<div><span class="warn">⚠️ Connection lost - try 🔄 refresh</span></div>`;
+                        } else {
+                            // Only try to get WebRTC stats if connection looks OK
+                            try {
+                                const stats = await pc.getStats();
+                                let bytesReceived = 0;
+                                let packetsLost = 0;
+                                let packetsReceived = 0;
+                                let framesReceived = 0;
+                                let framesDecoded = 0;
+                                let framesDropped = 0;
+                                let jitter = 0;
+                                let timestamp = 0;
+
+                                stats.forEach(report => {
+                                    if (report.type === 'inbound-rtp' && report.kind === 'video') {
+                                        bytesReceived = report.bytesReceived || 0;
+                                        packetsLost = report.packetsLost || 0;
+                                        packetsReceived = report.packetsReceived || 0;
+                                        framesReceived = report.framesReceived || 0;
+                                        framesDecoded = report.framesDecoded || 0;
+                                        framesDropped = report.framesDropped || 0;
+                                        jitter = report.jitter || 0;
+                                        timestamp = report.timestamp || 0;
+                                    }
+                                });
+
+                                // Calculate data rate (compare with last update)
+                                const lastBytes = videoElement._lastBytesReceived || 0;
+                                const lastTime = videoElement._lastStatsTime || timestamp;
+                                const timeDiff = (timestamp - lastTime) / 1000; // seconds
+                                const bytesDiff = bytesReceived - lastBytes;
+                                const dataRate = timeDiff > 0 ? (bytesDiff * 8 / timeDiff / 1000).toFixed(1) : 0; // kbps
+
+                                videoElement._lastBytesReceived = bytesReceived;
+                                videoElement._lastStatsTime = timestamp;
+
+                                // Format bytes
+                                const bytesFormatted = bytesReceived > 1000000 ?
+                                    (bytesReceived / 1000000).toFixed(2) + ' MB' :
+                                    (bytesReceived / 1000).toFixed(1) + ' KB';
+
+                                html += `<div><span class="label">Data:</span> <span class="value">${bytesFormatted} (${dataRate} kbps)</span></div>`;
+
+                                // Packet loss
+                                const lossRate = packetsReceived > 0 ?
+                                    ((packetsLost / (packetsLost + packetsReceived)) * 100).toFixed(1) : 0;
+                                const lossClass = lossRate > 5 ? 'error' : lossRate > 1 ? 'warn' : 'value';
+                                html += `<div><span class="label">Packet Loss:</span> <span class="${lossClass}">${lossRate}% (${packetsLost}/${packetsReceived + packetsLost})</span></div>`;
+
+                                // Frames
+                                const droppedClass = framesDropped > 0 ? 'warn' : 'value';
+                                html += `<div><span class="label">Frames:</span> <span class="value">recv: ${framesReceived} dec: ${framesDecoded}</span> <span class="${droppedClass}">drop: ${framesDropped}</span></div>`;
+
+                                // Jitter
+                                html += `<div><span class="label">Jitter:</span> <span class="value">${(jitter * 1000).toFixed(1)} ms</span></div>`;
+
+                                // Data rate warning
+                                if (dataRate == 0 && bytesReceived > 0) {
+                                    html += `<div><span class="error">⚠️ NO DATA FLOW - stream may be frozen!</span></div>`;
+                                }
+
+                            } catch (statsErr) {
+                                html += `<div><span class="error">Stats: ${statsErr.message}</span></div>`;
+                            }
+                        }
+
+                        // Timestamp - always show this last
+                        html += `<div><span class="label">Updated:</span> <span class="value">${new Date().toLocaleTimeString()}</span></div>`;
+
+                        diagDiv.innerHTML = html;
+                        return true; // Keep interval running
+
+                    } catch (outerErr) {
+                        // Catastrophic error - still try to show something
+                        const diagDiv = document.getElementById('diagnostics_' + peerId);
+                        if (diagDiv) {
+                            diagDiv.innerHTML = `<div><span class="error">Diagnostic error: ${outerErr.message}</span></div><div><span class="label">Updated:</span> <span class="value">${new Date().toLocaleTimeString()}</span></div>`;
+                        }
+                        console.error('Diagnostics error for peer', peerId, outerErr);
+                        return true; // Keep trying
                     }
-
-                    // Timestamp
-                    html += `<div><span class="label">Updated:</span> <span class="value">${new Date().toLocaleTimeString()}</span></div>`;
-
-                    diagDiv.innerHTML = html;
-                    return true; // Keep interval running
                 }
 
                 // Set up interval for updates (every 1 second for more responsive diagnostics)
