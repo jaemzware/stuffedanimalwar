@@ -402,6 +402,11 @@
                 <span>▶️</span>
                 <span>Resume All Videos</span>
             </button>
+
+            <button id="showLogsButton" class="btn btn-camera" style="margin-top: 8px; background: #6c757d;">
+                <span>📋</span>
+                <span>Show Logs</span>
+            </button>
         </div>
 
         <div id="status" class="status disconnected">
@@ -430,6 +435,150 @@
         </div>
 
         <script>
+            // Console log capture for mobile debugging
+            const capturedLogs = [];
+            const MAX_LOGS = 200;
+            const originalConsole = {
+                log: console.log,
+                warn: console.warn,
+                error: console.error
+            };
+
+            function captureLog(type, args) {
+                const timestamp = new Date().toLocaleTimeString();
+                const message = Array.from(args).map(arg => {
+                    if (typeof arg === 'object') {
+                        try {
+                            return JSON.stringify(arg);
+                        } catch (e) {
+                            return String(arg);
+                        }
+                    }
+                    return String(arg);
+                }).join(' ');
+
+                capturedLogs.push({ timestamp, type, message });
+
+                // Keep only last MAX_LOGS entries
+                if (capturedLogs.length > MAX_LOGS) {
+                    capturedLogs.shift();
+                }
+            }
+
+            console.log = function(...args) {
+                captureLog('log', args);
+                originalConsole.log.apply(console, args);
+            };
+
+            console.warn = function(...args) {
+                captureLog('warn', args);
+                originalConsole.warn.apply(console, args);
+            };
+
+            console.error = function(...args) {
+                captureLog('error', args);
+                originalConsole.error.apply(console, args);
+            };
+
+            function showLogs() {
+                // Create or get log overlay
+                let overlay = document.getElementById('logOverlay');
+                if (!overlay) {
+                    overlay = document.createElement('div');
+                    overlay.id = 'logOverlay';
+                    overlay.style.cssText = `
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        right: 0;
+                        bottom: 0;
+                        background: rgba(0, 0, 0, 0.95);
+                        z-index: 10000;
+                        overflow-y: auto;
+                        padding: 10px;
+                        font-family: 'Courier New', monospace;
+                        font-size: 11px;
+                    `;
+
+                    const header = document.createElement('div');
+                    header.style.cssText = `
+                        position: sticky;
+                        top: 0;
+                        background: #333;
+                        padding: 10px;
+                        margin: -10px -10px 10px -10px;
+                        display: flex;
+                        gap: 10px;
+                        flex-wrap: wrap;
+                    `;
+
+                    const closeBtn = document.createElement('button');
+                    closeBtn.textContent = '✕ Close';
+                    closeBtn.style.cssText = 'padding: 8px 16px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;';
+                    closeBtn.onclick = () => overlay.remove();
+
+                    const copyBtn = document.createElement('button');
+                    copyBtn.textContent = '📋 Copy All';
+                    copyBtn.style.cssText = 'padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;';
+                    copyBtn.onclick = () => {
+                        const text = capturedLogs.map(l => `[${l.timestamp}] ${l.type.toUpperCase()}: ${l.message}`).join('\n');
+                        navigator.clipboard.writeText(text).then(() => {
+                            copyBtn.textContent = '✓ Copied!';
+                            setTimeout(() => copyBtn.textContent = '📋 Copy All', 2000);
+                        }).catch(() => {
+                            // Fallback for older browsers
+                            const ta = document.createElement('textarea');
+                            ta.value = text;
+                            document.body.appendChild(ta);
+                            ta.select();
+                            document.execCommand('copy');
+                            document.body.removeChild(ta);
+                            copyBtn.textContent = '✓ Copied!';
+                            setTimeout(() => copyBtn.textContent = '📋 Copy All', 2000);
+                        });
+                    };
+
+                    const clearBtn = document.createElement('button');
+                    clearBtn.textContent = '🗑 Clear';
+                    clearBtn.style.cssText = 'padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;';
+                    clearBtn.onclick = () => {
+                        capturedLogs.length = 0;
+                        document.getElementById('logContent').innerHTML = '<div style="color: #666;">Logs cleared</div>';
+                    };
+
+                    const countSpan = document.createElement('span');
+                    countSpan.style.cssText = 'color: #aaa; padding: 8px; align-self: center;';
+                    countSpan.id = 'logCount';
+
+                    header.appendChild(closeBtn);
+                    header.appendChild(copyBtn);
+                    header.appendChild(clearBtn);
+                    header.appendChild(countSpan);
+
+                    const logContent = document.createElement('div');
+                    logContent.id = 'logContent';
+
+                    overlay.appendChild(header);
+                    overlay.appendChild(logContent);
+                    document.body.appendChild(overlay);
+                }
+
+                // Update count
+                document.getElementById('logCount').textContent = `${capturedLogs.length} logs`;
+
+                // Populate logs
+                const logContent = document.getElementById('logContent');
+                logContent.innerHTML = capturedLogs.map(l => {
+                    let color = '#0f0';
+                    if (l.type === 'warn') color = '#ffc107';
+                    if (l.type === 'error') color = '#dc3545';
+                    return `<div style="color: ${color}; margin: 2px 0; word-break: break-all;">[${l.timestamp}] ${l.message}</div>`;
+                }).join('');
+
+                // Scroll to bottom
+                logContent.scrollTop = logContent.scrollHeight;
+            }
+
             const endpoint = "{{ENDPOINT}}";
             const socket = io({
                 query: { endpoint: endpoint + 'camera' },
@@ -508,6 +657,7 @@
                 acceptMicCheckbox.addEventListener('change', handleAcceptMicChange);
                 document.getElementById('refreshPeersButton').addEventListener('click', refreshPeerConnections);
                 document.getElementById('resumeAllVideosButton').addEventListener('click', resumeAllVideos);
+                document.getElementById('showLogsButton').addEventListener('click', showLogs);
                 document.getElementById('cameraNameInput').addEventListener('input', function(e) {
                     myCameraName = e.target.value.trim();
                     console.log('Camera name set to:', myCameraName || '(default)');
