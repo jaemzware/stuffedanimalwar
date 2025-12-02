@@ -284,7 +284,7 @@
             /* Peer video action buttons */
             .peer-actions {
                 position: absolute;
-                top: 8px;
+                top: 44px;
                 right: 8px;
                 display: flex;
                 gap: 4px;
@@ -892,27 +892,52 @@
                 const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
                 console.log('Device type:', isMobile ? 'Mobile' : 'Desktop');
 
+                // Build constraints - use 'ideal' to allow fallback if camera doesn't support
                 const constraints = {
                     video: {
-                        // Lower resolution for mobile to prevent freezing
+                        // Use 'ideal' so browser can negotiate if camera doesn't support
                         width: { ideal: isMobile ? 640 : 1280 },
                         height: { ideal: isMobile ? 480 : 720 },
-                        // Mobile-friendly frameRate
-                        frameRate: { ideal: isMobile ? 15 : 30, max: 30 }
+                        frameRate: { ideal: isMobile ? 15 : 30 }
                     }
                 };
 
                 // Use selected device if specified, otherwise let browser choose
                 if (selectedCameraDeviceId) {
-                    constraints.video.deviceId = { exact: selectedCameraDeviceId };
+                    // Use 'ideal' instead of 'exact' to allow fallback
+                    constraints.video.deviceId = { ideal: selectedCameraDeviceId };
                 } else {
-                    constraints.video.facingMode = 'user';
+                    constraints.video.facingMode = { ideal: 'user' };
                 }
 
                 console.log('getUserMedia constraints:', JSON.stringify(constraints));
 
+                // Try with constraints first, fall back to basic video if it fails
+                let stream = null;
                 try {
-                    localCameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+                    stream = await navigator.mediaDevices.getUserMedia(constraints);
+                } catch (constraintError) {
+                    console.warn('⚠️ Constraints failed, trying basic video:', constraintError.message);
+
+                    // Fallback: try with just the device ID if specified
+                    if (selectedCameraDeviceId) {
+                        try {
+                            stream = await navigator.mediaDevices.getUserMedia({
+                                video: { deviceId: { ideal: selectedCameraDeviceId } }
+                            });
+                        } catch (deviceError) {
+                            console.warn('⚠️ Device selection failed, trying any camera:', deviceError.message);
+                        }
+                    }
+
+                    // Last resort: just request any video
+                    if (!stream) {
+                        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    }
+                }
+
+                try {
+                    localCameraStream = stream;
 
                     console.log('✅ Camera stream obtained:', localCameraStream.id);
                     console.log('Video tracks:', localCameraStream.getVideoTracks().map(t => ({
@@ -1480,18 +1505,18 @@
 
             // Start diagnostic updates for a peer video
             function startPeerDiagnostics(peerId, videoElement) {
-                const diagInterval = setInterval(async () => {
+                // Function to update diagnostics
+                async function updateDiagnostics() {
                     const diagDiv = document.getElementById('diagnostics_' + peerId);
                     const pc = peerConnections[peerId];
 
                     if (!diagDiv || !pc) {
-                        clearInterval(diagInterval);
-                        return;
+                        return false; // Signal to stop interval
                     }
 
                     // Only update if visible
                     if (!diagDiv.classList.contains('visible')) {
-                        return;
+                        return true; // Keep interval running
                     }
 
                     let html = '';
@@ -1604,7 +1629,15 @@
                     html += `<div><span class="label">Updated:</span> <span class="value">${new Date().toLocaleTimeString()}</span></div>`;
 
                     diagDiv.innerHTML = html;
+                    return true; // Keep interval running
+                }
 
+                // Set up interval for updates
+                const diagInterval = setInterval(async () => {
+                    const shouldContinue = await updateDiagnostics();
+                    if (!shouldContinue) {
+                        clearInterval(diagInterval);
+                    }
                 }, 2000); // Update every 2 seconds
 
                 // Store interval for cleanup
