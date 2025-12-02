@@ -912,6 +912,25 @@
 
                 console.log('getUserMedia constraints:', JSON.stringify(constraints));
 
+                // First check if any cameras exist on this device
+                let hasCamera = false;
+                try {
+                    const devices = await navigator.mediaDevices.enumerateDevices();
+                    hasCamera = devices.some(device => device.kind === 'videoinput');
+                    console.log('📷 Camera detection:', hasCamera ? 'Camera(s) found' : 'No cameras detected');
+                } catch (enumError) {
+                    console.warn('⚠️ Could not enumerate devices:', enumError.message);
+                }
+
+                if (!hasCamera) {
+                    const noCameraMsg = 'No camera detected on this device';
+                    console.error('❌', noCameraMsg);
+                    document.getElementById('status').textContent = noCameraMsg;
+                    document.getElementById('status').className = 'status disconnected';
+                    alert(noCameraMsg + '\n\nThis device can still view remote cameras and use the microphone.');
+                    throw new Error(noCameraMsg);
+                }
+
                 // Try with constraints first, fall back to basic video if it fails
                 let stream = null;
                 try {
