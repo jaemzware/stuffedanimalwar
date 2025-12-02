@@ -480,6 +480,23 @@
                 originalConsole.error.apply(console, args);
             };
 
+            // Safe play function that prevents iOS fullscreen
+            function safePlayVideo(video) {
+                if (!video) return Promise.reject(new Error('No video element'));
+
+                // Ensure all anti-fullscreen attributes are set
+                video.setAttribute('playsinline', '');
+                video.setAttribute('webkit-playsinline', '');
+                video.setAttribute('disablePictureInPicture', '');
+                video.setAttribute('x5-playsinline', '');
+                video.setAttribute('x5-video-player-type', 'h5');
+                video.playsInline = true;
+                video.controls = false;
+                video.muted = true; // Must be muted for autoplay on iOS
+
+                return video.play();
+            }
+
             function showLogs() {
                 // Create or get log overlay
                 let overlay = document.getElementById('logOverlay');
@@ -904,8 +921,8 @@
 
                     if (hasSrc) {
                         if (isPaused) {
-                            // Try to resume
-                            video.play().then(() => {
+                            // Try to resume safely without triggering fullscreen
+                            safePlayVideo(video).then(() => {
                                 resumedVideos++;
                                 console.log(`✅ Resumed ${videoId}`);
                             }).catch(err => {
@@ -2238,7 +2255,7 @@
                                 console.log('⏸️ Video paused unexpectedly for peer:', peerId, '- attempting to resume');
                                 setTimeout(() => {
                                     if (video.paused && video.srcObject) {
-                                        video.play().catch(err => {
+                                        safePlayVideo(video).catch(err => {
                                             console.log('⚠️ Could not resume video for peer:', peerId, err);
                                         });
                                     }
@@ -2266,8 +2283,8 @@
                             video.srcObject = event.streams[0];
                             remoteCameraStreams[peerId] = event.streams[0];
 
-                            // Force play
-                            video.play().catch(err => {
+                            // Force play safely without triggering fullscreen
+                            safePlayVideo(video).catch(err => {
                                 console.log('⚠️ Autoplay prevented for peer:', peerId, err);
                             });
                         } else {
@@ -2302,7 +2319,7 @@
                             const video = videoWrapper.querySelector('video');
                             if (video && video.srcObject) {
                                 console.log('🔄 Attempting to recover muted track for peer:', peerId);
-                                video.play().catch(err => {
+                                safePlayVideo(video).catch(err => {
                                     console.log('⚠️ Could not restart video:', err.message);
                                 });
                             }
