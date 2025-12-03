@@ -30,7 +30,12 @@ const io = new Server(server, {
     }
 });
 const path = require('path');
+const sharp = require('sharp');
 let listenPort =55556;
+
+// Thumbnail cache directory
+const THUMB_CACHE_DIR = path.join(__dirname, '.thumbcache');
+const THUMB_WIDTH = 200; // Thumbnail width in pixels
 const setupRouter = require('./pisetup/setup-endpoint'); //RASBERRY PI wifi setup
 
 //GET PORT TO LISTEN TO
@@ -49,6 +54,106 @@ app.use(express.json()); // ADD THIS LINE - Parse JSON request bodies
 app.use(setupRouter);
 //CONFIGURE EXPRESS TO TRUST PROXY ON FILE UPLOAD
 app.set('trust proxy', true); // Trust the first proxy
+
+// Ensure thumbnail cache directory exists
+if (!fs.existsSync(THUMB_CACHE_DIR)) {
+    fs.mkdirSync(THUMB_CACHE_DIR, { recursive: true });
+    console.log(`Created thumbnail cache directory: ${THUMB_CACHE_DIR}`);
+}
+
+/**
+ * THUMBNAIL ENDPOINT
+ * Generates thumbnails on-demand and caches them
+ * Usage: /thumb/photos/myphoto.jpg -> returns a 200px wide thumbnail
+ */
+app.get('/thumb/*', async (req, res) => {
+    try {
+        // Get the original image path from the URL (everything after /thumb/)
+        const imagePath = req.params[0];
+        const originalPath = path.join(__dirname, imagePath);
+
+        // Security: prevent directory traversal
+        if (!originalPath.startsWith(__dirname)) {
+            return res.status(403).send('Forbidden');
+        }
+
+        // Check if original image exists
+        if (!fs.existsSync(originalPath)) {
+            return res.status(404).send('Image not found');
+        }
+
+        // Generate cache filename based on original path
+        // Replace path separators with underscores to create flat cache structure
+        const cacheFilename = imagePath.replace(/[\/\\]/g, '_');
+        const cachePath = path.join(THUMB_CACHE_DIR, cacheFilename);
+
+        // Check if cached thumbnail exists and is newer than original
+        if (fs.existsSync(cachePath)) {
+            const originalStat = fs.statSync(originalPath);
+            const cacheStat = fs.statSync(cachePath);
+
+            if (cacheStat.mtime >= originalStat.mtime) {
+                // Serve cached thumbnail
+                const ext = path.extname(originalPath).toLowerCase();
+                const mimeTypes = {
+                    '.jpg': 'image/jpeg',
+                    '.jpeg': 'image/jpeg',
+                    '.png': 'image/png',
+                    '.gif': 'image/gif',
+                    '.webp': 'image/webp'
+                };
+                res.setHeader('Content-Type', mimeTypes[ext] || 'image/jpeg');
+                res.setHeader('Cache-Control', 'public, max-age=31536000'); // Cache for 1 year
+                return res.sendFile(cachePath);
+            }
+        }
+
+        // Generate thumbnail
+        const ext = path.extname(originalPath).toLowerCase();
+        let sharpInstance = sharp(originalPath).resize(THUMB_WIDTH, null, {
+            withoutEnlargement: true // Don't upscale small images
+        });
+
+        // Handle different formats
+        if (ext === '.png') {
+            sharpInstance = sharpInstance.png({ quality: 80 });
+        } else if (ext === '.gif') {
+            // For GIF, convert to PNG to preserve transparency (sharp doesn't support animated GIF output)
+            sharpInstance = sharpInstance.png({ quality: 80 });
+        } else if (ext === '.webp') {
+            sharpInstance = sharpInstance.webp({ quality: 80 });
+        } else {
+            sharpInstance = sharpInstance.jpeg({ quality: 80 });
+        }
+
+        // Save to cache
+        await sharpInstance.toFile(cachePath);
+        console.log(`[THUMB] Generated thumbnail: ${cacheFilename}`);
+
+        // Serve the newly created thumbnail
+        const mimeTypes = {
+            '.jpg': 'image/jpeg',
+            '.jpeg': 'image/jpeg',
+            '.png': 'image/png',
+            '.gif': 'image/png', // GIFs converted to PNG
+            '.webp': 'image/webp'
+        };
+        res.setHeader('Content-Type', mimeTypes[ext] || 'image/jpeg');
+        res.setHeader('Cache-Control', 'public, max-age=31536000'); // Cache for 1 year
+        res.sendFile(cachePath);
+
+    } catch (error) {
+        console.error('[THUMB] Error generating thumbnail:', error.message);
+        // Fall back to serving original image on error
+        const imagePath = req.params[0];
+        const originalPath = path.join(__dirname, imagePath);
+        if (fs.existsSync(originalPath)) {
+            res.sendFile(originalPath);
+        } else {
+            res.status(500).send('Error generating thumbnail');
+        }
+    }
+});
 
 //START LISTENING
 server.listen(listenPort, async () => {

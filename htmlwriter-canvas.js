@@ -425,9 +425,24 @@ function writePhotosFromJson(mediaObject){
             document.write("<div class=\"photo-gallery section-content\" id='photo-gallery'>");
             //paint the photos
             for (let i=0;i<mediaObject.photos.length;i++){
-                let filepath = (mediaObject.photos[i].file.startsWith("http://") || mediaObject.photos[i].file.startsWith("https://")) ? mediaObject.photos[i].file : mediaObject.photospath+mediaObject.photos[i].file;
+                let isExternalUrl = mediaObject.photos[i].file.startsWith("http://") || mediaObject.photos[i].file.startsWith("https://");
+                let filepath;
+                let thumbpath;
+                if (isExternalUrl) {
+                    // For external URLs, encode just the filename portion (after the last /)
+                    let url = mediaObject.photos[i].file;
+                    let lastSlash = url.lastIndexOf('/');
+                    let basePath = url.substring(0, lastSlash + 1);
+                    let filename = url.substring(lastSlash + 1);
+                    filepath = basePath + encodeURIComponent(filename);
+                    thumbpath = filepath; // External URLs don't use our thumb endpoint
+                } else {
+                    filepath = mediaObject.photospath + encodeURIComponent(mediaObject.photos[i].file);
+                    // Use /thumb/ endpoint for local images to get auto-generated thumbnails
+                    thumbpath = "/thumb/" + mediaObject.photospath + encodeURIComponent(mediaObject.photos[i].file);
+                }
                 let filetitle=mediaObject.photos[i].title;
-                document.write("<div class=\"photo-item\"><img class=\"photo-thumbnail photosformthumbnail\" src=\""+filepath+"\" alt=\""+filetitle+"\" /><span class=\"photo-title\">"+filetitle+"</span></div>");
+                document.write("<div class=\"photo-item\"><img class=\"photo-thumbnail photosformthumbnail\" src=\""+thumbpath+"\" data-fullsize=\""+filepath+"\" alt=\""+filetitle+"\" /><span class=\"photo-title\">"+filetitle+"</span></div>");
             }
             document.write("</div>");
         document.write("</div>");
