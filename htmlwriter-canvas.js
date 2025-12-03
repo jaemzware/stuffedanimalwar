@@ -424,6 +424,7 @@ function writePhotosFromJson(mediaObject){
 
             document.write("<div class=\"photo-gallery section-content\" id='photo-gallery'>");
             //paint the photos
+            let isExternalPath = mediaObject.photospath.startsWith("http://") || mediaObject.photospath.startsWith("https://");
             for (let i=0;i<mediaObject.photos.length;i++){
                 let isExternalUrl = mediaObject.photos[i].file.startsWith("http://") || mediaObject.photos[i].file.startsWith("https://");
                 let filepath;
@@ -436,6 +437,10 @@ function writePhotosFromJson(mediaObject){
                     let filename = url.substring(lastSlash + 1);
                     filepath = basePath + encodeURIComponent(filename);
                     thumbpath = filepath; // External URLs don't use our thumb endpoint
+                } else if (isExternalPath) {
+                    // photospath is external URL - encode filename and don't use thumb endpoint
+                    filepath = mediaObject.photospath + encodeURIComponent(mediaObject.photos[i].file);
+                    thumbpath = filepath; // External paths don't use our thumb endpoint
                 } else {
                     filepath = mediaObject.photospath + encodeURIComponent(mediaObject.photos[i].file);
                     // Use /thumb/ endpoint for local images to get auto-generated thumbnails
