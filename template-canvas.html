@@ -31,10 +31,10 @@
         writeMuteButton();
     } else {
         // Normal mode: show all interactive elements
+        // Note: Camera controls removed - use the Camera button at bottom to go to /jimcamera
         writeStuffedAnimalWar(stuffedAnimalMediaObject, false);
         writeChatForm(responsesObject);
         writeChatMessagesSection();
-        writeCameraSection();
         writeChatFormFileUpload();
         writeChatFormVideoUpload();
         writeAudioFromJson(mediaObject);

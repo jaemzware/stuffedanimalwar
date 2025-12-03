@@ -239,6 +239,157 @@
                 opacity: 0.5;
             }
 
+            /* Diagnostic overlay for peer videos */
+            .peer-diagnostics {
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: rgba(0, 0, 0, 0.85);
+                color: #0f0;
+                font-family: 'Courier New', monospace;
+                font-size: 10px;
+                padding: 6px 8px;
+                display: none;
+                z-index: 10;
+                max-height: 120px;
+                overflow-y: auto;
+            }
+
+            .peer-diagnostics.visible {
+                display: block;
+            }
+
+            .peer-diagnostics div {
+                margin: 2px 0;
+                white-space: nowrap;
+            }
+
+            .peer-diagnostics .label {
+                color: #888;
+            }
+
+            .peer-diagnostics .value {
+                color: #0f0;
+            }
+
+            .peer-diagnostics .warn {
+                color: #ffc107;
+            }
+
+            .peer-diagnostics .error {
+                color: #dc3545;
+            }
+
+            /* Peer video action buttons */
+            .peer-actions {
+                position: absolute;
+                top: 44px;
+                right: 8px;
+                display: flex;
+                gap: 4px;
+                z-index: 15;
+            }
+
+            .peer-action-btn {
+                width: 28px;
+                height: 28px;
+                border: none;
+                border-radius: 4px;
+                background: rgba(0, 0, 0, 0.6);
+                color: white;
+                cursor: pointer;
+                font-size: 14px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.2s ease;
+            }
+
+            .peer-action-btn:hover {
+                background: rgba(0, 0, 0, 0.8);
+                transform: scale(1.1);
+            }
+
+            .peer-action-btn.active {
+                background: rgba(40, 167, 69, 0.8);
+            }
+
+            /* Local camera action buttons */
+            .local-actions {
+                position: absolute;
+                top: 44px;
+                right: 8px;
+                display: flex;
+                gap: 4px;
+                z-index: 15;
+            }
+
+            /* Maximized video overlay */
+            .video-maximized-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100vw;
+                height: 100vh;
+                background: rgba(0, 0, 0, 0.95);
+                z-index: 9999;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .video-maximized-overlay video {
+                max-width: 95vw;
+                max-height: 85vh;
+                object-fit: contain;
+            }
+
+            .video-maximized-overlay .maximize-header {
+                position: absolute;
+                top: 10px;
+                left: 0;
+                right: 0;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0 20px;
+                color: white;
+            }
+
+            .video-maximized-overlay .maximize-title {
+                font-size: 18px;
+                font-weight: bold;
+            }
+
+            .video-maximized-overlay .maximize-close {
+                width: 40px;
+                height: 40px;
+                border: none;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.2);
+                color: white;
+                cursor: pointer;
+                font-size: 24px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.2s ease;
+            }
+
+            .video-maximized-overlay .maximize-close:hover {
+                background: rgba(255, 255, 255, 0.4);
+                transform: scale(1.1);
+            }
+
+            .video-maximized-overlay .maximize-info {
+                position: absolute;
+                bottom: 20px;
+                color: rgba(255, 255, 255, 0.7);
+                font-size: 14px;
+            }
+
             @media (max-width: 768px) {
                 .camera-grid {
                     grid-template-columns: 1fr;
@@ -326,6 +477,11 @@
                 <span>▶️</span>
                 <span>Resume All Videos</span>
             </button>
+
+            <button id="showLogsButton" class="btn btn-camera" style="margin-top: 8px; background: #6c757d;">
+                <span>📋</span>
+                <span>Show Logs</span>
+            </button>
         </div>
 
         <div id="status" class="status disconnected">
@@ -337,6 +493,9 @@
                 <div class="camera-label">
                     <span id="localCameraNameLabel">📹 Your Camera</span>
                     <span class="badge">LOCAL</span>
+                </div>
+                <div class="local-actions">
+                    <button class="peer-action-btn" onclick="maximizeVideo('localCameraVideo', 'Your Camera')" title="Maximize video">⛶</button>
                 </div>
                 <video id="localCameraVideo" autoplay playsinline webkit-playsinline muted disablePictureInPicture x5-playsinline x5-video-player-type="h5"></video>
             </div>
@@ -354,6 +513,257 @@
         </div>
 
         <script>
+            // Console log capture for mobile debugging
+            const capturedLogs = [];
+            const MAX_LOGS = 200;
+            const originalConsole = {
+                log: console.log,
+                warn: console.warn,
+                error: console.error
+            };
+
+            function captureLog(type, args) {
+                const timestamp = new Date().toLocaleTimeString();
+                const message = Array.from(args).map(arg => {
+                    if (typeof arg === 'object') {
+                        try {
+                            return JSON.stringify(arg);
+                        } catch (e) {
+                            return String(arg);
+                        }
+                    }
+                    return String(arg);
+                }).join(' ');
+
+                capturedLogs.push({ timestamp, type, message });
+
+                // Keep only last MAX_LOGS entries
+                if (capturedLogs.length > MAX_LOGS) {
+                    capturedLogs.shift();
+                }
+            }
+
+            console.log = function(...args) {
+                captureLog('log', args);
+                originalConsole.log.apply(console, args);
+            };
+
+            console.warn = function(...args) {
+                captureLog('warn', args);
+                originalConsole.warn.apply(console, args);
+            };
+
+            console.error = function(...args) {
+                captureLog('error', args);
+                originalConsole.error.apply(console, args);
+            };
+
+            // Safe play function that prevents iOS fullscreen
+            function safePlayVideo(video) {
+                if (!video) return Promise.reject(new Error('No video element'));
+
+                // Ensure all anti-fullscreen attributes are set
+                video.setAttribute('playsinline', '');
+                video.setAttribute('webkit-playsinline', '');
+                video.setAttribute('disablePictureInPicture', '');
+                video.setAttribute('x5-playsinline', '');
+                video.setAttribute('x5-video-player-type', 'h5');
+                video.playsInline = true;
+                video.controls = false;
+                video.muted = true; // Must be muted for autoplay on iOS
+
+                return video.play();
+            }
+
+            // Maximize video to fullscreen overlay
+            function maximizeVideo(videoId, title) {
+                const video = document.getElementById(videoId);
+                if (!video || !video.srcObject) {
+                    console.warn('Cannot maximize - no video source');
+                    return;
+                }
+
+                // Create overlay
+                const overlay = document.createElement('div');
+                overlay.className = 'video-maximized-overlay';
+                overlay.id = 'maximizeOverlay';
+
+                // Header with title and close button
+                const header = document.createElement('div');
+                header.className = 'maximize-header';
+
+                const titleEl = document.createElement('span');
+                titleEl.className = 'maximize-title';
+                titleEl.textContent = '📹 ' + title;
+
+                const closeBtn = document.createElement('button');
+                closeBtn.className = 'maximize-close';
+                closeBtn.innerHTML = '✕';
+                closeBtn.title = 'Close (Esc)';
+                closeBtn.onclick = closeMaximize;
+
+                header.appendChild(titleEl);
+                header.appendChild(closeBtn);
+
+                // Clone the video stream to a new video element
+                const maxVideo = document.createElement('video');
+                maxVideo.autoplay = true;
+                maxVideo.playsinline = true;
+                maxVideo.setAttribute('webkit-playsinline', '');
+                maxVideo.muted = video.muted;
+                maxVideo.srcObject = video.srcObject;
+
+                // Info footer
+                const info = document.createElement('div');
+                info.className = 'maximize-info';
+                info.textContent = 'Press Esc or tap × to close';
+
+                overlay.appendChild(header);
+                overlay.appendChild(maxVideo);
+                overlay.appendChild(info);
+
+                // Add to body
+                document.body.appendChild(overlay);
+
+                // Play the video
+                maxVideo.play().catch(err => console.warn('Maximize video play error:', err));
+
+                // Update info with resolution when available
+                maxVideo.addEventListener('loadedmetadata', () => {
+                    if (maxVideo.videoWidth && maxVideo.videoHeight) {
+                        info.textContent = `${maxVideo.videoWidth}×${maxVideo.videoHeight} • Press Esc or tap × to close`;
+                    }
+                });
+
+                // Close on Escape key
+                const escHandler = (e) => {
+                    if (e.key === 'Escape') {
+                        closeMaximize();
+                    }
+                };
+                document.addEventListener('keydown', escHandler);
+                overlay._escHandler = escHandler;
+
+                // Close on background click
+                overlay.addEventListener('click', (e) => {
+                    if (e.target === overlay) {
+                        closeMaximize();
+                    }
+                });
+
+                console.log('🔍 Maximized video:', title);
+            }
+
+            function closeMaximize() {
+                const overlay = document.getElementById('maximizeOverlay');
+                if (overlay) {
+                    if (overlay._escHandler) {
+                        document.removeEventListener('keydown', overlay._escHandler);
+                    }
+                    overlay.remove();
+                    console.log('🔍 Closed maximized view');
+                }
+            }
+
+            function showLogs() {
+                // Create or get log overlay
+                let overlay = document.getElementById('logOverlay');
+                if (!overlay) {
+                    overlay = document.createElement('div');
+                    overlay.id = 'logOverlay';
+                    overlay.style.cssText = `
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        right: 0;
+                        bottom: 0;
+                        background: rgba(0, 0, 0, 0.95);
+                        z-index: 10000;
+                        overflow-y: auto;
+                        padding: 10px;
+                        font-family: 'Courier New', monospace;
+                        font-size: 11px;
+                    `;
+
+                    const header = document.createElement('div');
+                    header.style.cssText = `
+                        position: sticky;
+                        top: 0;
+                        background: #333;
+                        padding: 10px;
+                        margin: -10px -10px 10px -10px;
+                        display: flex;
+                        gap: 10px;
+                        flex-wrap: wrap;
+                    `;
+
+                    const closeBtn = document.createElement('button');
+                    closeBtn.textContent = '✕ Close';
+                    closeBtn.style.cssText = 'padding: 8px 16px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;';
+                    closeBtn.onclick = () => overlay.remove();
+
+                    const copyBtn = document.createElement('button');
+                    copyBtn.textContent = '📋 Copy All';
+                    copyBtn.style.cssText = 'padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;';
+                    copyBtn.onclick = () => {
+                        const text = capturedLogs.map(l => `[${l.timestamp}] ${l.type.toUpperCase()}: ${l.message}`).join('\n');
+                        navigator.clipboard.writeText(text).then(() => {
+                            copyBtn.textContent = '✓ Copied!';
+                            setTimeout(() => copyBtn.textContent = '📋 Copy All', 2000);
+                        }).catch(() => {
+                            // Fallback for older browsers
+                            const ta = document.createElement('textarea');
+                            ta.value = text;
+                            document.body.appendChild(ta);
+                            ta.select();
+                            document.execCommand('copy');
+                            document.body.removeChild(ta);
+                            copyBtn.textContent = '✓ Copied!';
+                            setTimeout(() => copyBtn.textContent = '📋 Copy All', 2000);
+                        });
+                    };
+
+                    const clearBtn = document.createElement('button');
+                    clearBtn.textContent = '🗑 Clear';
+                    clearBtn.style.cssText = 'padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;';
+                    clearBtn.onclick = () => {
+                        capturedLogs.length = 0;
+                        document.getElementById('logContent').innerHTML = '<div style="color: #666;">Logs cleared</div>';
+                    };
+
+                    const countSpan = document.createElement('span');
+                    countSpan.style.cssText = 'color: #aaa; padding: 8px; align-self: center;';
+                    countSpan.id = 'logCount';
+
+                    header.appendChild(closeBtn);
+                    header.appendChild(copyBtn);
+                    header.appendChild(clearBtn);
+                    header.appendChild(countSpan);
+
+                    const logContent = document.createElement('div');
+                    logContent.id = 'logContent';
+
+                    overlay.appendChild(header);
+                    overlay.appendChild(logContent);
+                    document.body.appendChild(overlay);
+                }
+
+                // Update count
+                document.getElementById('logCount').textContent = `${capturedLogs.length} logs`;
+
+                // Populate logs
+                const logContent = document.getElementById('logContent');
+                logContent.innerHTML = capturedLogs.map(l => {
+                    let color = '#0f0';
+                    if (l.type === 'warn') color = '#ffc107';
+                    if (l.type === 'error') color = '#dc3545';
+                    return `<div style="color: ${color}; margin: 2px 0; word-break: break-all;">[${l.timestamp}] ${l.message}</div>`;
+                }).join('');
+
+                // Scroll to bottom
+                logContent.scrollTop = logContent.scrollHeight;
+            }
+
             const endpoint = "{{ENDPOINT}}";
             const socket = io({
                 query: { endpoint: endpoint + 'camera' },
@@ -392,8 +802,11 @@
             const iceServers = {
                 iceServers: [
                     { urls: 'stun:stun.l.google.com:19302' },
-                    { urls: 'stun:stun1.l.google.com:19302' }
-                ]
+                    { urls: 'stun:stun1.l.google.com:19302' },
+                    { urls: 'stun:stun2.l.google.com:19302' },
+                    { urls: 'stun:stun3.l.google.com:19302' }
+                ],
+                iceCandidatePoolSize: 10  // Pre-gather candidates to speed up connection
             };
 
             // Socket event names
@@ -432,6 +845,7 @@
                 acceptMicCheckbox.addEventListener('change', handleAcceptMicChange);
                 document.getElementById('refreshPeersButton').addEventListener('click', refreshPeerConnections);
                 document.getElementById('resumeAllVideosButton').addEventListener('click', resumeAllVideos);
+                document.getElementById('showLogsButton').addEventListener('click', showLogs);
                 document.getElementById('cameraNameInput').addEventListener('input', function(e) {
                     myCameraName = e.target.value.trim();
                     console.log('Camera name set to:', myCameraName || '(default)');
@@ -575,8 +989,13 @@
                     const videoWrapper = document.getElementById('remoteVideo_' + peerId);
                     if (videoWrapper) {
                         const video = videoWrapper.querySelector('video');
-                        if (video && video._renderMonitor) {
-                            clearInterval(video._renderMonitor);
+                        if (video) {
+                            if (video._renderMonitor) {
+                                clearInterval(video._renderMonitor);
+                            }
+                            if (video._diagInterval) {
+                                clearInterval(video._diagInterval);
+                            }
                         }
                         videoWrapper.remove();
                     }
@@ -673,8 +1092,8 @@
 
                     if (hasSrc) {
                         if (isPaused) {
-                            // Try to resume
-                            video.play().then(() => {
+                            // Try to resume safely without triggering fullscreen
+                            safePlayVideo(video).then(() => {
                                 resumedVideos++;
                                 console.log(`✅ Resumed ${videoId}`);
                             }).catch(err => {
@@ -811,27 +1230,71 @@
                 const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
                 console.log('Device type:', isMobile ? 'Mobile' : 'Desktop');
 
+                // Build constraints - use 'ideal' to allow fallback if camera doesn't support
                 const constraints = {
                     video: {
-                        // Lower resolution for mobile to prevent freezing
+                        // Use 'ideal' so browser can negotiate if camera doesn't support
                         width: { ideal: isMobile ? 640 : 1280 },
                         height: { ideal: isMobile ? 480 : 720 },
-                        // Mobile-friendly frameRate
-                        frameRate: { ideal: isMobile ? 15 : 30, max: 30 }
+                        frameRate: { ideal: isMobile ? 15 : 30 }
                     }
                 };
 
                 // Use selected device if specified, otherwise let browser choose
                 if (selectedCameraDeviceId) {
-                    constraints.video.deviceId = { exact: selectedCameraDeviceId };
+                    // Use 'ideal' instead of 'exact' to allow fallback
+                    constraints.video.deviceId = { ideal: selectedCameraDeviceId };
                 } else {
-                    constraints.video.facingMode = 'user';
+                    constraints.video.facingMode = { ideal: 'user' };
                 }
 
                 console.log('getUserMedia constraints:', JSON.stringify(constraints));
 
+                // First check if any cameras exist on this device
+                let hasCamera = false;
                 try {
-                    localCameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+                    const devices = await navigator.mediaDevices.enumerateDevices();
+                    hasCamera = devices.some(device => device.kind === 'videoinput');
+                    console.log('📷 Camera detection:', hasCamera ? 'Camera(s) found' : 'No cameras detected');
+                } catch (enumError) {
+                    console.warn('⚠️ Could not enumerate devices:', enumError.message);
+                }
+
+                if (!hasCamera) {
+                    const noCameraMsg = 'No camera detected on this device';
+                    console.error('❌', noCameraMsg);
+                    document.getElementById('status').textContent = noCameraMsg;
+                    document.getElementById('status').className = 'status disconnected';
+                    alert(noCameraMsg + '\n\nThis device can still view remote cameras and use the microphone.');
+                    throw new Error(noCameraMsg);
+                }
+
+                // Try with constraints first, fall back to basic video if it fails
+                let stream = null;
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia(constraints);
+                } catch (constraintError) {
+                    console.warn('⚠️ Constraints failed, trying basic video:', constraintError.message);
+
+                    // Fallback: try with just the device ID if specified
+                    if (selectedCameraDeviceId) {
+                        try {
+                            stream = await navigator.mediaDevices.getUserMedia({
+                                video: { deviceId: { ideal: selectedCameraDeviceId } }
+                            });
+                        } catch (deviceError) {
+                            console.warn('⚠️ Device selection failed, trying any camera:', deviceError.message);
+                        }
+                    }
+
+                    // Last resort: just request any video
+                    if (!stream) {
+                        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    }
+                }
+
+                try {
+                    localCameraStream = stream;
 
                     console.log('✅ Camera stream obtained:', localCameraStream.id);
                     console.log('Video tracks:', localCameraStream.getVideoTracks().map(t => ({
@@ -1253,7 +1716,7 @@
                         noVideoCount++;
 
                         if (noVideoCount >= 3) { // 9 seconds of black screen
-                            console.error(`⬛ Black screen detected for peer ${peerId}!`);
+                            console.error(`⬛ Black screen detected for peer ${peerId}! (${noVideoCount} consecutive)`);
                             console.log('Video element state:', {
                                 readyState: videoElement.readyState,
                                 networkState: videoElement.networkState,
@@ -1269,6 +1732,14 @@
                                 badge.textContent = 'NO VIDEO';
                                 badge.style.background = '#000';
                                 badge.style.color = '#fff';
+                            }
+
+                            // Auto-purge orphaned peer after 30 seconds (10 consecutive black screen detections)
+                            if (noVideoCount >= 10) {
+                                console.warn(`🗑️ Auto-purging orphaned peer ${peerId} after ${noVideoCount * 3} seconds of black screen`);
+                                clearInterval(renderMonitor);
+                                cleanupPeerConnection(peerId);
+                                return;
                             }
                         }
                     }
@@ -1360,6 +1831,317 @@
                 }
             }
 
+            // Refresh a single peer connection (triggered by individual refresh button)
+            async function refreshSinglePeer(peerId) {
+                console.log('🔄 Refreshing single peer connection:', peerId);
+
+                const pc = peerConnections[peerId];
+                if (!pc) {
+                    console.warn('⚠️ No peer connection found for:', peerId);
+                    return;
+                }
+
+                // Update UI to show refreshing
+                const videoWrapper = document.getElementById('remoteVideo_' + peerId);
+                if (videoWrapper) {
+                    const badge = videoWrapper.querySelector('.badge');
+                    if (badge) {
+                        badge.textContent = 'REFRESHING';
+                        badge.style.background = '#17a2b8';
+                    }
+                }
+
+                // First try ICE restart
+                try {
+                    await attemptIceRestart(pc, peerId);
+                    console.log('✅ ICE restart initiated for:', peerId);
+                } catch (err) {
+                    console.error('❌ ICE restart failed, attempting full reconnection:', err);
+
+                    // Full reconnection: close and recreate
+                    cleanupPeerConnection(peerId);
+
+                    // Request peer to reconnect
+                    socket.emit(endpoint + 'cameracamera' + 'requestroster', {
+                        userId: socket.id
+                    });
+                }
+            }
+
+            // Immediate diagnostic update for a peer (called when button clicked)
+            async function updatePeerDiagnosticsNow(peerId) {
+                const diagDiv = document.getElementById('diagnostics_' + peerId);
+                const videoWrapper = document.getElementById('remoteVideo_' + peerId);
+                const videoElement = videoWrapper ? videoWrapper.querySelector('video') : null;
+                const pc = peerConnections[peerId];
+
+                if (!diagDiv) {
+                    console.error('No diagnostics div for peer:', peerId);
+                    return;
+                }
+
+                let html = '';
+                html += `<div><span class="label">Peer:</span> <span class="value">${peerId.substring(0, 12)}...</span></div>`;
+
+                if (!pc) {
+                    html += `<div><span class="error">NO PEER CONNECTION</span></div>`;
+                    html += `<div><span class="label">Updated:</span> <span class="value">${new Date().toLocaleTimeString()}</span></div>`;
+                    html += `<div><span class="warn">Try clicking 🔄 to refresh</span></div>`;
+                    diagDiv.innerHTML = html;
+                    return;
+                }
+
+                if (!videoElement) {
+                    html += `<div><span class="error">NO VIDEO ELEMENT</span></div>`;
+                    html += `<div><span class="label">Updated:</span> <span class="value">${new Date().toLocaleTimeString()}</span></div>`;
+                    diagDiv.innerHTML = html;
+                    return;
+                }
+
+                // Video dimensions
+                const hasVideo = videoElement.videoWidth > 0 && videoElement.videoHeight > 0;
+                html += `<div><span class="label">Resolution:</span> <span class="${hasVideo ? 'value' : 'error'}">${hasVideo ? videoElement.videoWidth + 'x' + videoElement.videoHeight : 'NO VIDEO (0x0)'}</span></div>`;
+
+                // Video state
+                const videoState = videoElement.paused ? 'PAUSED' : (videoElement.ended ? 'ENDED' : 'PLAYING');
+                html += `<div><span class="label">Video:</span> <span class="${videoElement.paused ? 'warn' : 'value'}">${videoState}</span></div>`;
+                html += `<div><span class="label">Ready:</span> <span class="value">${videoElement.readyState}/4</span></div>`;
+
+                // Track state
+                const srcObj = videoElement.srcObject;
+                if (srcObj) {
+                    try {
+                        const tracks = srcObj.getVideoTracks();
+                        if (tracks.length > 0) {
+                            const track = tracks[0];
+                            const trackInfo = `${track.readyState}${track.muted ? ' MUTED' : ''}${!track.enabled ? ' DISABLED' : ''}`;
+                            const trackBad = track.readyState === 'ended' || track.muted || !track.enabled;
+                            html += `<div><span class="label">Track:</span> <span class="${trackBad ? 'error' : 'value'}">${trackInfo}</span></div>`;
+                        } else {
+                            html += `<div><span class="label">Track:</span> <span class="error">NO TRACKS</span></div>`;
+                        }
+                    } catch (e) {
+                        html += `<div><span class="label">Track:</span> <span class="error">${e.message}</span></div>`;
+                    }
+                } else {
+                    html += `<div><span class="label">Source:</span> <span class="error">NO SOURCE</span></div>`;
+                }
+
+                // Connection state
+                const connState = pc.connectionState || 'unknown';
+                const iceState = pc.iceConnectionState || 'unknown';
+                const connBad = connState === 'failed' || connState === 'closed' || connState === 'disconnected';
+                const iceBad = iceState === 'failed' || iceState === 'closed' || iceState === 'disconnected';
+                html += `<div><span class="label">Conn:</span> <span class="${connBad ? 'error' : 'value'}">${connState}</span></div>`;
+                html += `<div><span class="label">ICE:</span> <span class="${iceBad ? 'error' : 'value'}">${iceState}</span></div>`;
+
+                if (connBad || iceBad) {
+                    html += `<div><span class="warn">⚠️ Connection lost</span></div>`;
+                } else {
+                    // Get stats only if connection OK
+                    try {
+                        const stats = await pc.getStats();
+                        let bytesReceived = 0, packetsLost = 0, packetsReceived = 0;
+                        stats.forEach(report => {
+                            if (report.type === 'inbound-rtp' && report.kind === 'video') {
+                                bytesReceived = report.bytesReceived || 0;
+                                packetsLost = report.packetsLost || 0;
+                                packetsReceived = report.packetsReceived || 0;
+                            }
+                        });
+                        const kb = (bytesReceived / 1000).toFixed(1);
+                        const lossRate = packetsReceived > 0 ? ((packetsLost / (packetsLost + packetsReceived)) * 100).toFixed(1) : 0;
+                        html += `<div><span class="label">Data:</span> <span class="value">${kb} KB</span></div>`;
+                        html += `<div><span class="label">Loss:</span> <span class="${lossRate > 5 ? 'error' : 'value'}">${lossRate}%</span></div>`;
+                    } catch (e) {
+                        html += `<div><span class="error">Stats: ${e.message}</span></div>`;
+                    }
+                }
+
+                html += `<div><span class="label">Updated:</span> <span class="value">${new Date().toLocaleTimeString()}</span></div>`;
+                diagDiv.innerHTML = html;
+            }
+
+            // Start diagnostic updates for a peer video
+            function startPeerDiagnostics(peerId, videoElement) {
+                // Function to update diagnostics - wrapped in try/catch to never fail silently
+                async function updateDiagnostics() {
+                    try {
+                        const diagDiv = document.getElementById('diagnostics_' + peerId);
+
+                        if (!diagDiv) {
+                            return false; // Element gone, stop interval
+                        }
+
+                        // Only update if visible
+                        if (!diagDiv.classList.contains('visible')) {
+                            return true; // Keep interval running
+                        }
+
+                        const pc = peerConnections[peerId];
+                        let html = '';
+
+                        // Always show peer ID first
+                        html += `<div><span class="label">Peer:</span> <span class="value">${peerId.substring(0, 12)}...</span></div>`;
+
+                        // Check if peer connection exists
+                        if (!pc) {
+                            html += `<div><span class="error">NO PEER CONNECTION</span></div>`;
+                            html += `<div><span class="label">Updated:</span> <span class="value">${new Date().toLocaleTimeString()}</span></div>`;
+                            html += `<div><span class="warn">Try clicking 🔄 to refresh</span></div>`;
+                            diagDiv.innerHTML = html;
+                            return true; // Keep running in case connection comes back
+                        }
+
+                        // Video dimensions
+                        const hasVideo = videoElement && videoElement.videoWidth > 0 && videoElement.videoHeight > 0;
+                        if (hasVideo) {
+                            html += `<div><span class="label">Resolution:</span> <span class="value">${videoElement.videoWidth}x${videoElement.videoHeight}</span></div>`;
+                        } else {
+                            html += `<div><span class="label">Resolution:</span> <span class="error">NO VIDEO (0x0)</span></div>`;
+                        }
+
+                        // Video element state
+                        if (videoElement) {
+                            const videoState = videoElement.paused ? 'PAUSED' : (videoElement.ended ? 'ENDED' : 'PLAYING');
+                            const videoStateClass = videoElement.paused ? 'warn' : 'value';
+                            html += `<div><span class="label">Video State:</span> <span class="${videoStateClass}">${videoState}</span></div>`;
+                            html += `<div><span class="label">Ready State:</span> <span class="value">${videoElement.readyState}/4</span></div>`;
+
+                            // Source object
+                            const srcObj = videoElement.srcObject;
+                            if (srcObj) {
+                                try {
+                                    const tracks = srcObj.getVideoTracks();
+                                    if (tracks.length > 0) {
+                                        const track = tracks[0];
+                                        const trackState = track.readyState; // 'live' or 'ended'
+                                        const trackMuted = track.muted;
+                                        const trackEnabled = track.enabled;
+                                        const trackClass = (trackState === 'ended' || trackMuted || !trackEnabled) ? 'error' : 'value';
+                                        html += `<div><span class="label">Track:</span> <span class="${trackClass}">${trackState}${trackMuted ? ' MUTED' : ''}${!trackEnabled ? ' DISABLED' : ''}</span></div>`;
+                                    } else {
+                                        html += `<div><span class="label">Track:</span> <span class="error">NO VIDEO TRACKS</span></div>`;
+                                    }
+                                } catch (trackErr) {
+                                    html += `<div><span class="label">Track:</span> <span class="error">ERROR: ${trackErr.message}</span></div>`;
+                                }
+                            } else {
+                                html += `<div><span class="label">Source:</span> <span class="error">NO SOURCE</span></div>`;
+                            }
+                        } else {
+                            html += `<div><span class="error">NO VIDEO ELEMENT</span></div>`;
+                        }
+
+                        // Connection states
+                        const connState = pc.connectionState || 'unknown';
+                        const iceState = pc.iceConnectionState || 'unknown';
+                        const connClass = (connState === 'connected') ? 'value' : (connState === 'failed' || connState === 'closed') ? 'error' : 'warn';
+                        const iceClass = (iceState === 'connected' || iceState === 'completed') ? 'value' : (iceState === 'failed' || iceState === 'closed' || iceState === 'disconnected') ? 'error' : 'warn';
+                        html += `<div><span class="label">Connection:</span> <span class="${connClass}">${connState}</span></div>`;
+                        html += `<div><span class="label">ICE:</span> <span class="${iceClass}">${iceState}</span></div>`;
+
+                        // If connection is bad, show a hint and skip stats
+                        const connectionBad = (connState === 'failed' || connState === 'closed' || connState === 'disconnected' ||
+                            iceState === 'failed' || iceState === 'closed' || iceState === 'disconnected');
+
+                        if (connectionBad) {
+                            html += `<div><span class="warn">⚠️ Connection lost - try 🔄 refresh</span></div>`;
+                        } else {
+                            // Only try to get WebRTC stats if connection looks OK
+                            try {
+                                const stats = await pc.getStats();
+                                let bytesReceived = 0;
+                                let packetsLost = 0;
+                                let packetsReceived = 0;
+                                let framesReceived = 0;
+                                let framesDecoded = 0;
+                                let framesDropped = 0;
+                                let jitter = 0;
+                                let timestamp = 0;
+
+                                stats.forEach(report => {
+                                    if (report.type === 'inbound-rtp' && report.kind === 'video') {
+                                        bytesReceived = report.bytesReceived || 0;
+                                        packetsLost = report.packetsLost || 0;
+                                        packetsReceived = report.packetsReceived || 0;
+                                        framesReceived = report.framesReceived || 0;
+                                        framesDecoded = report.framesDecoded || 0;
+                                        framesDropped = report.framesDropped || 0;
+                                        jitter = report.jitter || 0;
+                                        timestamp = report.timestamp || 0;
+                                    }
+                                });
+
+                                // Calculate data rate (compare with last update)
+                                const lastBytes = videoElement._lastBytesReceived || 0;
+                                const lastTime = videoElement._lastStatsTime || timestamp;
+                                const timeDiff = (timestamp - lastTime) / 1000; // seconds
+                                const bytesDiff = bytesReceived - lastBytes;
+                                const dataRate = timeDiff > 0 ? (bytesDiff * 8 / timeDiff / 1000).toFixed(1) : 0; // kbps
+
+                                videoElement._lastBytesReceived = bytesReceived;
+                                videoElement._lastStatsTime = timestamp;
+
+                                // Format bytes
+                                const bytesFormatted = bytesReceived > 1000000 ?
+                                    (bytesReceived / 1000000).toFixed(2) + ' MB' :
+                                    (bytesReceived / 1000).toFixed(1) + ' KB';
+
+                                html += `<div><span class="label">Data:</span> <span class="value">${bytesFormatted} (${dataRate} kbps)</span></div>`;
+
+                                // Packet loss
+                                const lossRate = packetsReceived > 0 ?
+                                    ((packetsLost / (packetsLost + packetsReceived)) * 100).toFixed(1) : 0;
+                                const lossClass = lossRate > 5 ? 'error' : lossRate > 1 ? 'warn' : 'value';
+                                html += `<div><span class="label">Packet Loss:</span> <span class="${lossClass}">${lossRate}% (${packetsLost}/${packetsReceived + packetsLost})</span></div>`;
+
+                                // Frames
+                                const droppedClass = framesDropped > 0 ? 'warn' : 'value';
+                                html += `<div><span class="label">Frames:</span> <span class="value">recv: ${framesReceived} dec: ${framesDecoded}</span> <span class="${droppedClass}">drop: ${framesDropped}</span></div>`;
+
+                                // Jitter
+                                html += `<div><span class="label">Jitter:</span> <span class="value">${(jitter * 1000).toFixed(1)} ms</span></div>`;
+
+                                // Data rate warning
+                                if (dataRate == 0 && bytesReceived > 0) {
+                                    html += `<div><span class="error">⚠️ NO DATA FLOW - stream may be frozen!</span></div>`;
+                                }
+
+                            } catch (statsErr) {
+                                html += `<div><span class="error">Stats: ${statsErr.message}</span></div>`;
+                            }
+                        }
+
+                        // Timestamp - always show this last
+                        html += `<div><span class="label">Updated:</span> <span class="value">${new Date().toLocaleTimeString()}</span></div>`;
+
+                        diagDiv.innerHTML = html;
+                        return true; // Keep interval running
+
+                    } catch (outerErr) {
+                        // Catastrophic error - still try to show something
+                        const diagDiv = document.getElementById('diagnostics_' + peerId);
+                        if (diagDiv) {
+                            diagDiv.innerHTML = `<div><span class="error">Diagnostic error: ${outerErr.message}</span></div><div><span class="label">Updated:</span> <span class="value">${new Date().toLocaleTimeString()}</span></div>`;
+                        }
+                        console.error('Diagnostics error for peer', peerId, outerErr);
+                        return true; // Keep trying
+                    }
+                }
+
+                // Set up interval for updates (every 1 second for more responsive diagnostics)
+                const diagInterval = setInterval(async () => {
+                    const shouldContinue = await updateDiagnostics();
+                    if (!shouldContinue) {
+                        clearInterval(diagInterval);
+                    }
+                }, 1000); // Update every 1 second
+
+                // Store interval for cleanup
+                videoElement._diagInterval = diagInterval;
+            }
+
             // Clean up peer connection and all associated resources
             function cleanupPeerConnection(peerId) {
                 console.log('🧹 Cleaning up peer connection:', peerId);
@@ -1376,12 +2158,23 @@
                     delete peerConnections[peerId];
                 }
 
+                // Clean up camera name
+                if (peerCameraNames[peerId]) {
+                    console.log('🧹 Removing camera name for peer:', peerId, 'was:', peerCameraNames[peerId]);
+                    delete peerCameraNames[peerId];
+                }
+
                 // Clean up video element and monitors
                 const videoWrapper = document.getElementById('remoteVideo_' + peerId);
                 if (videoWrapper) {
                     const video = videoWrapper.querySelector('video');
-                    if (video && video._renderMonitor) {
-                        clearInterval(video._renderMonitor);
+                    if (video) {
+                        if (video._renderMonitor) {
+                            clearInterval(video._renderMonitor);
+                        }
+                        if (video._diagInterval) {
+                            clearInterval(video._diagInterval);
+                        }
                     }
                     videoWrapper.remove();
                 }
@@ -1619,6 +2412,11 @@
                         console.log('Adding camera track to peer:', peerId, 'kind:', track.kind);
                         pc.addTrack(track, localCameraStream);
                     });
+                } else {
+                    // No local camera - add a recvonly transceiver so we can still receive video
+                    // This is needed for devices without cameras (like Mac Mini) to receive peer video
+                    console.log('No local camera - adding recvonly video transceiver for peer:', peerId);
+                    pc.addTransceiver('video', { direction: 'recvonly' });
                 }
 
                 // Add local microphone tracks if enabled
@@ -1664,6 +2462,60 @@
                             const displayName = peerCameraNames[peerId] || `Peer ${peerId.substring(0, 8)}`;
                             label.innerHTML = `<span>📹 ${displayName}</span><span class="badge">LIVE</span>`;
 
+                            // Action buttons (refresh, diagnostics toggle)
+                            const actions = document.createElement('div');
+                            actions.className = 'peer-actions';
+
+                            // Refresh button for this peer
+                            const refreshBtn = document.createElement('button');
+                            refreshBtn.className = 'peer-action-btn';
+                            refreshBtn.innerHTML = '🔄';
+                            refreshBtn.title = 'Refresh this peer connection';
+                            refreshBtn.onclick = (e) => {
+                                e.stopPropagation();
+                                refreshSinglePeer(peerId);
+                            };
+
+                            // Diagnostics toggle button
+                            const diagBtn = document.createElement('button');
+                            diagBtn.className = 'peer-action-btn';
+                            diagBtn.innerHTML = '📊';
+                            diagBtn.title = 'Toggle diagnostics';
+                            diagBtn.onclick = (e) => {
+                                e.stopPropagation();
+                                const diag = videoWrapper.querySelector('.peer-diagnostics');
+                                if (diag) {
+                                    const wasHidden = !diag.classList.contains('visible');
+                                    diag.classList.toggle('visible');
+                                    diagBtn.classList.toggle('active');
+                                    // Trigger immediate update when showing
+                                    if (wasHidden && diag.classList.contains('visible')) {
+                                        // Call updatePeerDiagnosticsNow directly
+                                        updatePeerDiagnosticsNow(peerId);
+                                    }
+                                }
+                            };
+
+                            // Maximize button
+                            const maxBtn = document.createElement('button');
+                            maxBtn.className = 'peer-action-btn';
+                            maxBtn.innerHTML = '⛶';
+                            maxBtn.title = 'Maximize video';
+                            maxBtn.onclick = (e) => {
+                                e.stopPropagation();
+                                maximizeVideo('remoteVideoElement_' + peerId, displayName);
+                            };
+
+                            actions.appendChild(refreshBtn);
+                            actions.appendChild(diagBtn);
+                            actions.appendChild(maxBtn);
+
+                            // Diagnostics overlay
+                            const diagnostics = document.createElement('div');
+                            diagnostics.className = 'peer-diagnostics';
+                            diagnostics.id = 'diagnostics_' + peerId;
+                            diagnostics.innerHTML = '<div><span class="label">Loading diagnostics...</span></div>';
+
                             const video = document.createElement('video');
                             video.id = 'remoteVideoElement_' + peerId;
                             video.autoplay = true;
@@ -1686,15 +2538,20 @@
                             }, true);
 
                             videoWrapper.appendChild(label);
+                            videoWrapper.appendChild(actions);
                             videoWrapper.appendChild(video);
+                            videoWrapper.appendChild(diagnostics);
                             remoteCameraGrid.appendChild(videoWrapper);
+
+                            // Start diagnostic updates for this peer
+                            startPeerDiagnostics(peerId, video);
 
                             // Auto-resume if video pauses unexpectedly
                             video.addEventListener('pause', () => {
                                 console.log('⏸️ Video paused unexpectedly for peer:', peerId, '- attempting to resume');
                                 setTimeout(() => {
                                     if (video.paused && video.srcObject) {
-                                        video.play().catch(err => {
+                                        safePlayVideo(video).catch(err => {
                                             console.log('⚠️ Could not resume video for peer:', peerId, err);
                                         });
                                     }
@@ -1711,16 +2568,19 @@
                         if (video.srcObject !== event.streams[0]) {
                             console.log('🔄 Updating video stream for peer:', peerId);
 
-                            // Clean up old render monitor if exists
+                            // Clean up old monitors if exists
                             if (video._renderMonitor) {
                                 clearInterval(video._renderMonitor);
+                            }
+                            if (video._diagInterval) {
+                                clearInterval(video._diagInterval);
                             }
 
                             video.srcObject = event.streams[0];
                             remoteCameraStreams[peerId] = event.streams[0];
 
-                            // Force play
-                            video.play().catch(err => {
+                            // Force play safely without triggering fullscreen
+                            safePlayVideo(video).catch(err => {
                                 console.log('⚠️ Autoplay prevented for peer:', peerId, err);
                             });
                         } else {
@@ -1746,8 +2606,18 @@
                             console.warn('🔇 Video track muted for peer:', peerId);
                             const badge = videoWrapper.querySelector('.badge');
                             if (badge) {
-                                badge.textContent = 'PAUSED';
+                                badge.textContent = 'MUTED';
                                 badge.style.background = '#ffc107';
+                            }
+
+                            // iOS Safari aggressively mutes video tracks - try to recover
+                            // by forcing a video play() which can help unmute
+                            const video = videoWrapper.querySelector('video');
+                            if (video && video.srcObject) {
+                                console.log('🔄 Attempting to recover muted track for peer:', peerId);
+                                safePlayVideo(video).catch(err => {
+                                    console.log('⚠️ Could not restart video:', err.message);
+                                });
                             }
                         };
 
@@ -2040,8 +2910,13 @@
                 const videoWrapper = document.getElementById('remoteVideo_' + data.userId);
                 if (videoWrapper) {
                     const video = videoWrapper.querySelector('video');
-                    if (video && video._renderMonitor) {
-                        clearInterval(video._renderMonitor);
+                    if (video) {
+                        if (video._renderMonitor) {
+                            clearInterval(video._renderMonitor);
+                        }
+                        if (video._diagInterval) {
+                            clearInterval(video._diagInterval);
+                        }
                     }
                     videoWrapper.remove();
                 }
