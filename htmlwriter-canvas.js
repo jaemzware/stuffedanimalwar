@@ -425,9 +425,12 @@ function writePhotosFromJson(mediaObject){
             document.write("<div class=\"photo-gallery section-content\" id='photo-gallery'>");
             //paint the photos
             for (let i=0;i<mediaObject.photos.length;i++){
-                let filepath = (mediaObject.photos[i].file.startsWith("http://") || mediaObject.photos[i].file.startsWith("https://")) ? mediaObject.photos[i].file : mediaObject.photospath+mediaObject.photos[i].file;
+                let isExternalUrl = mediaObject.photos[i].file.startsWith("http://") || mediaObject.photos[i].file.startsWith("https://");
+                let filepath = isExternalUrl ? mediaObject.photos[i].file : mediaObject.photospath + encodeURIComponent(mediaObject.photos[i].file);
+                // Use /thumb/ endpoint for local images to get auto-generated thumbnails
+                let thumbpath = isExternalUrl ? filepath : "/thumb/" + mediaObject.photospath + encodeURIComponent(mediaObject.photos[i].file);
                 let filetitle=mediaObject.photos[i].title;
-                document.write("<div class=\"photo-item\"><img class=\"photo-thumbnail photosformthumbnail\" src=\""+filepath+"\" alt=\""+filetitle+"\" /><span class=\"photo-title\">"+filetitle+"</span></div>");
+                document.write("<div class=\"photo-item\"><img class=\"photo-thumbnail photosformthumbnail\" src=\""+thumbpath+"\" data-fullsize=\""+filepath+"\" alt=\""+filetitle+"\" /><span class=\"photo-title\">"+filetitle+"</span></div>");
             }
             document.write("</div>");
         document.write("</div>");
