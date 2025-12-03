@@ -1548,7 +1548,7 @@
                         noVideoCount++;
 
                         if (noVideoCount >= 3) { // 9 seconds of black screen
-                            console.error(`⬛ Black screen detected for peer ${peerId}!`);
+                            console.error(`⬛ Black screen detected for peer ${peerId}! (${noVideoCount} consecutive)`);
                             console.log('Video element state:', {
                                 readyState: videoElement.readyState,
                                 networkState: videoElement.networkState,
@@ -1564,6 +1564,14 @@
                                 badge.textContent = 'NO VIDEO';
                                 badge.style.background = '#000';
                                 badge.style.color = '#fff';
+                            }
+
+                            // Auto-purge orphaned peer after 30 seconds (10 consecutive black screen detections)
+                            if (noVideoCount >= 10) {
+                                console.warn(`🗑️ Auto-purging orphaned peer ${peerId} after ${noVideoCount * 3} seconds of black screen`);
+                                clearInterval(renderMonitor);
+                                cleanupPeerConnection(peerId);
+                                return;
                             }
                         }
                     }
