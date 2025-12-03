@@ -528,7 +528,7 @@ div.seattlenativelinks{
 /* PHOTO GALLERY STYLES */
 .photo-gallery {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
     gap: 12px;
     padding: 8px 0;
 }
@@ -1467,11 +1467,11 @@ a.jaemzwarelogo:active, .skateparkdetail a:active {
     }
     /* Photo gallery mobile */
     .photo-gallery {
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-        gap: 10px;
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+        gap: 8px;
     }
     .photo-thumbnail {
-        height: 120px;
+        height: 80px;
     }
     .photo-title {
         font-size: 11px;
