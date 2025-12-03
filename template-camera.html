@@ -1982,6 +1982,12 @@
                     delete peerConnections[peerId];
                 }
 
+                // Clean up camera name
+                if (peerCameraNames[peerId]) {
+                    console.log('🧹 Removing camera name for peer:', peerId, 'was:', peerCameraNames[peerId]);
+                    delete peerCameraNames[peerId];
+                }
+
                 // Clean up video element and monitors
                 const videoWrapper = document.getElementById('remoteVideo_' + peerId);
                 if (videoWrapper) {
@@ -2230,6 +2236,11 @@
                         console.log('Adding camera track to peer:', peerId, 'kind:', track.kind);
                         pc.addTrack(track, localCameraStream);
                     });
+                } else {
+                    // No local camera - add a recvonly transceiver so we can still receive video
+                    // This is needed for devices without cameras (like Mac Mini) to receive peer video
+                    console.log('No local camera - adding recvonly video transceiver for peer:', peerId);
+                    pc.addTransceiver('video', { direction: 'recvonly' });
                 }
 
                 // Add local microphone tracks if enabled
