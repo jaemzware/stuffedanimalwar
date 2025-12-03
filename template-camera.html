@@ -315,6 +315,81 @@
                 background: rgba(40, 167, 69, 0.8);
             }
 
+            /* Local camera action buttons */
+            .local-actions {
+                position: absolute;
+                top: 44px;
+                right: 8px;
+                display: flex;
+                gap: 4px;
+                z-index: 15;
+            }
+
+            /* Maximized video overlay */
+            .video-maximized-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100vw;
+                height: 100vh;
+                background: rgba(0, 0, 0, 0.95);
+                z-index: 9999;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .video-maximized-overlay video {
+                max-width: 95vw;
+                max-height: 85vh;
+                object-fit: contain;
+            }
+
+            .video-maximized-overlay .maximize-header {
+                position: absolute;
+                top: 10px;
+                left: 0;
+                right: 0;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0 20px;
+                color: white;
+            }
+
+            .video-maximized-overlay .maximize-title {
+                font-size: 18px;
+                font-weight: bold;
+            }
+
+            .video-maximized-overlay .maximize-close {
+                width: 40px;
+                height: 40px;
+                border: none;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.2);
+                color: white;
+                cursor: pointer;
+                font-size: 24px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.2s ease;
+            }
+
+            .video-maximized-overlay .maximize-close:hover {
+                background: rgba(255, 255, 255, 0.4);
+                transform: scale(1.1);
+            }
+
+            .video-maximized-overlay .maximize-info {
+                position: absolute;
+                bottom: 20px;
+                color: rgba(255, 255, 255, 0.7);
+                font-size: 14px;
+            }
+
             @media (max-width: 768px) {
                 .camera-grid {
                     grid-template-columns: 1fr;
@@ -419,6 +494,9 @@
                     <span id="localCameraNameLabel">📹 Your Camera</span>
                     <span class="badge">LOCAL</span>
                 </div>
+                <div class="local-actions">
+                    <button class="peer-action-btn" onclick="maximizeVideo('localCameraVideo', 'Your Camera')" title="Maximize video">⛶</button>
+                </div>
                 <video id="localCameraVideo" autoplay playsinline webkit-playsinline muted disablePictureInPicture x5-playsinline x5-video-player-type="h5"></video>
             </div>
         </div>
@@ -495,6 +573,96 @@
                 video.muted = true; // Must be muted for autoplay on iOS
 
                 return video.play();
+            }
+
+            // Maximize video to fullscreen overlay
+            function maximizeVideo(videoId, title) {
+                const video = document.getElementById(videoId);
+                if (!video || !video.srcObject) {
+                    console.warn('Cannot maximize - no video source');
+                    return;
+                }
+
+                // Create overlay
+                const overlay = document.createElement('div');
+                overlay.className = 'video-maximized-overlay';
+                overlay.id = 'maximizeOverlay';
+
+                // Header with title and close button
+                const header = document.createElement('div');
+                header.className = 'maximize-header';
+
+                const titleEl = document.createElement('span');
+                titleEl.className = 'maximize-title';
+                titleEl.textContent = '📹 ' + title;
+
+                const closeBtn = document.createElement('button');
+                closeBtn.className = 'maximize-close';
+                closeBtn.innerHTML = '✕';
+                closeBtn.title = 'Close (Esc)';
+                closeBtn.onclick = closeMaximize;
+
+                header.appendChild(titleEl);
+                header.appendChild(closeBtn);
+
+                // Clone the video stream to a new video element
+                const maxVideo = document.createElement('video');
+                maxVideo.autoplay = true;
+                maxVideo.playsinline = true;
+                maxVideo.setAttribute('webkit-playsinline', '');
+                maxVideo.muted = video.muted;
+                maxVideo.srcObject = video.srcObject;
+
+                // Info footer
+                const info = document.createElement('div');
+                info.className = 'maximize-info';
+                info.textContent = 'Press Esc or tap × to close';
+
+                overlay.appendChild(header);
+                overlay.appendChild(maxVideo);
+                overlay.appendChild(info);
+
+                // Add to body
+                document.body.appendChild(overlay);
+
+                // Play the video
+                maxVideo.play().catch(err => console.warn('Maximize video play error:', err));
+
+                // Update info with resolution when available
+                maxVideo.addEventListener('loadedmetadata', () => {
+                    if (maxVideo.videoWidth && maxVideo.videoHeight) {
+                        info.textContent = `${maxVideo.videoWidth}×${maxVideo.videoHeight} • Press Esc or tap × to close`;
+                    }
+                });
+
+                // Close on Escape key
+                const escHandler = (e) => {
+                    if (e.key === 'Escape') {
+                        closeMaximize();
+                    }
+                };
+                document.addEventListener('keydown', escHandler);
+                overlay._escHandler = escHandler;
+
+                // Close on background click
+                overlay.addEventListener('click', (e) => {
+                    if (e.target === overlay) {
+                        closeMaximize();
+                    }
+                });
+
+                console.log('🔍 Maximized video:', title);
+            }
+
+            function closeMaximize() {
+                const overlay = document.getElementById('maximizeOverlay');
+                if (overlay) {
+                    if (overlay._escHandler) {
+                        document.removeEventListener('keydown', overlay._escHandler);
+                    }
+                    overlay.remove();
+                    console.log('🔍 Closed maximized view');
+                }
             }
 
             function showLogs() {
@@ -2328,8 +2496,19 @@
                                 }
                             };
 
+                            // Maximize button
+                            const maxBtn = document.createElement('button');
+                            maxBtn.className = 'peer-action-btn';
+                            maxBtn.innerHTML = '⛶';
+                            maxBtn.title = 'Maximize video';
+                            maxBtn.onclick = (e) => {
+                                e.stopPropagation();
+                                maximizeVideo('remoteVideoElement_' + peerId, displayName);
+                            };
+
                             actions.appendChild(refreshBtn);
                             actions.appendChild(diagBtn);
+                            actions.appendChild(maxBtn);
 
                             // Diagnostics overlay
                             const diagnostics = document.createElement('div');
