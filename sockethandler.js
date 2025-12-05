@@ -984,6 +984,7 @@ let remoteCameraStreams = {}; // Store remote camera streams by peer ID
 let isVoiceChatMuted = true; // Start muted by default
 let connectedPeers = new Set();
 let pendingIceCandidates = {}; // Store ICE candidates that arrive before remote description
+let lastPeerCount = 0; // Track peer count for notification sound
 
 // ICE server configuration (using public STUN servers)
 const iceServers = {
@@ -2060,12 +2061,54 @@ async function toggleCamera() {
     }
 }
 
+// Play a notification sound when peer count changes
+function playPeerNotificationSound(isJoin) {
+    try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        // Higher pitch for join (880Hz = A5), lower pitch for leave (440Hz = A4)
+        oscillator.frequency.value = isJoin ? 880 : 440;
+        oscillator.type = 'sine';
+
+        // Short ding with fade in/out to avoid clicks
+        const now = audioContext.currentTime;
+        gainNode.gain.setValueAtTime(0, now);
+        gainNode.gain.linearRampToValueAtTime(0.25, now + 0.02);
+        gainNode.gain.linearRampToValueAtTime(0, now + 0.2);
+
+        oscillator.start(now);
+        oscillator.stop(now + 0.2);
+
+        // Clean up
+        setTimeout(() => {
+            audioContext.close();
+        }, 300);
+
+        console.log(isJoin ? '🔔 Peer joined sound played' : '🔕 Peer left sound played');
+    } catch (error) {
+        console.warn('Could not play notification sound:', error);
+    }
+}
+
 function updatePeerCount() {
     const peerCountElement = document.getElementById('voiceChatPeers');
     if (peerCountElement) {
         const count = Object.keys(peerConnections).length;
         peerCountElement.textContent = 'Peers: ' + count;
         console.log('Active peer connections:', count, Object.keys(peerConnections));
+
+        // Play notification sound if peer count changed
+        if (count > lastPeerCount) {
+            playPeerNotificationSound(true);  // Join sound (high pitch)
+        } else if (count < lastPeerCount) {
+            playPeerNotificationSound(false); // Leave sound (low pitch)
+        }
+        lastPeerCount = count;
 
         // Debug: List all remote audio elements
         const audioElements = document.querySelectorAll('audio[id^="remoteAudio_"]');
