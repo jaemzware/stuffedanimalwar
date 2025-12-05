@@ -797,6 +797,7 @@
             let pendingIceCandidates = {}; // Queue for ICE candidates that arrive before remote description
             let myCameraName = ''; // User's custom camera name
             let peerCameraNames = {}; // Map of peerId -> camera name
+            let lastPeerCount = 0; // Track peer count for notifications
 
             // ICE servers
             const iceServers = {
@@ -1665,7 +1666,29 @@
 
             function updatePeerCount() {
                 const count = Object.keys(peerConnections).length;
-                document.getElementById('peerCount').textContent = 'Peers: ' + count;
+                const peerCountEl = document.getElementById('peerCount');
+
+                // Make peer count more prominent
+                peerCountEl.textContent = '👥 PEERS: ' + count;
+                peerCountEl.style.fontSize = '18px';
+                peerCountEl.style.fontWeight = 'bold';
+                peerCountEl.style.padding = '5px 10px';
+                peerCountEl.style.backgroundColor = count > 0 ? '#28a745' : '#6c757d';
+                peerCountEl.style.color = 'white';
+                peerCountEl.style.borderRadius = '5px';
+                peerCountEl.style.display = 'inline-block';
+
+                console.log('>>> updatePeerCount() called - count:', count, 'lastPeerCount:', lastPeerCount);
+
+                // Alert if peer count changed
+                if (count > lastPeerCount) {
+                    console.log('🚨 PEER JOINED - showing alert');
+                    alert('🟢 Someone joined! Peers: ' + count);
+                } else if (count < lastPeerCount) {
+                    console.log('🚨 PEER LEFT - showing alert');
+                    alert('🔴 Someone left. Peers: ' + count);
+                }
+                lastPeerCount = count;
 
                 // Diagnostic: log peer connection states on Safari
                 console.log('📊 Peer connections:', count);
