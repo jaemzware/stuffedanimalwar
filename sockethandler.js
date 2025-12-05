@@ -2064,26 +2064,52 @@ async function toggleCamera() {
 // Notify when peer count changes
 function notifyPeerCountChange(isJoin, count) {
     const message = isJoin
-        ? `Someone joined! Peers: ${count}`
-        : `Someone left. Peers: ${count}`;
+        ? `🟢 Someone joined! Peers: ${count}`
+        : `🔴 Someone left. Peers: ${count}`;
+    console.log('='.repeat(50));
+    console.log('🚨 PEER COUNT NOTIFICATION 🚨');
+    console.log('   Action:', isJoin ? 'JOIN' : 'LEAVE');
+    console.log('   New count:', count);
+    console.log('   Message:', message);
+    console.log('='.repeat(50));
     alert(message);
-    console.log(isJoin ? '🔔 Peer joined' : '🔕 Peer left', 'Count:', count);
 }
 
 function updatePeerCount() {
+    console.log('>>> updatePeerCount() called');
+    console.log('    lastPeerCount:', lastPeerCount);
+    console.log('    peerConnections keys:', Object.keys(peerConnections));
+
     const peerCountElement = document.getElementById('voiceChatPeers');
+    console.log('    peerCountElement found:', !!peerCountElement);
+
     if (peerCountElement) {
         const count = Object.keys(peerConnections).length;
-        peerCountElement.textContent = 'Peers: ' + count;
-        console.log('Active peer connections:', count, Object.keys(peerConnections));
+        console.log('    current count:', count);
+
+        // Make peer count more prominent
+        peerCountElement.textContent = '👥 PEERS: ' + count;
+        peerCountElement.style.fontSize = '18px';
+        peerCountElement.style.fontWeight = 'bold';
+        peerCountElement.style.padding = '5px 10px';
+        peerCountElement.style.backgroundColor = count > 0 ? '#28a745' : '#6c757d';
+        peerCountElement.style.color = 'white';
+        peerCountElement.style.borderRadius = '5px';
+
+        console.log('    Comparing: count=' + count + ' vs lastPeerCount=' + lastPeerCount);
 
         // Notify if peer count changed
         if (count > lastPeerCount) {
+            console.log('    >>> COUNT INCREASED - calling notifyPeerCountChange(true)');
             notifyPeerCountChange(true, count);  // Someone joined
         } else if (count < lastPeerCount) {
+            console.log('    >>> COUNT DECREASED - calling notifyPeerCountChange(false)');
             notifyPeerCountChange(false, count); // Someone left
+        } else {
+            console.log('    >>> COUNT UNCHANGED - no notification');
         }
         lastPeerCount = count;
+        console.log('    lastPeerCount updated to:', lastPeerCount);
 
         // Debug: List all remote audio elements
         const audioElements = document.querySelectorAll('audio[id^="remoteAudio_"]');
