@@ -5,6 +5,11 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
         <script src="/socket.io/socket.io.js"></script>
         <style>
+            @keyframes pulse {
+                0%, 100% { transform: translateX(-50%) scale(1); }
+                50% { transform: translateX(-50%) scale(1.05); }
+            }
+
             * {
                 margin: 0;
                 padding: 0;
@@ -1664,6 +1669,45 @@
                 }
             }
 
+            function showPeerNotification(message, isJoin) {
+                // Create or reuse notification element
+                let notif = document.getElementById('peerNotification');
+                if (!notif) {
+                    notif = document.createElement('div');
+                    notif.id = 'peerNotification';
+                    notif.style.cssText = `
+                        position: fixed;
+                        top: 20px;
+                        left: 50%;
+                        transform: translateX(-50%);
+                        padding: 15px 30px;
+                        border-radius: 10px;
+                        font-size: 20px;
+                        font-weight: bold;
+                        z-index: 10000;
+                        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+                        transition: opacity 0.3s;
+                    `;
+                    document.body.appendChild(notif);
+                }
+
+                notif.textContent = message;
+                notif.style.backgroundColor = isJoin ? '#28a745' : '#dc3545';
+                notif.style.color = 'white';
+                notif.style.opacity = '1';
+
+                // Flash animation
+                notif.style.animation = 'none';
+                notif.offsetHeight; // Trigger reflow
+                notif.style.animation = 'pulse 0.5s ease-in-out 3';
+
+                // Hide after 4 seconds
+                clearTimeout(notif.hideTimeout);
+                notif.hideTimeout = setTimeout(() => {
+                    notif.style.opacity = '0';
+                }, 4000);
+            }
+
             function updatePeerCount() {
                 const count = Object.keys(peerConnections).length;
                 const peerCountEl = document.getElementById('peerCount');
@@ -1680,13 +1724,13 @@
 
                 console.log('>>> updatePeerCount() called - count:', count, 'lastPeerCount:', lastPeerCount);
 
-                // Alert if peer count changed
+                // Show notification if peer count changed
                 if (count > lastPeerCount) {
-                    console.log('🚨 PEER JOINED - showing alert');
-                    alert('🟢 Someone joined! Peers: ' + count);
+                    console.log('🚨 PEER JOINED');
+                    showPeerNotification('🟢 Someone joined! Peers: ' + count, true);
                 } else if (count < lastPeerCount) {
-                    console.log('🚨 PEER LEFT - showing alert');
-                    alert('🔴 Someone left. Peers: ' + count);
+                    console.log('🚨 PEER LEFT');
+                    showPeerNotification('🔴 Someone left. Peers: ' + count, false);
                 }
                 lastPeerCount = count;
 
