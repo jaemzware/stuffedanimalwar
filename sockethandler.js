@@ -2061,38 +2061,13 @@ async function toggleCamera() {
     }
 }
 
-// Play a notification sound when peer count changes
-function playPeerNotificationSound(isJoin) {
-    try {
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-
-        // Higher pitch for join (880Hz = A5), lower pitch for leave (440Hz = A4)
-        oscillator.frequency.value = isJoin ? 880 : 440;
-        oscillator.type = 'sine';
-
-        // Short ding with fade in/out to avoid clicks
-        const now = audioContext.currentTime;
-        gainNode.gain.setValueAtTime(0, now);
-        gainNode.gain.linearRampToValueAtTime(0.25, now + 0.02);
-        gainNode.gain.linearRampToValueAtTime(0, now + 0.2);
-
-        oscillator.start(now);
-        oscillator.stop(now + 0.2);
-
-        // Clean up
-        setTimeout(() => {
-            audioContext.close();
-        }, 300);
-
-        console.log(isJoin ? '🔔 Peer joined sound played' : '🔕 Peer left sound played');
-    } catch (error) {
-        console.warn('Could not play notification sound:', error);
-    }
+// Notify when peer count changes
+function notifyPeerCountChange(isJoin, count) {
+    const message = isJoin
+        ? `Someone joined! Peers: ${count}`
+        : `Someone left. Peers: ${count}`;
+    alert(message);
+    console.log(isJoin ? '🔔 Peer joined' : '🔕 Peer left', 'Count:', count);
 }
 
 function updatePeerCount() {
@@ -2102,11 +2077,11 @@ function updatePeerCount() {
         peerCountElement.textContent = 'Peers: ' + count;
         console.log('Active peer connections:', count, Object.keys(peerConnections));
 
-        // Play notification sound if peer count changed
+        // Notify if peer count changed
         if (count > lastPeerCount) {
-            playPeerNotificationSound(true);  // Join sound (high pitch)
+            notifyPeerCountChange(true, count);  // Someone joined
         } else if (count < lastPeerCount) {
-            playPeerNotificationSound(false); // Leave sound (low pitch)
+            notifyPeerCountChange(false, count); // Someone left
         }
         lastPeerCount = count;
 
