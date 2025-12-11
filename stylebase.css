@@ -344,23 +344,23 @@ div.seattlenativelinks{
 .section-header {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding-bottom: 12px;
+    gap: 8px;
+    padding-bottom: 8px;
     border-bottom: 2px solid #ccccff;
-    margin-bottom: 8px;
+    margin-bottom: 4px;
 }
 
 .section-icon {
-    font-size: 28px;
+    font-size: 18px;
 }
 
 .section-title {
     margin: 0;
-    font-size: 20px;
+    font-size: 14px;
     font-weight: 600;
     color: #ccccff;
     text-transform: uppercase;
-    letter-spacing: 1.5px;
+    letter-spacing: 1px;
 }
 
 /* ENDPOINT INFO */
@@ -1508,7 +1508,7 @@ a.jaemzwarelogo:active, .skateparkdetail a:active {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 20px;
+    padding: 8px 12px;
     transition: background-color 0.3s ease;
 }
 
@@ -1547,16 +1547,30 @@ a.jaemzwarelogo:active, .skateparkdetail a:active {
 @media screen and (max-width: 768px) {
     .section-header.collapsible,
     .upload-header.collapsible {
-        padding: 10px 15px;
-        font-size: 16px;
+        padding: 6px 10px;
+        font-size: 14px;
     }
 
     .collapse-indicator {
-        font-size: 14px;
+        font-size: 12px;
     }
 
     .section-content {
         padding: 10px;
+    }
+
+    .section-icon {
+        font-size: 14px;
+    }
+
+    .section-title {
+        font-size: 12px;
+        letter-spacing: 0.5px;
+    }
+
+    .endpoint-info {
+        font-size: 9px;
+        padding: 2px 6px;
     }
 }
 
@@ -1568,6 +1582,11 @@ a.jaemzwarelogo:active, .skateparkdetail a:active {
 
     .upload-container {
         margin-bottom: 15px;
+    }
+
+    /* Hide endpoint info on narrow portrait screens to save space */
+    .endpoint-info {
+        display: none;
     }
 }
 
