@@ -20,55 +20,67 @@
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
                 background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
                 color: #fff;
-                padding: 20px;
+                padding: 10px;
                 min-height: 100vh;
             }
 
+            /* Desktop: sidebar layout */
+            .page-container {
+                display: flex;
+                gap: 15px;
+                min-height: calc(100vh - 60px);
+            }
+
+            .sidebar {
+                width: 280px;
+                flex-shrink: 0;
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .main-content {
+                flex: 1;
+                min-width: 0;
+            }
+
             .header {
-                text-align: center;
-                margin-bottom: 30px;
-                padding: 20px;
+                text-align: left;
+                margin-bottom: 10px;
+                padding: 10px;
                 background: rgba(0, 0, 0, 0.3);
-                border-radius: 12px;
+                border-radius: 8px;
             }
 
             .header h1 {
-                font-size: 2em;
-                margin-bottom: 10px;
+                font-size: 1.2em;
+                margin: 0;
                 color: #fff;
-                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-            }
-
-            .header p {
-                color: #aaa;
-                font-size: 0.9em;
+                text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
             }
 
             .controls {
                 display: flex;
-                flex-wrap: wrap;
-                gap: 10px;
-                justify-content: center;
-                align-items: center;
-                margin-bottom: 20px;
-                padding: 15px;
+                flex-direction: column;
+                gap: 8px;
+                padding: 10px;
                 background: rgba(0, 0, 0, 0.3);
-                border-radius: 12px;
+                border-radius: 8px;
             }
 
             .btn {
-                padding: 12px 24px;
+                padding: 8px 12px;
                 border: none;
-                border-radius: 8px;
-                font-size: 14px;
+                border-radius: 6px;
+                font-size: 12px;
                 font-weight: 600;
                 cursor: pointer;
-                transition: all 0.3s ease;
+                transition: all 0.2s ease;
                 display: flex;
                 align-items: center;
-                gap: 8px;
-                min-width: 150px;
+                gap: 6px;
                 justify-content: center;
+                width: 100%;
             }
 
             .btn-camera {
@@ -81,8 +93,8 @@
             }
 
             .btn-camera:hover:not(:disabled) {
-                transform: translateY(-2px);
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+                transform: translateY(-1px);
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
             }
 
             .btn-camera:disabled {
@@ -91,15 +103,16 @@
             }
 
             .checkbox-label {
-                padding: 12px 20px;
+                padding: 6px 10px;
                 background: rgba(255, 255, 255, 0.1);
-                border-radius: 8px;
+                border-radius: 6px;
                 cursor: pointer;
                 display: flex;
                 align-items: center;
-                gap: 10px;
+                gap: 6px;
                 user-select: none;
-                transition: all 0.3s ease;
+                transition: all 0.2s ease;
+                font-size: 11px;
             }
 
             .checkbox-label:hover {
@@ -107,26 +120,50 @@
             }
 
             .checkbox-label input {
-                width: 20px;
-                height: 20px;
+                width: 14px;
+                height: 14px;
                 cursor: pointer;
                 accent-color: #28a745;
             }
 
             select {
-                padding: 12px 20px;
+                padding: 8px 10px;
                 background: rgba(255, 255, 255, 0.1);
                 color: white;
                 border: 1px solid rgba(255, 255, 255, 0.2);
-                border-radius: 8px;
-                font-size: 14px;
+                border-radius: 6px;
+                font-size: 12px;
                 cursor: pointer;
-                min-width: 200px;
+                width: 100%;
             }
 
             select option {
                 background: #2a2a3e;
                 color: white;
+            }
+
+            .control-group {
+                background: rgba(255,255,255,0.05);
+                padding: 8px;
+                border-radius: 6px;
+            }
+
+            .control-group-label {
+                color: #888;
+                font-size: 10px;
+                text-transform: uppercase;
+                margin-bottom: 6px;
+                letter-spacing: 0.5px;
+            }
+
+            .control-row {
+                display: flex;
+                gap: 6px;
+                align-items: center;
+            }
+
+            .control-row .btn {
+                flex: 1;
             }
 
             .status {
@@ -395,36 +432,117 @@
                 font-size: 14px;
             }
 
+            /* Mobile: stacked layout with cameras at bottom */
             @media (max-width: 768px) {
+                .page-container {
+                    flex-direction: column;
+                }
+
+                .sidebar {
+                    width: 100%;
+                    order: 1;
+                }
+
+                .main-content {
+                    order: 2;
+                }
+
                 .camera-grid {
                     grid-template-columns: 1fr;
                 }
 
-                .controls {
-                    flex-direction: column;
+                .header h1 {
+                    font-size: 1em;
+                    text-align: center;
                 }
 
-                .btn, select {
-                    width: 100%;
-                    min-width: unset;
+                .btn {
+                    padding: 6px 10px;
+                    font-size: 11px;
+                }
+
+                .checkbox-label {
+                    padding: 5px 8px;
+                    font-size: 10px;
+                }
+
+                .checkbox-label input {
+                    width: 12px;
+                    height: 12px;
+                }
+
+                .control-group {
+                    padding: 6px;
+                }
+
+                .control-group-label {
+                    font-size: 9px;
+                    margin-bottom: 4px;
+                }
+
+                select {
+                    padding: 6px 8px;
+                    font-size: 11px;
+                }
+            }
+
+            /* Mobile portrait: even more compact */
+            @media (max-width: 768px) and (orientation: portrait) {
+                body {
+                    padding: 5px;
+                }
+
+                .page-container {
+                    gap: 8px;
+                }
+
+                .sidebar {
+                    gap: 6px;
+                }
+
+                .controls {
+                    padding: 6px;
+                    gap: 6px;
+                }
+
+                .control-row {
+                    gap: 4px;
+                }
+
+                .btn {
+                    padding: 5px 8px;
+                    font-size: 10px;
+                    gap: 4px;
+                }
+
+                .checkbox-label {
+                    padding: 4px 6px;
+                    font-size: 9px;
+                    gap: 4px;
+                }
+
+                .header {
+                    padding: 6px;
+                    margin-bottom: 6px;
+                }
+
+                .header h1 {
+                    font-size: 0.9em;
                 }
             }
         </style>
     </head>
     <body>
         <!-- Navigation Links -->
-        <div style="position: fixed; bottom: 20px; right: 20px; z-index: 1000; display: flex; gap: 10px;">
-            <a id="canvasLink" href="#" style="padding: 12px 20px; background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; text-decoration: none; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); transition: all 0.3s ease; display: flex; align-items: center; gap: 8px;">
-                <span>🎨</span>
-                <span>Canvas</span>
+        <div style="margin-bottom: 10px; display: flex; gap: 8px;">
+            <a id="canvasLink" href="#" style="padding: 6px 12px; background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 4px;">
+                <span>🎨</span><span>Canvas</span>
             </a>
-            <a id="cameraLink" href="#" style="padding: 12px 20px; background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; text-decoration: none; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); transition: all 0.3s ease; display: flex; align-items: center; gap: 8px;">
-                <span>📹</span>
-                <span>Camera</span>
+            <a id="cameraLink" href="#" style="padding: 6px 12px; background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 4px;">
+                <span>📹</span><span>Camera</span>
             </a>
         </div>
         <script>
-            // Set navigation links dynamically based on endpoint
             (function() {
                 const endpoint = "{{ENDPOINT}}";
                 const baseUrl = window.location.origin;
@@ -433,87 +551,103 @@
             })();
         </script>
 
-        <div class="header">
-            <h1>📹 {{ENDPOINT}} Camera Room</h1>
-            <p>Share and view cameras with others in this room</p>
-        </div>
-
-        <div class="controls">
-            <button id="cameraToggleButton" class="btn btn-camera">
-                <span id="cameraIcon">📹</span>
-                <span id="cameraLabel">Enable Camera</span>
-            </button>
-
-            <button id="cameraSwitchButton" class="btn btn-camera" disabled style="background: #666;">
-                <span>🔄</span>
-                <span>Switch Camera</span>
-            </button>
-
-            <button id="micToggleButton" class="btn btn-camera">
-                <span id="micIcon">🎤</span>
-                <span id="micLabel">Enable Mic</span>
-            </button>
-
-            <select id="cameraSelector">
-                <option value="">Select Camera...</option>
-            </select>
-
-            <input type="text" id="cameraNameInput" placeholder="Your camera name..."
-                   style="width: 100%; padding: 10px; margin: 8px 0; border: 2px solid #555; border-radius: 8px; background: #2a2a3e; color: white; font-size: 14px;">
-
-            <label class="checkbox-label">
-                <input type="checkbox" id="acceptCameraCheckbox" checked>
-                <span>Show Remote Cameras</span>
-            </label>
-
-            <label class="checkbox-label">
-                <input type="checkbox" id="acceptMicCheckbox">
-                <span>Accept Remote Audio</span>
-            </label>
-
-            <span id="peerCount" style="color: #aaa; font-size: 13px;">Peers: 0</span>
-
-            <button id="refreshPeersButton" class="btn btn-camera" style="margin-top: 8px; background: #17a2b8;">
-                <span>🔄</span>
-                <span>Refresh Peers</span>
-            </button>
-
-            <button id="resumeAllVideosButton" class="btn btn-camera" style="margin-top: 8px; background: #007bff;">
-                <span>▶️</span>
-                <span>Resume All Videos</span>
-            </button>
-
-            <button id="showLogsButton" class="btn btn-camera" style="margin-top: 8px; background: #6c757d;">
-                <span>📋</span>
-                <span>Show Logs</span>
-            </button>
-        </div>
-
-        <div id="status" class="status disconnected">
-            Connecting to room...
-        </div>
-
-        <div id="localCameraSection" style="display: none; max-width: 400px;">
-            <div class="camera-card local-camera">
-                <div class="camera-label">
-                    <span id="localCameraNameLabel">📹 Your Camera</span>
-                    <span class="badge">LOCAL</span>
+        <div class="page-container">
+            <!-- Sidebar: Controls -->
+            <div class="sidebar">
+                <div class="header">
+                    <h1>📹 {{ENDPOINT}} Camera Room</h1>
                 </div>
-                <div class="local-actions">
-                    <button class="peer-action-btn" onclick="maximizeVideo('localCameraVideo', 'Your Camera')" title="Maximize video">⛶</button>
+
+                <div class="controls">
+                    <!-- Your Name - Prominent -->
+                    <div class="control-group">
+                        <div class="control-group-label">Your Name</div>
+                        <input type="text" id="cameraNameInput" placeholder="Enter your name..."
+                               style="width: 100%; padding: 8px; border: 2px solid #28a745; border-radius: 6px; background: #2a2a3e; color: white; font-size: 14px; font-weight: 600;">
+                    </div>
+
+                    <!-- Video Controls -->
+                    <div class="control-group">
+                        <div class="control-group-label">Video</div>
+                        <div class="control-row">
+                            <button id="cameraToggleButton" class="btn btn-camera">
+                                <span id="cameraIcon">📹</span>
+                                <span id="cameraLabel">Camera</span>
+                            </button>
+                            <button id="cameraSwitchButton" class="btn btn-camera" disabled style="background: #666; flex: 0 0 auto; width: auto; padding: 8px;">
+                                <span>🔄</span>
+                            </button>
+                        </div>
+                        <label class="checkbox-label" style="margin-top: 6px;">
+                            <input type="checkbox" id="acceptCameraCheckbox" checked>
+                            <span>Show Remote Cameras</span>
+                        </label>
+                        <select id="cameraSelector" style="margin-top: 6px;">
+                            <option value="">Select Camera...</option>
+                        </select>
+                    </div>
+
+                    <!-- Audio Controls -->
+                    <div class="control-group">
+                        <div class="control-group-label">Audio</div>
+                        <button id="micToggleButton" class="btn btn-camera">
+                            <span id="micIcon">🎤</span>
+                            <span id="micLabel">Mic</span>
+                        </button>
+                        <label class="checkbox-label" style="margin-top: 6px;">
+                            <input type="checkbox" id="acceptMicCheckbox">
+                            <span>Accept Remote Audio</span>
+                        </label>
+                    </div>
+
+                    <!-- Status & Utilities -->
+                    <div class="control-group">
+                        <div class="control-group-label">Connection</div>
+                        <div id="status" class="status disconnected" style="margin: 0 0 6px 0; padding: 6px; font-size: 11px;">
+                            Connecting...
+                        </div>
+                        <span id="peerCount" style="color: #aaa; font-size: 11px; display: block; margin-bottom: 6px;">Peers: 0</span>
+                        <div class="control-row">
+                            <button id="refreshPeersButton" class="btn btn-camera" style="background: #17a2b8;">
+                                <span>🔄</span>
+                            </button>
+                            <button id="resumeAllVideosButton" class="btn btn-camera" style="background: #007bff;">
+                                <span>▶️</span>
+                            </button>
+                            <button id="showLogsButton" class="btn btn-camera" style="background: #6c757d;">
+                                <span>📋</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
-                <video id="localCameraVideo" autoplay playsinline webkit-playsinline muted disablePictureInPicture x5-playsinline x5-video-player-type="h5"></video>
+
+                <!-- Local Camera Preview in Sidebar -->
+                <div id="localCameraSection" style="display: none;">
+                    <div class="camera-card local-camera">
+                        <div class="camera-label">
+                            <span id="localCameraNameLabel">📹 You</span>
+                            <span class="badge">LOCAL</span>
+                        </div>
+                        <div class="local-actions">
+                            <button class="peer-action-btn" onclick="maximizeVideo('localCameraVideo', 'Your Camera')" title="Maximize">⛶</button>
+                        </div>
+                        <video id="localCameraVideo" autoplay playsinline webkit-playsinline muted disablePictureInPicture x5-playsinline x5-video-player-type="h5"></video>
+                    </div>
+                </div>
             </div>
-        </div>
 
-        <div id="remoteCameraSection">
-            <div id="remoteCameraGrid" class="camera-grid"></div>
-            <div id="emptyState" class="empty-state">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-                </svg>
-                <p>No remote cameras connected</p>
-                <p style="font-size: 12px; margin-top: 10px;">Other users will appear here when they enable their cameras</p>
+            <!-- Main Content: Remote Cameras -->
+            <div class="main-content">
+                <div id="remoteCameraSection">
+                    <div id="remoteCameraGrid" class="camera-grid"></div>
+                    <div id="emptyState" class="empty-state">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                        </svg>
+                        <p>No remote cameras connected</p>
+                        <p style="font-size: 11px; margin-top: 8px;">Others will appear here when they enable cameras</p>
+                    </div>
+                </div>
             </div>
         </div>
 

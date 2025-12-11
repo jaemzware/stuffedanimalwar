@@ -4,13 +4,19 @@ function writeStuffedAnimalWar(stuffedAnimalMediaObject, readonly = false){
         writeStuffedAnimalWarDiv(stuffedAnimalMediaObject, true);
     } else {
         // Normal mode: show everything with flexbox layout
-        // Collapse All button
-        document.write("<div style='margin-top: 15px; text-align: right;'>");
+        // Navigation links and Collapse All button row
+        document.write("<div style='margin-top: 15px; display: flex; justify-content: space-between; align-items: center;'>");
+        // Left side: Canvas and Camera links
+        document.write("<div style='display: flex; gap: 10px;'>");
+        document.write("<a id='canvasLink' href='#' style='padding: 8px 16px; background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); color: white; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 6px;'><span>🎨</span><span>Canvas</span></a>");
+        document.write("<a id='cameraLink' href='#' style='padding: 8px 16px; background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 6px;'><span>📹</span><span>Camera</span></a>");
+        document.write("</div>");
+        // Right side: Collapse All button
         document.write("<button id='collapseAllButton' style='padding: 8px 16px; background: #444; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px;'>Collapse All Sections</button>");
         document.write("</div>");
 
         // Collapsible header for entire canvas section (drawing area + controls)
-        document.write("<div class='section-header collapsible' data-target='canvas-complete-content' style='cursor: pointer; user-select: none; margin-top: 15px; padding: 12px 20px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 8px;'>");
+        document.write("<div class='section-header collapsible' data-target='canvas-complete-content' style='cursor: pointer; user-select: none; margin-top: 10px; padding: 8px 12px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 6px;'>");
         document.write("<span class='section-icon'>🎨</span>");
         document.write("<h3 class='section-title' style='margin: 0; color: white;'>Canvas</h3>");
         document.write("<span class='collapse-indicator'>▼</span>");
@@ -459,17 +465,15 @@ function writeChatForm(responsesObject) {
     document.write("<div id='chatFormContainer' class='section-container'>");
     document.write("<form id='chatform' class='modern-form'>");
 
-        // Add endpoint info display above the chat form
-        document.write("<div id='endpointInfo' class='endpoint-info'>");
-        document.write("Endpoint: <span id='endpointDisplay'></span> | ");
-        document.write("Master: <span id='masterAliasDisplay'></span> | ");
-        document.write("Default: <span id='unspecifiedAliasDisplay'></span>");
-        document.write("</div>");
-
         document.write("<div class='section-header collapsible' data-target='chat-content' style='cursor: pointer; user-select: none;'>");
+        document.write("<div style='display: flex; align-items: center; gap: 8px;'>");
         document.write("<span class='section-icon'>💬</span>");
         document.write("<h3 class='section-title'>Chat</h3>");
+        document.write("</div>");
+        document.write("<div style='display: flex; align-items: center; gap: 10px;'>");
+        document.write("<span id='endpointInfo' class='endpoint-info' style='margin: 0; padding: 4px 8px;'>Endpoint: <span id='endpointDisplay'></span> | Master: <span id='masterAliasDisplay'></span> | Default: <span id='unspecifiedAliasDisplay'></span></span>");
         document.write("<span class='collapse-indicator'>▼</span>");
+        document.write("</div>");
         document.write("</div>");
 
         document.write("<div class='chat-content section-content' id='chat-content'>");
@@ -621,7 +625,7 @@ function writeChatFormFileUpload() {
     document.write("<div class='section-container' style='margin-top: 15px;'>");
 
     // Combined header for both photo and video uploads
-    document.write("<div class='section-header collapsible' data-target='uploads-content' style='cursor: pointer; user-select: none; padding: 12px 20px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 8px; margin-bottom: 0;'>");
+    document.write("<div class='section-header collapsible' data-target='uploads-content' style='cursor: pointer; user-select: none; padding: 8px 12px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 6px; margin-bottom: 0;'>");
         document.write("<span class='section-icon'>📤</span>");
         document.write("<h3 class='section-title' style='margin: 0; color: white;'>Media Upload</h3>");
         document.write("<span class='collapse-indicator'>▼</span>");
