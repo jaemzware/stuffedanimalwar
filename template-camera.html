@@ -435,58 +435,69 @@
 
         <div class="header">
             <h1>📹 {{ENDPOINT}} Camera Room</h1>
-            <p>Share and view cameras with others in this room</p>
         </div>
 
         <div class="controls">
-            <button id="cameraToggleButton" class="btn btn-camera">
-                <span id="cameraIcon">📹</span>
-                <span id="cameraLabel">Enable Camera</span>
-            </button>
+            <!-- Your Identity - Prominent at top -->
+            <div style="margin-bottom: 12px;">
+                <label style="color: #ccc; font-size: 12px; display: block; margin-bottom: 4px;">Your Camera Name</label>
+                <input type="text" id="cameraNameInput" placeholder="Enter your name..."
+                       style="width: 100%; padding: 12px; border: 2px solid #28a745; border-radius: 8px; background: #2a2a3e; color: white; font-size: 16px; font-weight: 600;">
+            </div>
 
-            <button id="cameraSwitchButton" class="btn btn-camera" disabled style="background: #666;">
-                <span>🔄</span>
-                <span>Switch Camera</span>
-            </button>
+            <!-- Video Controls Group -->
+            <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; margin-bottom: 10px;">
+                <div style="color: #888; font-size: 11px; text-transform: uppercase; margin-bottom: 8px;">Video</div>
+                <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                    <button id="cameraToggleButton" class="btn btn-camera">
+                        <span id="cameraIcon">📹</span>
+                        <span id="cameraLabel">Enable Camera</span>
+                    </button>
+                    <button id="cameraSwitchButton" class="btn btn-camera" disabled style="background: #666;">
+                        <span>🔄</span>
+                        <span>Switch</span>
+                    </button>
+                    <label class="checkbox-label" style="margin: 0;">
+                        <input type="checkbox" id="acceptCameraCheckbox" checked>
+                        <span>Show Remote Cameras</span>
+                    </label>
+                </div>
+                <select id="cameraSelector" style="margin-top: 8px;">
+                    <option value="">Select Camera...</option>
+                </select>
+            </div>
 
-            <button id="micToggleButton" class="btn btn-camera">
-                <span id="micIcon">🎤</span>
-                <span id="micLabel">Enable Mic</span>
-            </button>
+            <!-- Audio Controls Group -->
+            <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; margin-bottom: 10px;">
+                <div style="color: #888; font-size: 11px; text-transform: uppercase; margin-bottom: 8px;">Audio</div>
+                <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                    <button id="micToggleButton" class="btn btn-camera">
+                        <span id="micIcon">🎤</span>
+                        <span id="micLabel">Enable Mic</span>
+                    </button>
+                    <label class="checkbox-label" style="margin: 0;">
+                        <input type="checkbox" id="acceptMicCheckbox">
+                        <span>Accept Remote Audio</span>
+                    </label>
+                </div>
+            </div>
 
-            <select id="cameraSelector">
-                <option value="">Select Camera...</option>
-            </select>
-
-            <input type="text" id="cameraNameInput" placeholder="Your camera name..."
-                   style="width: 100%; padding: 10px; margin: 8px 0; border: 2px solid #555; border-radius: 8px; background: #2a2a3e; color: white; font-size: 14px;">
-
-            <label class="checkbox-label">
-                <input type="checkbox" id="acceptCameraCheckbox" checked>
-                <span>Show Remote Cameras</span>
-            </label>
-
-            <label class="checkbox-label">
-                <input type="checkbox" id="acceptMicCheckbox">
-                <span>Accept Remote Audio</span>
-            </label>
-
-            <span id="peerCount" style="color: #aaa; font-size: 13px;">Peers: 0</span>
-
-            <button id="refreshPeersButton" class="btn btn-camera" style="margin-top: 8px; background: #17a2b8;">
-                <span>🔄</span>
-                <span>Refresh Peers</span>
-            </button>
-
-            <button id="resumeAllVideosButton" class="btn btn-camera" style="margin-top: 8px; background: #007bff;">
-                <span>▶️</span>
-                <span>Resume All Videos</span>
-            </button>
-
-            <button id="showLogsButton" class="btn btn-camera" style="margin-top: 8px; background: #6c757d;">
-                <span>📋</span>
-                <span>Show Logs</span>
-            </button>
+            <!-- Connection Info & Utilities -->
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                <span id="peerCount" style="color: #aaa; font-size: 13px;">Peers: 0</span>
+                <button id="refreshPeersButton" class="btn btn-camera" style="background: #17a2b8; padding: 6px 12px;">
+                    <span>🔄</span>
+                    <span>Refresh</span>
+                </button>
+                <button id="resumeAllVideosButton" class="btn btn-camera" style="background: #007bff; padding: 6px 12px;">
+                    <span>▶️</span>
+                    <span>Resume All</span>
+                </button>
+                <button id="showLogsButton" class="btn btn-camera" style="background: #6c757d; padding: 6px 12px;">
+                    <span>📋</span>
+                    <span>Logs</span>
+                </button>
+            </div>
         </div>
 
         <div id="status" class="status disconnected">
