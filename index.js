@@ -355,7 +355,7 @@ stuffedAnimalWarEndpoints.forEach(endpoint => {
             console.log(`Serving ${endpoint} in CANVAS mode`);
 
             // Generate HTML by replacing placeholders in the template
-            html = html.replace('{{ENDPOINT}}', configData.endpoint);
+            html = html.replace(/{{ENDPOINT}}/g, configData.endpoint);
             html = html.replace('{{MASTER_ALIAS}}', configData.masterAlias);
             html = html.replace('{{UNSPECIFIED_ALIAS}}', configData.unspecifiedAlias);
             html = html.replace('{{STUFFED_ANIMAL_MEDIA_OBJECT}}', JSON.stringify(configData.stuffedAnimalMediaObject, null, 2));
