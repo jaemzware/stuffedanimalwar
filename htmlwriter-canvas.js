@@ -4,8 +4,14 @@ function writeStuffedAnimalWar(stuffedAnimalMediaObject, readonly = false){
         writeStuffedAnimalWarDiv(stuffedAnimalMediaObject, true);
     } else {
         // Normal mode: show everything with flexbox layout
-        // Collapse All button
-        document.write("<div style='margin-top: 15px; text-align: right;'>");
+        // Navigation links and Collapse All button row
+        document.write("<div style='margin-top: 15px; display: flex; justify-content: space-between; align-items: center;'>");
+        // Left side: Canvas and Camera links
+        document.write("<div style='display: flex; gap: 10px;'>");
+        document.write("<a id='canvasLink' href='#' style='padding: 8px 16px; background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); color: white; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 6px;'><span>🎨</span><span>Canvas</span></a>");
+        document.write("<a id='cameraLink' href='#' style='padding: 8px 16px; background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 6px;'><span>📹</span><span>Camera</span></a>");
+        document.write("</div>");
+        // Right side: Collapse All button
         document.write("<button id='collapseAllButton' style='padding: 8px 16px; background: #444; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px;'>Collapse All Sections</button>");
         document.write("</div>");
 
