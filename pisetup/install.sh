@@ -127,6 +127,13 @@ sudo -u jaemzware bash "$SCRIPT_DIR/generate-certs.sh"
 echo "[9/12] Configuring NetworkManager AP connection..."
 echo "  - Detected Pi model: $PI_TYPE"
 
+# Disable WiFi power save mode (prevents connection drops)
+echo "  - Disabling WiFi power save mode..."
+cat > /etc/NetworkManager/conf.d/wifi-powersave-off.conf << 'EOF'
+[connection]
+wifi.powersave = 2
+EOF
+
 # Create AP connection profile
 nmcli connection delete StuffedAnimalWAP 2>/dev/null || true
 nmcli connection add type wifi ifname wlan0 con-name StuffedAnimalWAP autoconnect no ssid StuffedAnimalWAP

@@ -530,8 +530,17 @@ router.post('/setup/connect', requireLocalDomain, async (req, res) => {
                 // Update /etc/hostname
                 await execPromise(`echo "${hostname}" | sudo tee /etc/hostname`);
 
-                // Update /etc/hosts - replace old hostname with new one
-                await execPromise(`sudo sed -i 's/127.0.1.1.*/127.0.1.1\t${hostname}/g' /etc/hosts`);
+                // Update /etc/hosts - check if 127.0.1.1 line exists first
+                const { stdout: hostsContent } = await execPromise('cat /etc/hosts');
+                if (hostsContent.includes('127.0.1.1')) {
+                    // Replace existing 127.0.1.1 line
+                    await execPromise(`sudo sed -i 's/^127\\.0\\.1\\.1.*/127.0.1.1\\t${hostname}/g' /etc/hosts`);
+                    console.log('Updated existing 127.0.1.1 entry in /etc/hosts');
+                } else {
+                    // Add new 127.0.1.1 line
+                    await execPromise(`echo "127.0.1.1\t${hostname}" | sudo tee -a /etc/hosts`);
+                    console.log('Added new 127.0.1.1 entry to /etc/hosts');
+                }
 
                 // Set hostname immediately (will persist after reboot due to /etc/hostname change)
                 await execPromise(`sudo hostnamectl set-hostname ${hostname}`);
@@ -584,8 +593,17 @@ router.post('/setup/reset', requireLocalDomain, async (req, res) => {
                 // Update /etc/hostname
                 await execPromise(`echo "${DEFAULT_HOSTNAME}" | sudo tee /etc/hostname`);
 
-                // Update /etc/hosts - replace current hostname with default
-                await execPromise(`sudo sed -i 's/127.0.1.1.*/127.0.1.1\t${DEFAULT_HOSTNAME}/g' /etc/hosts`);
+                // Update /etc/hosts - check if 127.0.1.1 line exists first
+                const { stdout: hostsContent } = await execPromise('cat /etc/hosts');
+                if (hostsContent.includes('127.0.1.1')) {
+                    // Replace existing 127.0.1.1 line
+                    await execPromise(`sudo sed -i 's/^127\\.0\\.1\\.1.*/127.0.1.1\\t${DEFAULT_HOSTNAME}/g' /etc/hosts`);
+                    console.log('Updated existing 127.0.1.1 entry in /etc/hosts');
+                } else {
+                    // Add new 127.0.1.1 line
+                    await execPromise(`echo "127.0.1.1\t${DEFAULT_HOSTNAME}" | sudo tee -a /etc/hosts`);
+                    console.log('Added new 127.0.1.1 entry to /etc/hosts');
+                }
 
                 // Set hostname immediately
                 await execPromise(`sudo hostnamectl set-hostname ${DEFAULT_HOSTNAME}`);
