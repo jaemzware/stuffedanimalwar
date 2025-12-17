@@ -33,20 +33,32 @@ The Pi automatically falls back to AP mode if it can't connect to your saved WiF
 
 ### Alternative Installation: Pi 5 with Full OS and Custom Hostname
 
-If you have a **Raspberry Pi 5** with the **full 64-bit Raspberry Pi OS** and want to keep the hostname **`marginalway`** (instead of `stuffedanimalwar`), use this installer:
+If you have a **Raspberry Pi 5** with the **full 64-bit Raspberry Pi OS** and want a custom hostname (instead of `stuffedanimalwar`), use this installer:
 
 ```bash
 cd /home/jaemzware/stuffedanimalwar/pisetup
 chmod +x install-marginalway.sh
+
+# Default hostname (marginalway)
 sudo ./install-marginalway.sh
+
+# Or specify a custom hostname for multiple devices
+sudo ./install-marginalway.sh marginal1
+sudo ./install-marginalway.sh marginal2
+sudo ./install-marginalway.sh mycustomname
 ```
+
+**Hostname Parameter:**
+- If no hostname is provided, defaults to `marginalway`
+- Hostname must be alphanumeric (hyphens allowed, but not at start/end)
+- The script sets the system hostname, Samba netbios name, and displays correct URLs
 
 This variant:
 - ✅ Works with Raspberry Pi 5 and full OS (64-bit)
-- ✅ Keeps your `marginalway` hostname (does not change it)
+- ✅ Supports custom hostnames for running multiple devices on the same network
 - ✅ Includes all dual WiFi setup features
 - ✅ Uses `nginx-marginalway.conf` for proper hostname routing
-- ✅ Access services at `https://marginalway.local/`
+- ✅ Access services at `https://{hostname}.local/`
 
 **Suggested Credentials:**
 
@@ -54,12 +66,12 @@ These are the recommended credentials for this installation (based on the initia
 
 - **Username:** `jaemzware`
 - **SSH Password:** `marginal`
-- **Hostname:** `marginalway`
+- **Hostname:** `marginalway` (or your custom hostname)
 - **SMB Password:** `marginalway`
 - **WiFi SSID:** `StuffedAnimalWAP`
 - **WiFi Password:** `stuffedanimal`
 
-After installation, the Pi will boot into AP mode. Connect to **StuffedAnimalWAP** (password: **stuffedanimal**) and configure your home WiFi at `https://marginalway.local/setup`.
+After installation, the Pi will boot into AP mode. Connect to **StuffedAnimalWAP** (password: **stuffedanimal**) and configure your home WiFi at `https://{hostname}.local/setup`.
 
 ---
 
@@ -246,7 +258,7 @@ sudo tail -f /var/log/nginx/error.log
 ├── stuffedanimalwar/
 │   ├── pisetup/
 │   │   ├── install.sh                    # Master installation script (Pi Zero 2 W)
-│   │   ├── install-marginalway.sh        # Installation script for Pi 5 with marginalway hostname
+│   │   ├── install-marginalway.sh        # Installation script with custom hostname support
 │   │   ├── wifi-manager.sh               # WiFi fallback logic
 │   │   ├── wifi-manager.service          # Systemd service for WiFi
 │   │   ├── generate-certs.sh             # SSL certificate generation

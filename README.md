@@ -281,6 +281,11 @@ Perfect for creating a **portable, offline social hub** on your local network:
    - Connect from phones/laptops: `https://192.168.1.XXX:55556/{endpoint}`
    - Works completely offline - no internet required!
 
+5. **Multiple Pi devices on the same network**
+   - Use `install-marginalway.sh` with a custom hostname parameter
+   - Example: `sudo ./install-marginalway.sh marginal1` and `sudo ./install-marginalway.sh marginal2`
+   - See [pisetup/README.md](pisetup/README.md) for detailed multi-device setup
+
 ## 📁 Project Structure
 
 ```
