@@ -14,6 +14,16 @@ set -e  # Exit on error
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SAW_DIR="/home/jaemzware/stuffedanimalwar"
 
+# Hostname can be passed as first argument, defaults to "marginalway"
+HOSTNAME="${1:-marginalway}"
+
+# Validate hostname (alphanumeric and hyphens only, no leading/trailing hyphens)
+if [[ ! "$HOSTNAME" =~ ^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?$ ]]; then
+    echo "ERROR: Invalid hostname '$HOSTNAME'"
+    echo "Hostname must be alphanumeric (hyphens allowed, but not at start/end)"
+    exit 1
+fi
+
 # Detect AnalogArchive directory (could be analogarchive or analogarchivejs)
 if [ -d "/home/jaemzware/analogarchivejs" ]; then
     AA_DIR="/home/jaemzware/analogarchivejs"
@@ -45,10 +55,13 @@ echo "StuffedAnimalWar Pi Setup"
 echo "Jaemzware LLC - marginalway edition"
 echo "=========================================="
 echo ""
+echo "Usage: sudo ./install-marginalway.sh [hostname]"
+echo "  hostname defaults to 'marginalway' if not specified"
+echo ""
 
 # Check if running as root
 if [ "$EUID" -ne 0 ]; then
-    echo "Please run with sudo: sudo ./install-marginalway.sh"
+    echo "Please run with sudo: sudo ./install-marginalway.sh [hostname]"
     exit 1
 fi
 
@@ -57,7 +70,7 @@ PI_TYPE=$(detect_pi_model)
 PI_MODEL=$(cat /proc/device-tree/model 2>/dev/null | tr -d '\0')
 echo "Detected: $PI_MODEL"
 echo "Type: $PI_TYPE"
-echo "Hostname: marginalway (will NOT be changed)"
+echo "Hostname: $HOSTNAME"
 echo ""
 
 echo "[1/12] Updating system packages..."
@@ -74,11 +87,11 @@ if [ -f /etc/samba/smb.conf ]; then
 fi
 
 # Create Samba configuration
-cat > /etc/samba/smb.conf << 'EOF'
+cat > /etc/samba/smb.conf << EOF
 [global]
    workgroup = WORKGROUP
-   server string = StuffedAnimalWar Pi (marginalway)
-   netbios name = marginalway
+   server string = StuffedAnimalWar Pi ($HOSTNAME)
+   netbios name = $HOSTNAME
    security = user
    map to guest = bad user
    dns proxy = no
@@ -257,8 +270,8 @@ EOF
     echo "  - Created custom AnalogArchive service for $AA_DIR"
 fi
 
-echo "[12/12] Enabling services (hostname will NOT be changed)..."
-# NOTE: We do NOT change the hostname - keeping marginalway
+echo "[12/12] Setting hostname and enabling services..."
+hostnamectl set-hostname "$HOSTNAME"
 
 systemctl daemon-reload
 systemctl enable wifi-manager.service
@@ -276,16 +289,16 @@ echo "=========================================="
 echo ""
 echo "Pi Model: $PI_MODEL"
 echo "Configuration: $PI_TYPE"
-echo "Hostname: marginalway (unchanged)"
+echo "Hostname: $HOSTNAME"
 echo ""
 echo "The Pi will start in AP mode on first boot."
 echo "  - WiFi Name: StuffedAnimalWAP"
 echo "  - Password: stuffedanimal"
-echo "  - Setup URL: https://marginalway.local/setup"
+echo "  - Setup URL: https://$HOSTNAME.local/setup"
 echo ""
 echo "Network access via SMB:"
-echo "  - Server: \\\\marginalway.local\\jaemzware"
-echo "  - macOS: smb://marginalway.local/jaemzware"
+echo "  - Server: \\\\$HOSTNAME.local\\jaemzware"
+echo "  - macOS: smb://$HOSTNAME.local/jaemzware"
 echo "  - Username: jaemzware"
 echo ""
 echo "Reboot now? (y/n)"
