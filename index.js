@@ -180,8 +180,8 @@ const stuffedAnimalWarPageCounters = stuffedAnimalWarEndpoints.reduce((acc, page
     return acc;
 }, {});
 
-//add stuffedAnimalWarEndpoints jim000 through jim419
-for (let i = 1; i <= 420; i++) {
+//add stuffedAnimalWarEndpoints jim000 through jim999
+for (let i = 1; i <= 999; i++) {
     const paddedNumber = String(i).padStart(3, '0');
     const jimEndpoint = `jim${paddedNumber}`;
     stuffedAnimalWarEndpoints.push(jimEndpoint);
