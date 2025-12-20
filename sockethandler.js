@@ -216,7 +216,9 @@ function initializeSocketHandlers(){
                 let action = audioControlMsgObject.AUDIOCONTROLACTION;
                 switch(action) {
                     case 'play':
-                        audioPlayer.play();
+                        audioPlayer.play().catch(function(err) {
+                            console.log('Autoplay blocked - user interaction required:', err.message);
+                        });
                         break;
                     case 'pause':
                         audioPlayer.pause();
@@ -1971,14 +1973,15 @@ async function toggleCamera() {
             const constraints = {
                 video: {
                     width: { ideal: 1280 },
-                    height: { ideal: 720 },
-                    facingMode: 'user'
+                    height: { ideal: 720 }
                 }
             };
 
-            // Use selected device if specified
+            // Use selected device if specified, otherwise default to user-facing camera
             if (selectedCameraDeviceId) {
                 constraints.video.deviceId = { exact: selectedCameraDeviceId };
+            } else {
+                constraints.video.facingMode = 'user';
             }
 
             localCameraStream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -1989,6 +1992,19 @@ async function toggleCamera() {
                 enabled: t.enabled,
                 readyState: t.readyState
             })));
+
+            // Update selectedCameraDeviceId to match the actual camera we got
+            const videoTrack = localCameraStream.getVideoTracks()[0];
+            if (videoTrack) {
+                const settings = videoTrack.getSettings();
+                if (settings.deviceId && settings.deviceId !== selectedCameraDeviceId) {
+                    console.log('📹 Updating selectedCameraDeviceId to actual device:', settings.deviceId);
+                    selectedCameraDeviceId = settings.deviceId;
+                    try {
+                        localStorage.setItem('selectedCameraDeviceId', settings.deviceId);
+                    } catch (e) {}
+                }
+            }
 
             // Show local preview
             if (localCameraVideo) {
@@ -2072,6 +2088,14 @@ async function toggleCamera() {
                     '- Set Camera to "Allow"';
             } else if (error.name === 'NotFoundError') {
                 errorMessage += 'No camera found on your device.';
+            } else if (error.name === 'OverconstrainedError') {
+                errorMessage += 'Selected camera is not available.\n' +
+                    'Try selecting a different camera from the dropdown.';
+                // Clear the invalid saved preference
+                selectedCameraDeviceId = null;
+                try {
+                    localStorage.removeItem('selectedCameraDeviceId');
+                } catch (e) {}
             } else if (error.name === 'NotReadableError') {
                 errorMessage += 'Camera is being used by another application.\n' +
                     'Close other apps using the camera and try again.';

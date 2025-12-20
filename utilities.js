@@ -256,7 +256,9 @@ function changeAudio(audioUrl) {
     $('#jaemzwaredynamicaudiosource').attr("src", audioUrl);
     $('#jaemzwaredynamicaudiosource').attr("type", audioType);
     document.getElementById("jaemzwaredynamicaudioplayer").load();
-    document.getElementById("jaemzwaredynamicaudioplayer").play();
+    document.getElementById("jaemzwaredynamicaudioplayer").play().catch(function(err) {
+        console.log('Autoplay blocked - user interaction required:', err.message);
+    });
 
     // The existing displayMetadata will be triggered by the loadedmetadata event
     // and will update the metadata display below the player
