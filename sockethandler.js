@@ -206,6 +206,36 @@ function initializeSocketHandlers(){
         span.prependTo("#messagesdiv");
     });
 
+    // Audio control sync from masteralias
+    socket.on(audioControlSocketEvent, function(audioControlMsgObject){
+        let chatClientUser = $("#chatClientUser").val();
+        // Only apply if we're not the masteralias (avoid double action)
+        if(chatClientUser !== masterAlias) {
+            let audioPlayer = document.getElementById('jaemzwaredynamicaudioplayer');
+            if(audioPlayer) {
+                let action = audioControlMsgObject.AUDIOCONTROLACTION;
+                switch(action) {
+                    case 'play':
+                        audioPlayer.play();
+                        break;
+                    case 'pause':
+                        audioPlayer.pause();
+                        break;
+                    case 'seek':
+                        audioPlayer.currentTime = audioControlMsgObject.AUDIOCONTROLTIME;
+                        break;
+                    case 'speed':
+                        audioPlayer.playbackRate = audioControlMsgObject.AUDIOCONTROLSPEED;
+                        break;
+                    case 'volume':
+                        audioPlayer.volume = audioControlMsgObject.AUDIOCONTROLVOLUME;
+                        break;
+                }
+                console.log('AUDIO CONTROL RECEIVED:', action, audioControlMsgObject);
+            }
+        }
+    });
+
     // Listen for camera broadcaster announcements
     socket.on('camera-broadcaster-available', function(data) {
         console.log("[CLIENT] 📹 Camera broadcaster available:", data);
@@ -768,6 +798,22 @@ $('#nextaudiotrack').click(function(){
     let currentFile = $('#selectsongs option:selected').attr("value");
     PlayNextTrack(currentFile);
 });
+// AUDIO CONTROL SYNC - broadcast masteralias audio controls to all clients
+$('#jaemzwaredynamicaudioplayer').on('play', function(){
+    emitAudioControl('play', {});
+});
+$('#jaemzwaredynamicaudioplayer').on('pause', function(){
+    emitAudioControl('pause', {});
+});
+$('#jaemzwaredynamicaudioplayer').on('seeked', function(){
+    emitAudioControl('seek', { AUDIOCONTROLTIME: this.currentTime });
+});
+$('#jaemzwaredynamicaudioplayer').on('ratechange', function(){
+    emitAudioControl('speed', { AUDIOCONTROLSPEED: this.playbackRate });
+});
+$('#jaemzwaredynamicaudioplayer').on('volumechange', function(){
+    emitAudioControl('volume', { AUDIOCONTROLVOLUME: this.volume });
+});
 $('#selectvideos').change(function(){
     let videoOption = $('#selectvideos option:selected');
     let videoToPlay = videoOption.attr("value");
@@ -956,6 +1002,20 @@ function emitPresentImage(imageSrc) {
         CHATCLIENTUSER:chatClientUser
     };
     socket.emit(presentImageSocketEvent, presentImageObject);
+}
+
+function emitAudioControl(action, data) {
+    let chatClientUser = $('#chatClientUser').val();
+    // Only masteralias can broadcast audio controls
+    if(chatClientUser !== masterAlias) {
+        return;
+    }
+    let audioControlObject = {
+        AUDIOCONTROLACTION: action,
+        AUDIOCONTROLCLIENTUSER: chatClientUser,
+        ...data
+    };
+    socket.emit(audioControlSocketEvent, audioControlObject);
 }
 
 function formatChatServerUserIp(chatServerUser) {

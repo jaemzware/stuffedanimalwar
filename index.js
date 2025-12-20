@@ -175,6 +175,7 @@ const stuffedAnimalWarDisconnectSocketEvent = 'disconnect';
 const stuffedAnimalWarVoiceOfferSocketEvent = 'voiceoffer';
 const stuffedAnimalWarVoiceAnswerSocketEvent = 'voiceanswer';
 const stuffedAnimalWarVoiceIceCandidateSocketEvent = 'voiceicecandidate';
+const stuffedAnimalWarAudioControlSocketEvent = 'audiocontrol';
 const stuffedAnimalWarPageCounters = stuffedAnimalWarEndpoints.reduce((acc, page) => {
     acc[page] = 0; // Set each page name as a key with an initial value of 0
     return acc;
@@ -1078,6 +1079,10 @@ io.on('connection', function(socket){
             //emit to everyone else
             sendPresentImageMessage(endpoint + stuffedAnimalWarPresentImageSocketEvent,presentImageMsgObject);
         });
+        socket.on(endpoint + stuffedAnimalWarAudioControlSocketEvent, (audioControlMsgObject) => {
+            //broadcast audio control to everyone else (play, pause, seek, speed)
+            sendAudioControlMessage(endpoint + stuffedAnimalWarAudioControlSocketEvent, audioControlMsgObject);
+        });
         socket.on(endpoint + stuffedAnimalWarVoiceOfferSocketEvent, (offerMsgObject) => {
             //send voice offer to specific peer or broadcast to all in this endpoint
             let voiceClientAddress = getClientIp(socket);
@@ -1347,6 +1352,26 @@ io.on('connection', function(socket){
         console.log(JSON.stringify(reorderedPresentImageMsgObject));
 
         io.emit(presentImageSocketEvent, reorderedPresentImageMsgObject);
+    }
+
+    function sendAudioControlMessage(audioControlSocketEvent, audioControlMsgObject){
+        let audioControlClientAddress = getClientIp(socket);
+        let audioControlServerDate = new Date();
+        let audioControlPstString = audioControlServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
+
+        //create reordered object with server fields first
+        const reorderedAudioControlMsgObject = {
+            AUDIOCONTROLSERVERENDPOINT: endpoint,
+            AUDIOCONTROLSERVERPORT: listenPort,
+            AUDIOCONTROLSERVERUSER: audioControlClientAddress,
+            AUDIOCONTROLSERVERDATE: audioControlPstString,
+            AUDIOCONTROLUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
+            ...audioControlMsgObject
+        };
+
+        console.log('AUDIO CONTROL:', JSON.stringify(reorderedAudioControlMsgObject));
+
+        io.emit(audioControlSocketEvent, reorderedAudioControlMsgObject);
     }
 
 });
