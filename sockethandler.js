@@ -209,8 +209,8 @@ function initializeSocketHandlers(){
     // Audio control sync from masteralias
     socket.on(audioControlSocketEvent, function(audioControlMsgObject){
         let chatClientUser = $("#chatClientUser").val();
-        // Only apply if we're not the masteralias (avoid double action)
-        if(chatClientUser !== masterAlias) {
+        // Only apply if we're not the masteralias (avoid double action, case-insensitive)
+        if(chatClientUser.toLowerCase() !== masterAlias.toLowerCase()) {
             let audioPlayer = document.getElementById('jaemzwaredynamicaudioplayer');
             if(audioPlayer) {
                 let action = audioControlMsgObject.AUDIOCONTROLACTION;
@@ -1006,8 +1006,8 @@ function emitPresentImage(imageSrc) {
 
 function emitAudioControl(action, data) {
     let chatClientUser = $('#chatClientUser').val();
-    // Only masteralias can broadcast audio controls
-    if(chatClientUser !== masterAlias) {
+    // Only masteralias can broadcast audio controls (case-insensitive)
+    if(chatClientUser.toLowerCase() !== masterAlias.toLowerCase()) {
         return;
     }
     let audioControlObject = {
