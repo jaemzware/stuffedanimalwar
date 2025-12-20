@@ -206,6 +206,38 @@ function initializeSocketHandlers(){
         span.prependTo("#messagesdiv");
     });
 
+    // Audio control sync from masteralias
+    socket.on(audioControlSocketEvent, function(audioControlMsgObject){
+        let chatClientUser = $("#chatClientUser").val();
+        // Only apply if we're not the masteralias (avoid double action, case-insensitive)
+        if(chatClientUser.toLowerCase() !== masterAlias.toLowerCase()) {
+            let audioPlayer = document.getElementById('jaemzwaredynamicaudioplayer');
+            if(audioPlayer) {
+                let action = audioControlMsgObject.AUDIOCONTROLACTION;
+                switch(action) {
+                    case 'play':
+                        audioPlayer.play().catch(function(err) {
+                            console.log('Autoplay blocked - user interaction required:', err.message);
+                        });
+                        break;
+                    case 'pause':
+                        audioPlayer.pause();
+                        break;
+                    case 'seek':
+                        audioPlayer.currentTime = audioControlMsgObject.AUDIOCONTROLTIME;
+                        break;
+                    case 'speed':
+                        audioPlayer.playbackRate = audioControlMsgObject.AUDIOCONTROLSPEED;
+                        break;
+                    case 'volume':
+                        audioPlayer.volume = audioControlMsgObject.AUDIOCONTROLVOLUME;
+                        break;
+                }
+                console.log('AUDIO CONTROL RECEIVED:', action, audioControlMsgObject);
+            }
+        }
+    });
+
     // Listen for camera broadcaster announcements
     socket.on('camera-broadcaster-available', function(data) {
         console.log("[CLIENT] 📹 Camera broadcaster available:", data);
@@ -768,6 +800,22 @@ $('#nextaudiotrack').click(function(){
     let currentFile = $('#selectsongs option:selected').attr("value");
     PlayNextTrack(currentFile);
 });
+// AUDIO CONTROL SYNC - broadcast masteralias audio controls to all clients
+$('#jaemzwaredynamicaudioplayer').on('play', function(){
+    emitAudioControl('play', {});
+});
+$('#jaemzwaredynamicaudioplayer').on('pause', function(){
+    emitAudioControl('pause', {});
+});
+$('#jaemzwaredynamicaudioplayer').on('seeked', function(){
+    emitAudioControl('seek', { AUDIOCONTROLTIME: this.currentTime });
+});
+$('#jaemzwaredynamicaudioplayer').on('ratechange', function(){
+    emitAudioControl('speed', { AUDIOCONTROLSPEED: this.playbackRate });
+});
+$('#jaemzwaredynamicaudioplayer').on('volumechange', function(){
+    emitAudioControl('volume', { AUDIOCONTROLVOLUME: this.volume });
+});
 $('#selectvideos').change(function(){
     let videoOption = $('#selectvideos option:selected');
     let videoToPlay = videoOption.attr("value");
@@ -956,6 +1004,20 @@ function emitPresentImage(imageSrc) {
         CHATCLIENTUSER:chatClientUser
     };
     socket.emit(presentImageSocketEvent, presentImageObject);
+}
+
+function emitAudioControl(action, data) {
+    let chatClientUser = $('#chatClientUser').val();
+    // Only masteralias can broadcast audio controls (case-insensitive)
+    if(chatClientUser.toLowerCase() !== masterAlias.toLowerCase()) {
+        return;
+    }
+    let audioControlObject = {
+        AUDIOCONTROLACTION: action,
+        AUDIOCONTROLCLIENTUSER: chatClientUser,
+        ...data
+    };
+    socket.emit(audioControlSocketEvent, audioControlObject);
 }
 
 function formatChatServerUserIp(chatServerUser) {
@@ -1911,14 +1973,15 @@ async function toggleCamera() {
             const constraints = {
                 video: {
                     width: { ideal: 1280 },
-                    height: { ideal: 720 },
-                    facingMode: 'user'
+                    height: { ideal: 720 }
                 }
             };
 
-            // Use selected device if specified
+            // Use selected device if specified, otherwise default to user-facing camera
             if (selectedCameraDeviceId) {
                 constraints.video.deviceId = { exact: selectedCameraDeviceId };
+            } else {
+                constraints.video.facingMode = 'user';
             }
 
             localCameraStream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -1929,6 +1992,19 @@ async function toggleCamera() {
                 enabled: t.enabled,
                 readyState: t.readyState
             })));
+
+            // Update selectedCameraDeviceId to match the actual camera we got
+            const videoTrack = localCameraStream.getVideoTracks()[0];
+            if (videoTrack) {
+                const settings = videoTrack.getSettings();
+                if (settings.deviceId && settings.deviceId !== selectedCameraDeviceId) {
+                    console.log('📹 Updating selectedCameraDeviceId to actual device:', settings.deviceId);
+                    selectedCameraDeviceId = settings.deviceId;
+                    try {
+                        localStorage.setItem('selectedCameraDeviceId', settings.deviceId);
+                    } catch (e) {}
+                }
+            }
 
             // Show local preview
             if (localCameraVideo) {
@@ -2012,6 +2088,14 @@ async function toggleCamera() {
                     '- Set Camera to "Allow"';
             } else if (error.name === 'NotFoundError') {
                 errorMessage += 'No camera found on your device.';
+            } else if (error.name === 'OverconstrainedError') {
+                errorMessage += 'Selected camera is not available.\n' +
+                    'Try selecting a different camera from the dropdown.';
+                // Clear the invalid saved preference
+                selectedCameraDeviceId = null;
+                try {
+                    localStorage.removeItem('selectedCameraDeviceId');
+                } catch (e) {}
             } else if (error.name === 'NotReadableError') {
                 errorMessage += 'Camera is being used by another application.\n' +
                     'Close other apps using the camera and try again.';
