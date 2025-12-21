@@ -216,20 +216,26 @@ function initializeSocketHandlers(){
                 let action = audioControlMsgObject.AUDIOCONTROLACTION;
                 switch(action) {
                     case 'play':
+                        updateAudioSyncStatus('PLAYING: master started');
                         audioPlayer.play().catch(function(err) {
+                            updateAudioSyncStatus('BLOCKED: needs interaction');
                             console.log('Autoplay blocked - user interaction required:', err.message);
                         });
                         break;
                     case 'pause':
+                        updateAudioSyncStatus('PAUSED: master paused');
                         audioPlayer.pause();
                         break;
                     case 'seek':
+                        updateAudioSyncStatus('SEEK: ' + Math.floor(audioControlMsgObject.AUDIOCONTROLTIME) + 's');
                         audioPlayer.currentTime = audioControlMsgObject.AUDIOCONTROLTIME;
                         break;
                     case 'speed':
+                        updateAudioSyncStatus('SPEED: ' + audioControlMsgObject.AUDIOCONTROLSPEED + 'x');
                         audioPlayer.playbackRate = audioControlMsgObject.AUDIOCONTROLSPEED;
                         break;
                     case 'volume':
+                        updateAudioSyncStatus('VOLUME: ' + Math.floor(audioControlMsgObject.AUDIOCONTROLVOLUME * 100) + '%');
                         audioPlayer.volume = audioControlMsgObject.AUDIOCONTROLVOLUME;
                         break;
                 }
@@ -346,7 +352,8 @@ function onBaseChatSocketEvent(chatMsgObject){
             }
             else if((chatClientMessage.toLowerCase().endsWith(".mp3") || chatClientMessage.toLowerCase().endsWith(".flac")) && remoteChatClientUser===masterAlias)
             {
-                changeAudio(chatClientMessage);
+                // Load audio paused so everyone can buffer, then master clicks play to sync start
+                changeAudio(chatClientMessage, true);
             }
             else if((chatClientMessage.toLowerCase().endsWith(".mp4") || chatClientMessage.toLowerCase().endsWith(".mov")) && remoteChatClientUser===masterAlias)
             {
@@ -800,6 +807,26 @@ $('#nextaudiotrack').click(function(){
     let currentFile = $('#selectsongs option:selected').attr("value");
     PlayNextTrack(currentFile);
 });
+// ENABLE AUDIO SYNC - unlock audio playback for browser autoplay policy
+$('#enableaudiosync').click(function(){
+    let audioPlayer = document.getElementById('jaemzwaredynamicaudioplayer');
+    if(audioPlayer) {
+        // Save current volume, mute, play briefly, pause, restore volume - completely silent unlock
+        let savedVolume = audioPlayer.volume;
+        audioPlayer.volume = 0;
+        audioPlayer.play().then(function() {
+            audioPlayer.pause();
+            audioPlayer.currentTime = 0;
+            audioPlayer.volume = savedVolume;
+            updateAudioSyncStatus('READY: audio sync enabled');
+            $('#enableaudiosync').text('Audio Sync Enabled').attr('disabled', true).addClass('disabled-button');
+        }).catch(function(err) {
+            audioPlayer.volume = savedVolume;
+            updateAudioSyncStatus('FAILED: ' + err.message);
+            console.log('Failed to enable audio sync:', err.message);
+        });
+    }
+});
 // AUDIO CONTROL SYNC - broadcast masteralias audio controls to all clients
 $('#jaemzwaredynamicaudioplayer').on('play', function(){
     emitAudioControl('play', {});
@@ -1012,6 +1039,8 @@ function emitAudioControl(action, data) {
     if(chatClientUser.toLowerCase() !== masterAlias.toLowerCase()) {
         return;
     }
+    // Show master what they're broadcasting
+    updateAudioSyncStatus('TX ' + action.toUpperCase());
     let audioControlObject = {
         AUDIOCONTROLACTION: action,
         AUDIOCONTROLCLIENTUSER: chatClientUser,

@@ -293,7 +293,7 @@ function writeAudioFromJson(mediaObject){
 
             document.write("<div class='audio-content section-content' id='audio-content'>");
                 document.write("<div class='input-group full-width'>");
-                    document.write("<label for='selectsongs' class='input-label'>Select Track</label>");
+                    document.write("<label for='selectsongs' id='selectsongs-label' class='input-label'>Select Track</label>");
                     document.write("<select id=\"selectsongs\" class='modern-select'>");
                     //paint song selection dropdown options (songs)
                     for (let i=0;i<mediaObject.songs.length;i++){
@@ -314,6 +314,7 @@ function writeAudioFromJson(mediaObject){
 
                 //previous and next buttons with metadata display
                 document.write("<div class='audio-controls-container'>");
+                    document.write("<button type='button' id='enableaudiosync' class='action-button primary-button'>Enable Audio Sync</button>");
                     document.write("<button type='button' id='nextaudiotrack' class='action-button secondary-button next-track-button'>Next Track</button>");
 
                     // Album art thumbnail (right after the next button)

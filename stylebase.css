@@ -469,6 +469,19 @@ div.seattlenativelinks{
     transform: translateY(0);
 }
 
+.disabled-button {
+    background: linear-gradient(135deg, #666666 0%, #555555 100%);
+    color: #aaaaaa;
+    box-shadow: none;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.disabled-button:hover {
+    transform: none;
+    box-shadow: none;
+}
+
 /* CHAT SPECIFIC STYLES */
 .chat-controls {
     display: grid;
