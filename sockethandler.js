@@ -807,6 +807,22 @@ $('#nextaudiotrack').click(function(){
     let currentFile = $('#selectsongs option:selected').attr("value");
     PlayNextTrack(currentFile);
 });
+// ENABLE AUDIO SYNC - unlock audio playback for browser autoplay policy
+$('#enableaudiosync').click(function(){
+    let audioPlayer = document.getElementById('jaemzwaredynamicaudioplayer');
+    if(audioPlayer) {
+        // Play briefly then pause to unlock audio for this session
+        audioPlayer.play().then(function() {
+            audioPlayer.pause();
+            audioPlayer.currentTime = 0;
+            updateAudioSyncStatus('READY: audio sync enabled');
+            $('#enableaudiosync').text('Audio Sync Enabled').prop('disabled', true).removeClass('primary-button').addClass('secondary-button');
+        }).catch(function(err) {
+            updateAudioSyncStatus('FAILED: ' + err.message);
+            console.log('Failed to enable audio sync:', err.message);
+        });
+    }
+});
 // AUDIO CONTROL SYNC - broadcast masteralias audio controls to all clients
 $('#jaemzwaredynamicaudioplayer').on('play', function(){
     emitAudioControl('play', {});
