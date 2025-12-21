@@ -216,20 +216,26 @@ function initializeSocketHandlers(){
                 let action = audioControlMsgObject.AUDIOCONTROLACTION;
                 switch(action) {
                     case 'play':
+                        updateAudioSyncStatus('PLAYING: master started');
                         audioPlayer.play().catch(function(err) {
+                            updateAudioSyncStatus('BLOCKED: needs interaction');
                             console.log('Autoplay blocked - user interaction required:', err.message);
                         });
                         break;
                     case 'pause':
+                        updateAudioSyncStatus('PAUSED: master paused');
                         audioPlayer.pause();
                         break;
                     case 'seek':
+                        updateAudioSyncStatus('SEEK: ' + Math.floor(audioControlMsgObject.AUDIOCONTROLTIME) + 's');
                         audioPlayer.currentTime = audioControlMsgObject.AUDIOCONTROLTIME;
                         break;
                     case 'speed':
+                        updateAudioSyncStatus('SPEED: ' + audioControlMsgObject.AUDIOCONTROLSPEED + 'x');
                         audioPlayer.playbackRate = audioControlMsgObject.AUDIOCONTROLSPEED;
                         break;
                     case 'volume':
+                        updateAudioSyncStatus('VOLUME: ' + Math.floor(audioControlMsgObject.AUDIOCONTROLVOLUME * 100) + '%');
                         audioPlayer.volume = audioControlMsgObject.AUDIOCONTROLVOLUME;
                         break;
                 }
@@ -346,7 +352,8 @@ function onBaseChatSocketEvent(chatMsgObject){
             }
             else if((chatClientMessage.toLowerCase().endsWith(".mp3") || chatClientMessage.toLowerCase().endsWith(".flac")) && remoteChatClientUser===masterAlias)
             {
-                changeAudio(chatClientMessage);
+                // Load audio paused so everyone can buffer, then master clicks play to sync start
+                changeAudio(chatClientMessage, true);
             }
             else if((chatClientMessage.toLowerCase().endsWith(".mp4") || chatClientMessage.toLowerCase().endsWith(".mov")) && remoteChatClientUser===masterAlias)
             {
@@ -1012,6 +1019,8 @@ function emitAudioControl(action, data) {
     if(chatClientUser.toLowerCase() !== masterAlias.toLowerCase()) {
         return;
     }
+    // Show master what they're broadcasting
+    updateAudioSyncStatus('TX ' + action.toUpperCase());
     let audioControlObject = {
         AUDIOCONTROLACTION: action,
         AUDIOCONTROLCLIENTUSER: chatClientUser,

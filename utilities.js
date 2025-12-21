@@ -165,6 +165,16 @@ function GetRandomValue(max){
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////AUDIO SPECIFIC UTILITIES
+
+// Update the Select Track label with audio sync status for debugging
+function updateAudioSyncStatus(status) {
+    let label = document.getElementById('selectsongs-label');
+    if (label) {
+        label.textContent = 'Select Track [' + status + ']';
+        console.log('Audio sync status:', status);
+    }
+}
+
 function PlayNextTrack(currentFile){
     //don't do anything if there are no songs
     if($('#selectsongs option').length===0){
@@ -207,7 +217,12 @@ function PlayNextVideo(currentFile){
         changeMp4(next,nextposter);
     }
 }
-function changeAudio(audioUrl) {
+function changeAudio(audioUrl, startPaused) {
+    // startPaused: if true, load and cue up the audio but don't play
+    // This allows master to broadcast an audio URL, have everyone load it paused,
+    // then when master clicks play, everyone starts together (better sync for high latency)
+    startPaused = startPaused || false;
+
     let $selectSongs = $('#selectsongs');
     let optionExists = false;
 
@@ -255,10 +270,20 @@ function changeAudio(audioUrl) {
     // Change the source of the AUDIO player
     $('#jaemzwaredynamicaudiosource').attr("src", audioUrl);
     $('#jaemzwaredynamicaudiosource').attr("type", audioType);
-    document.getElementById("jaemzwaredynamicaudioplayer").load();
-    document.getElementById("jaemzwaredynamicaudioplayer").play().catch(function(err) {
-        console.log('Autoplay blocked - user interaction required:', err.message);
-    });
+
+    let audioPlayer = document.getElementById("jaemzwaredynamicaudioplayer");
+    audioPlayer.load();
+
+    if (startPaused) {
+        // Explicitly pause to stop any currently playing audio, cue up the new song
+        audioPlayer.pause();
+        updateAudioSyncStatus('CUED: waiting for master to play');
+        console.log('Audio cued up and paused, waiting for master to play:', audioUrl);
+    } else {
+        audioPlayer.play().catch(function(err) {
+            console.log('Autoplay blocked - user interaction required:', err.message);
+        });
+    }
 
     // The existing displayMetadata will be triggered by the loadedmetadata event
     // and will update the metadata display below the player

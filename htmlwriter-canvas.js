@@ -293,7 +293,7 @@ function writeAudioFromJson(mediaObject){
 
             document.write("<div class='audio-content section-content' id='audio-content'>");
                 document.write("<div class='input-group full-width'>");
-                    document.write("<label for='selectsongs' class='input-label'>Select Track</label>");
+                    document.write("<label for='selectsongs' id='selectsongs-label' class='input-label'>Select Track</label>");
                     document.write("<select id=\"selectsongs\" class='modern-select'>");
                     //paint song selection dropdown options (songs)
                     for (let i=0;i<mediaObject.songs.length;i++){
