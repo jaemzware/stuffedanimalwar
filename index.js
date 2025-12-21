@@ -1369,7 +1369,9 @@ io.on('connection', function(socket){
             ...audioControlMsgObject
         };
 
-        console.log('AUDIO CONTROL:', JSON.stringify(reorderedAudioControlMsgObject));
+        // Debug: log connected socket count
+        const connectedSockets = io.sockets.sockets.size;
+        console.log('AUDIO CONTROL: [' + connectedSockets + ' sockets] event=' + audioControlSocketEvent + ' ' + JSON.stringify(reorderedAudioControlMsgObject));
 
         io.emit(audioControlSocketEvent, reorderedAudioControlMsgObject);
     }
