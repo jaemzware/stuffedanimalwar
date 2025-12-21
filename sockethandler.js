@@ -811,13 +811,17 @@ $('#nextaudiotrack').click(function(){
 $('#enableaudiosync').click(function(){
     let audioPlayer = document.getElementById('jaemzwaredynamicaudioplayer');
     if(audioPlayer) {
-        // Play briefly then pause to unlock audio for this session
+        // Save current volume, mute, play briefly, pause, restore volume - completely silent unlock
+        let savedVolume = audioPlayer.volume;
+        audioPlayer.volume = 0;
         audioPlayer.play().then(function() {
             audioPlayer.pause();
             audioPlayer.currentTime = 0;
+            audioPlayer.volume = savedVolume;
             updateAudioSyncStatus('READY: audio sync enabled');
-            $('#enableaudiosync').text('Audio Sync Enabled').prop('disabled', true).removeClass('primary-button').addClass('secondary-button');
+            $('#enableaudiosync').text('Audio Sync Enabled').attr('disabled', true).addClass('disabled-button');
         }).catch(function(err) {
+            audioPlayer.volume = savedVolume;
             updateAudioSyncStatus('FAILED: ' + err.message);
             console.log('Failed to enable audio sync:', err.message);
         });
