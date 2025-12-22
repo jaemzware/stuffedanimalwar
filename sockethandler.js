@@ -33,6 +33,7 @@ let socket = null;
 let masterAlias=null;
 let unspecifiedAlias=null;
 let audioSyncEnabled=false; // Track if audio sync is enabled (non-master should not auto-advance)
+let isApplyingRemoteAudioControl=false; // Prevent feedback loop when applying received audio commands
 //free form path drawing vars
 let isDrawing = false;
 let points = [];
@@ -216,44 +217,53 @@ function initializeSocketHandlers(){
 
         let audioPlayer = document.getElementById('jaemzwaredynamicaudioplayer');
         if(audioPlayer) {
-            switch(action) {
-                    case 'play':
-                        // Check if we have the correct song loaded before playing
-                        let masterSongUrl = audioControlMsgObject.AUDIOCONTROLSONGURL;
-                        let currentSongUrl = $('#jaemzwaredynamicaudiosource').attr('src');
+            // Set flag to prevent feedback loop (e.g., seek triggers seeked event which would re-broadcast)
+            isApplyingRemoteAudioControl = true;
 
-                        if (masterSongUrl && currentSongUrl !== masterSongUrl) {
-                            // Wrong song loaded - load the correct one first, then play
-                            console.log('AUDIO SYNC: Loading correct song before playing:', masterSongUrl);
-                            updateAudioSyncStatus('LOADING: syncing song...');
-                            changeAudio(masterSongUrl, false); // Load and play immediately
-                        } else {
-                            updateAudioSyncStatus('PLAYING: master started');
-                            audioPlayer.play().catch(function(err) {
-                                updateAudioSyncStatus('BLOCKED: needs interaction');
-                                console.log('Autoplay blocked - user interaction required:', err.message);
-                            });
-                        }
-                        break;
-                    case 'pause':
-                        updateAudioSyncStatus('PAUSED: master paused');
-                        audioPlayer.pause();
-                        break;
-                    case 'seek':
-                        updateAudioSyncStatus('SEEK: ' + Math.floor(audioControlMsgObject.AUDIOCONTROLTIME) + 's');
-                        audioPlayer.currentTime = audioControlMsgObject.AUDIOCONTROLTIME;
-                        break;
-                    case 'speed':
-                        updateAudioSyncStatus('SPEED: ' + audioControlMsgObject.AUDIOCONTROLSPEED + 'x');
-                        audioPlayer.playbackRate = audioControlMsgObject.AUDIOCONTROLSPEED;
-                        break;
-                    case 'volume':
-                        updateAudioSyncStatus('VOLUME: ' + Math.floor(audioControlMsgObject.AUDIOCONTROLVOLUME * 100) + '%');
-                        audioPlayer.volume = audioControlMsgObject.AUDIOCONTROLVOLUME;
-                        break;
-                }
-                console.log('AUDIO CONTROL RECEIVED:', action, audioControlMsgObject);
+            switch(action) {
+                case 'play':
+                    // Check if we have the correct song loaded before playing
+                    let masterSongUrl = audioControlMsgObject.AUDIOCONTROLSONGURL;
+                    let currentSongUrl = $('#jaemzwaredynamicaudiosource').attr('src');
+
+                    if (masterSongUrl && currentSongUrl !== masterSongUrl) {
+                        // Wrong song loaded - load the correct one first, then play
+                        console.log('AUDIO SYNC: Loading correct song before playing:', masterSongUrl);
+                        updateAudioSyncStatus('LOADING: syncing song...');
+                        changeAudio(masterSongUrl, false); // Load and play immediately
+                    } else {
+                        updateAudioSyncStatus('PLAYING: master started');
+                        audioPlayer.play().catch(function(err) {
+                            updateAudioSyncStatus('BLOCKED: needs interaction');
+                            console.log('Autoplay blocked - user interaction required:', err.message);
+                        });
+                    }
+                    break;
+                case 'pause':
+                    updateAudioSyncStatus('PAUSED: master paused');
+                    audioPlayer.pause();
+                    break;
+                case 'seek':
+                    updateAudioSyncStatus('SEEK: ' + Math.floor(audioControlMsgObject.AUDIOCONTROLTIME) + 's');
+                    audioPlayer.currentTime = audioControlMsgObject.AUDIOCONTROLTIME;
+                    break;
+                case 'speed':
+                    updateAudioSyncStatus('SPEED: ' + audioControlMsgObject.AUDIOCONTROLSPEED + 'x');
+                    audioPlayer.playbackRate = audioControlMsgObject.AUDIOCONTROLSPEED;
+                    break;
+                case 'volume':
+                    updateAudioSyncStatus('VOLUME: ' + Math.floor(audioControlMsgObject.AUDIOCONTROLVOLUME * 100) + '%');
+                    audioPlayer.volume = audioControlMsgObject.AUDIOCONTROLVOLUME;
+                    break;
             }
+
+            // Clear flag after a short delay to allow events to settle
+            setTimeout(function() {
+                isApplyingRemoteAudioControl = false;
+            }, 100);
+
+            console.log('AUDIO CONTROL RECEIVED:', action, audioControlMsgObject);
+        }
     });
 
     // Listen for camera broadcaster announcements
@@ -1057,6 +1067,10 @@ function emitPresentImage(imageSrc) {
 }
 
 function emitAudioControl(action, data) {
+    // Don't re-broadcast if we're applying a received command (prevents feedback loop)
+    if(isApplyingRemoteAudioControl) {
+        return;
+    }
     let chatClientUser = $('#chatClientUser').val();
     // Only masteralias can broadcast audio controls (case-insensitive)
     if(chatClientUser.toLowerCase() !== masterAlias.toLowerCase()) {
