@@ -207,15 +207,16 @@ function initializeSocketHandlers(){
         span.prependTo("#messagesdiv");
     });
 
-    // Audio control sync from masteralias
+    // Audio control sync from masteralias - play for everyone who has audio sync enabled
     socket.on(audioControlSocketEvent, function(audioControlMsgObject){
-        let chatClientUser = $("#chatClientUser").val();
-        // Only apply if we're not the masteralias (avoid double action, case-insensitive)
-        if(chatClientUser.toLowerCase() !== masterAlias.toLowerCase()) {
-            let audioPlayer = document.getElementById('jaemzwaredynamicaudioplayer');
-            if(audioPlayer) {
-                let action = audioControlMsgObject.AUDIOCONTROLACTION;
-                switch(action) {
+        let senderUser = audioControlMsgObject.AUDIOCONTROLCLIENTUSER || '';
+        let action = audioControlMsgObject.AUDIOCONTROLACTION;
+        console.log('AUDIO CONTROL EVENT RECEIVED - sender:', senderUser, 'action:', action);
+        updateAudioSyncStatus('RX ' + action.toUpperCase() + ' from:' + senderUser);
+
+        let audioPlayer = document.getElementById('jaemzwaredynamicaudioplayer');
+        if(audioPlayer) {
+            switch(action) {
                     case 'play':
                         // Check if we have the correct song loaded before playing
                         let masterSongUrl = audioControlMsgObject.AUDIOCONTROLSONGURL;
@@ -253,7 +254,6 @@ function initializeSocketHandlers(){
                 }
                 console.log('AUDIO CONTROL RECEIVED:', action, audioControlMsgObject);
             }
-        }
     });
 
     // Listen for camera broadcaster announcements
