@@ -103,6 +103,4 @@ public
 .idea
 .env
 
-sslcert/
-
 deploy*
