@@ -32,6 +32,8 @@ let disconnectSocketEvent = null;
 let socket = null;
 let masterAlias=null;
 let unspecifiedAlias=null;
+let audioSyncEnabled=false; // Track if audio sync is enabled (non-master should not auto-advance)
+let isApplyingRemoteAudioControl=false; // Prevent feedback loop when applying received audio commands
 //free form path drawing vars
 let isDrawing = false;
 let points = [];
@@ -206,41 +208,61 @@ function initializeSocketHandlers(){
         span.prependTo("#messagesdiv");
     });
 
-    // Audio control sync from masteralias
+    // Audio control sync from masteralias - play for everyone who has audio sync enabled
     socket.on(audioControlSocketEvent, function(audioControlMsgObject){
-        let chatClientUser = $("#chatClientUser").val();
-        // Only apply if we're not the masteralias (avoid double action, case-insensitive)
-        if(chatClientUser.toLowerCase() !== masterAlias.toLowerCase()) {
-            let audioPlayer = document.getElementById('jaemzwaredynamicaudioplayer');
-            if(audioPlayer) {
-                let action = audioControlMsgObject.AUDIOCONTROLACTION;
-                switch(action) {
-                    case 'play':
+        let senderUser = audioControlMsgObject.AUDIOCONTROLCLIENTUSER || '';
+        let action = audioControlMsgObject.AUDIOCONTROLACTION;
+        console.log('AUDIO CONTROL EVENT RECEIVED - sender:', senderUser, 'action:', action);
+        updateAudioSyncStatus('RX ' + action.toUpperCase() + ' from:' + senderUser);
+
+        let audioPlayer = document.getElementById('jaemzwaredynamicaudioplayer');
+        if(audioPlayer) {
+            // Set flag to prevent feedback loop (e.g., seek triggers seeked event which would re-broadcast)
+            isApplyingRemoteAudioControl = true;
+
+            switch(action) {
+                case 'play':
+                    // Check if we have the correct song loaded before playing
+                    let masterSongUrl = audioControlMsgObject.AUDIOCONTROLSONGURL;
+                    let currentSongUrl = $('#jaemzwaredynamicaudiosource').attr('src');
+
+                    if (masterSongUrl && currentSongUrl !== masterSongUrl) {
+                        // Wrong song loaded - load the correct one first, then play
+                        console.log('AUDIO SYNC: Loading correct song before playing:', masterSongUrl);
+                        updateAudioSyncStatus('LOADING: syncing song...');
+                        changeAudio(masterSongUrl, false); // Load and play immediately
+                    } else {
                         updateAudioSyncStatus('PLAYING: master started');
                         audioPlayer.play().catch(function(err) {
                             updateAudioSyncStatus('BLOCKED: needs interaction');
                             console.log('Autoplay blocked - user interaction required:', err.message);
                         });
-                        break;
-                    case 'pause':
-                        updateAudioSyncStatus('PAUSED: master paused');
-                        audioPlayer.pause();
-                        break;
-                    case 'seek':
-                        updateAudioSyncStatus('SEEK: ' + Math.floor(audioControlMsgObject.AUDIOCONTROLTIME) + 's');
-                        audioPlayer.currentTime = audioControlMsgObject.AUDIOCONTROLTIME;
-                        break;
-                    case 'speed':
-                        updateAudioSyncStatus('SPEED: ' + audioControlMsgObject.AUDIOCONTROLSPEED + 'x');
-                        audioPlayer.playbackRate = audioControlMsgObject.AUDIOCONTROLSPEED;
-                        break;
-                    case 'volume':
-                        updateAudioSyncStatus('VOLUME: ' + Math.floor(audioControlMsgObject.AUDIOCONTROLVOLUME * 100) + '%');
-                        audioPlayer.volume = audioControlMsgObject.AUDIOCONTROLVOLUME;
-                        break;
-                }
-                console.log('AUDIO CONTROL RECEIVED:', action, audioControlMsgObject);
+                    }
+                    break;
+                case 'pause':
+                    updateAudioSyncStatus('PAUSED: master paused');
+                    audioPlayer.pause();
+                    break;
+                case 'seek':
+                    updateAudioSyncStatus('SEEK: ' + Math.floor(audioControlMsgObject.AUDIOCONTROLTIME) + 's');
+                    audioPlayer.currentTime = audioControlMsgObject.AUDIOCONTROLTIME;
+                    break;
+                case 'speed':
+                    updateAudioSyncStatus('SPEED: ' + audioControlMsgObject.AUDIOCONTROLSPEED + 'x');
+                    audioPlayer.playbackRate = audioControlMsgObject.AUDIOCONTROLSPEED;
+                    break;
+                case 'volume':
+                    updateAudioSyncStatus('VOLUME: ' + Math.floor(audioControlMsgObject.AUDIOCONTROLVOLUME * 100) + '%');
+                    audioPlayer.volume = audioControlMsgObject.AUDIOCONTROLVOLUME;
+                    break;
             }
+
+            // Clear flag after a short delay to allow events to settle
+            setTimeout(function() {
+                isApplyingRemoteAudioControl = false;
+            }, 100);
+
+            console.log('AUDIO CONTROL RECEIVED:', action, audioControlMsgObject);
         }
     });
 
@@ -311,10 +333,10 @@ function onBaseChatSocketEvent(chatMsgObject){
     
     //smart link - recognize chat links (only at the very beginning of the message), and display them appropriately.
     if(chatClientMessage.indexOf("#CLEARBOARD;")===0) {
-        if(remoteChatClientUser===masterAlias)
+        if(remoteChatClientUser.toLowerCase()===masterAlias.toLowerCase())
             clearGameBoard();
     } else if (chatClientMessage.indexOf("#CLEARCHAT;")===0) {
-        if(remoteChatClientUser===masterAlias)
+        if(remoteChatClientUser.toLowerCase()===masterAlias.toLowerCase())
             clearChat();
     }
     else if (
@@ -350,12 +372,12 @@ function onBaseChatSocketEvent(chatMsgObject){
 
                 img.prependTo("#messagesdiv");
             }
-            else if((chatClientMessage.toLowerCase().endsWith(".mp3") || chatClientMessage.toLowerCase().endsWith(".flac")) && remoteChatClientUser===masterAlias)
+            else if((chatClientMessage.toLowerCase().endsWith(".mp3") || chatClientMessage.toLowerCase().endsWith(".flac")) && remoteChatClientUser.toLowerCase()===masterAlias.toLowerCase())
             {
                 // Load audio paused so everyone can buffer, then master clicks play to sync start
                 changeAudio(chatClientMessage, true);
             }
-            else if((chatClientMessage.toLowerCase().endsWith(".mp4") || chatClientMessage.toLowerCase().endsWith(".mov")) && remoteChatClientUser===masterAlias)
+            else if((chatClientMessage.toLowerCase().endsWith(".mp4") || chatClientMessage.toLowerCase().endsWith(".mov")) && remoteChatClientUser.toLowerCase()===masterAlias.toLowerCase())
             {
                 changeMp4(chatClientMessage);
             }
@@ -641,7 +663,7 @@ $('#selectsongs').change(function(){
     let songToPlay = $('#selectsongs option:selected').attr("value");
     let chatClientUser = $("#chatClientUser").val();
 
-    if(chatClientUser===masterAlias){
+    if(chatClientUser.toLowerCase()===masterAlias.toLowerCase()){
         // If the song path is relative (doesn't start with http), prepend server origin
         let songUrl = songToPlay;
         if (!songToPlay.toLowerCase().startsWith('http://') && !songToPlay.toLowerCase().startsWith('https://')) {
@@ -801,6 +823,16 @@ $('#jaemzwaredynamicvideoplayer').bind("ended", function(){
 //AUDIO PLAYER HTML EVENTS
 $('#jaemzwaredynamicaudioplayer').bind("ended", function(){
     let currentFile = $(this).children(":first").attr('src');
+    let chatClientUser = $("#chatClientUser").val();
+
+    // If audio sync is enabled and user is NOT master, don't auto-advance
+    // Wait for master to select the next song to stay in sync
+    if (audioSyncEnabled && chatClientUser.toLowerCase() !== masterAlias.toLowerCase()) {
+        updateAudioSyncStatus('ENDED: waiting for master');
+        console.log('Audio sync enabled - waiting for master to select next track');
+        return;
+    }
+
     PlayNextTrack(currentFile);
 });
 $('#nextaudiotrack').click(function(){
@@ -818,6 +850,7 @@ $('#enableaudiosync').click(function(){
             audioPlayer.pause();
             audioPlayer.currentTime = 0;
             audioPlayer.volume = savedVolume;
+            audioSyncEnabled = true; // Mark sync as enabled - non-master won't auto-advance
             updateAudioSyncStatus('READY: audio sync enabled');
             $('#enableaudiosync').text('Audio Sync Enabled').attr('disabled', true).addClass('disabled-button');
         }).catch(function(err) {
@@ -851,7 +884,7 @@ $('#selectvideos').change(function(){
     let chatClientUser = $("#chatClientUser").val();
 
     // Don't broadcast camera streams to other users (they're local device streams)
-    if(chatClientUser===masterAlias && !videoToPlay.startsWith('camera://')){
+    if(chatClientUser.toLowerCase()===masterAlias.toLowerCase() && !videoToPlay.startsWith('camera://')){
         // If the video path is relative (doesn't start with http), prepend server origin
         let videoUrl = videoToPlay;
         if (!videoToPlay.toLowerCase().startsWith('http://') && !videoToPlay.toLowerCase().startsWith('https://')) {
@@ -882,7 +915,7 @@ $('.photosformthumbnail').on("click", function() {
 
     // Set the background image for everyone
     let chatClientUser = $("#chatClientUser").val();
-    if(chatClientUser===masterAlias){
+    if(chatClientUser.toLowerCase()===masterAlias.toLowerCase()){
         emitPresentImage(imageSrc);
     }
 
@@ -894,7 +927,7 @@ $('.photosformthumbnail').on("click", function() {
 $('#clearboardbutton').on("click", function() {
     clearGameBoard();
     let chatClientUser = $("#chatClientUser").val();
-    if(chatClientUser===masterAlias) {
+    if(chatClientUser.toLowerCase()===masterAlias.toLowerCase()) {
         emitChatMessage("#CLEARBOARD;");
     }
 });
@@ -917,7 +950,7 @@ $('#animals').on('change', function() {
 $('#clearchatbutton').on("click", function() {
     clearChat();
     let chatClientUser = $("#chatClientUser").val();
-    if(chatClientUser===masterAlias) {
+    if(chatClientUser.toLowerCase()===masterAlias.toLowerCase()) {
         emitChatMessage("#CLEARCHAT;");
     }
 });
@@ -1034,6 +1067,10 @@ function emitPresentImage(imageSrc) {
 }
 
 function emitAudioControl(action, data) {
+    // Don't re-broadcast if we're applying a received command (prevents feedback loop)
+    if(isApplyingRemoteAudioControl) {
+        return;
+    }
     let chatClientUser = $('#chatClientUser').val();
     // Only masteralias can broadcast audio controls (case-insensitive)
     if(chatClientUser.toLowerCase() !== masterAlias.toLowerCase()) {
@@ -1041,11 +1078,19 @@ function emitAudioControl(action, data) {
     }
     // Show master what they're broadcasting
     updateAudioSyncStatus('TX ' + action.toUpperCase());
+
+    // For play action, include the current song URL so clients can verify/load correct song
     let audioControlObject = {
         AUDIOCONTROLACTION: action,
         AUDIOCONTROLCLIENTUSER: chatClientUser,
         ...data
     };
+
+    if (action === 'play') {
+        let currentSongUrl = $('#jaemzwaredynamicaudiosource').attr('src');
+        audioControlObject.AUDIOCONTROLSONGURL = currentSongUrl;
+    }
+
     socket.emit(audioControlSocketEvent, audioControlObject);
 }
 

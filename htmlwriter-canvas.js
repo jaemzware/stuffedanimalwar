@@ -19,10 +19,10 @@ function writeStuffedAnimalWar(stuffedAnimalMediaObject, readonly = false){
         document.write("<div class='section-header collapsible' data-target='canvas-complete-content' style='cursor: pointer; user-select: none; margin-top: 10px; padding: 8px 12px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 6px;'>");
         document.write("<span class='section-icon'>🎨</span>");
         document.write("<h3 class='section-title' style='margin: 0; color: white;'>Canvas</h3>");
-        document.write("<span class='collapse-indicator'>▼</span>");
+        document.write("<span class='collapse-indicator'>▶</span>");
         document.write("</div>");
 
-        document.write("<div id='canvas-complete-content' class='section-content'>");
+        document.write("<div id='canvas-complete-content' class='section-content' style='display:none;'>");
         document.write("<div id='sawflexdiv'>");
         writeStuffedAnimalWarDiv(stuffedAnimalMediaObject, false);
         writeStuffedAnimalWarForm(stuffedAnimalMediaObject);
@@ -288,10 +288,10 @@ function writeAudioFromJson(mediaObject){
             document.write("<div class='section-header collapsible' data-target='audio-content' style='cursor: pointer; user-select: none;'>");
             document.write("<span class='section-icon'>🎵</span>");
             document.write("<h3 class='section-title'>Audio Player</h3>");
-            document.write("<span class='collapse-indicator'>▼</span>");
+            document.write("<span class='collapse-indicator'>▶</span>");
             document.write("</div>");
 
-            document.write("<div class='audio-content section-content' id='audio-content'>");
+            document.write("<div class='audio-content section-content' id='audio-content' style='display:none;'>");
                 document.write("<div class='input-group full-width'>");
                     document.write("<label for='selectsongs' id='selectsongs-label' class='input-label'>Select Track</label>");
                     document.write("<select id=\"selectsongs\" class='modern-select'>");
@@ -350,10 +350,10 @@ function writeVideoFromJson(mediaObject){
             document.write("<div class='section-header collapsible' data-target='video-content' style='cursor: pointer; user-select: none;'>");
             document.write("<span class='section-icon'>🎬</span>");
             document.write("<h3 class='section-title'>Video Player</h3>");
-            document.write("<span class='collapse-indicator'>▼</span>");
+            document.write("<span class='collapse-indicator'>▶</span>");
             document.write("</div>");
 
-            document.write("<div class='video-content section-content' id='video-content'>");
+            document.write("<div class='video-content section-content' id='video-content' style='display:none;'>");
                 document.write("<div class='input-group full-width'>");
                     document.write("<label for='selectvideos' class='input-label'>Select Video</label>");
                     document.write("<select id=\"selectvideos\" class='modern-select'>");
@@ -426,10 +426,10 @@ function writePhotosFromJson(mediaObject){
             document.write("<div class='section-header collapsible' data-target='photo-gallery' style='cursor: pointer; user-select: none;'>");
             document.write("<span class='section-icon'>🖼️</span>");
             document.write("<h3 class='section-title'>Photo Gallery</h3>");
-            document.write("<span class='collapse-indicator'>▼</span>");
+            document.write("<span class='collapse-indicator'>▶</span>");
             document.write("</div>");
 
-            document.write("<div class=\"photo-gallery section-content\" id='photo-gallery'>");
+            document.write("<div class=\"photo-gallery section-content\" id='photo-gallery' style='display:none;'>");
             //paint the photos
             let isExternalPath = mediaObject.photospath.startsWith("http://") || mediaObject.photospath.startsWith("https://");
             for (let i=0;i<mediaObject.photos.length;i++){
@@ -473,11 +473,11 @@ function writeChatForm(responsesObject) {
         document.write("</div>");
         document.write("<div style='display: flex; align-items: center; gap: 10px;'>");
         document.write("<span id='endpointInfo' class='endpoint-info' style='margin: 0; padding: 4px 8px;'>Endpoint: <span id='endpointDisplay'></span> | Master: <span id='masterAliasDisplay'></span> | Default: <span id='unspecifiedAliasDisplay'></span></span>");
-        document.write("<span class='collapse-indicator'>▼</span>");
+        document.write("<span class='collapse-indicator'>▶</span>");
         document.write("</div>");
         document.write("</div>");
 
-        document.write("<div class='chat-content section-content' id='chat-content'>");
+        document.write("<div class='chat-content section-content' id='chat-content' style='display:none;'>");
         document.write("<div class='chat-controls'>");
             document.write("<div class='input-group'>");
                 document.write("<label for='chatClientUser' class='input-label'>Alias</label>");
@@ -518,10 +518,10 @@ function writeChatMessagesSection() {
         document.write("<div class='section-header collapsible' data-target='chat-messages-content' style='cursor: pointer; user-select: none;'>");
         document.write("<span class='section-icon'>📜</span>");
         document.write("<h3 class='section-title'>Chat Messages</h3>");
-        document.write("<span class='collapse-indicator'>▼</span>");
+        document.write("<span class='collapse-indicator'>▶</span>");
         document.write("</div>");
 
-        document.write("<div class='chat-messages-content section-content' id='chat-messages-content'>");
+        document.write("<div class='chat-messages-content section-content' id='chat-messages-content' style='display:none;'>");
         document.write("<div id=\"messagesdiv\" style=\"height: 350px; overflow-y: auto; overflow-x: hidden;\"></div>");
         document.write("</div>");
 
@@ -536,10 +536,10 @@ function writeCameraSection() {
         document.write("<div class='section-header collapsible' data-target='camera-content' style='cursor: pointer; user-select: none;'>");
         document.write("<span class='section-icon'>📹</span>");
         document.write("<h3 class='section-title'>Camera</h3>");
-        document.write("<span class='collapse-indicator'>▼</span>");
+        document.write("<span class='collapse-indicator'>▶</span>");
         document.write("</div>");
 
-        document.write("<div class='camera-content section-content' id='camera-content'>");
+        document.write("<div class='camera-content section-content' id='camera-content' style='display:none;'>");
 
         // Voice chat controls
         document.write("<div class='voice-chat-controls' style='display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 15px; padding: 10px; background: rgba(0, 0, 0, 0.3); border-radius: 8px;'>");
@@ -622,78 +622,83 @@ function writeCameraSection() {
     document.write("</form>");
     document.write("</div>");
 }
-function writeChatFormFileUpload() {
+function writeMediaUploadSection() {
     document.write("<div class='section-container' style='margin-top: 15px;'>");
 
-    // Combined header for both photo and video uploads
+    // Header for media uploads
     document.write("<div class='section-header collapsible' data-target='uploads-content' style='cursor: pointer; user-select: none; padding: 8px 12px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 6px; margin-bottom: 0;'>");
         document.write("<span class='section-icon'>📤</span>");
         document.write("<h3 class='section-title' style='margin: 0; color: white;'>Media Upload</h3>");
-        document.write("<span class='collapse-indicator'>▼</span>");
+        document.write("<span class='collapse-indicator'>▶</span>");
     document.write("</div>");
 
-    document.write("<div class='section-content' id='uploads-content' style='padding: 15px 0; overflow-x: hidden;'>");
+    document.write("<div class='section-content' id='uploads-content' style='display:none; padding: 10px 0;'>");
 
-    document.write("<div id='fileUploadContainer' class='upload-container' style='margin-bottom: 20px;'>");
+    // Side-by-side container for photo and video uploads
+    document.write("<div style='display: flex; gap: 15px; flex-wrap: wrap;'>");
+
+    // Photo Upload (left side)
+    document.write("<div id='fileUploadContainer' class='upload-container' style='flex: 1; min-width: 200px;'>");
         document.write("<form id=\"uploadForm\" enctype=\"multipart/form-data\" class='upload-form'>");
-            document.write("<div style='padding: 10px 0; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1);'>");
-                document.write("<span style='font-size: 18px; margin-right: 8px;'>📸</span>");
-                document.write("<span style='font-size: 14px; font-weight: 600; color: #fff;'>Photo Upload</span>");
+            document.write("<div style='padding: 6px 0; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);'>");
+                document.write("<span style='font-size: 14px; margin-right: 6px;'>📸</span>");
+                document.write("<span style='font-size: 13px; font-weight: 600; color: #fff;'>Photo</span>");
             document.write("</div>");
-            document.write("<div class='upload-content'>");
-                document.write("<label for='imageFileInput' class='file-input-wrapper'>");
+            document.write("<div class='upload-content' style='display: flex; align-items: center; gap: 8px; flex-wrap: wrap;'>");
+                document.write("<label for='imageFileInput' class='file-input-wrapper' style='flex: 1; min-width: 120px;'>");
                     document.write("<input type=\"file\" id='imageFileInput' name=\"image\" accept=\"image/*\" required class='file-input'>");
-                    document.write("<div class='file-input-button'>");
+                    document.write("<div class='file-input-button' style='padding: 6px 10px; font-size: 12px;'>");
                         document.write("<span class='file-input-icon'>📁</span>");
-                        document.write("<span class='file-input-text'>Choose Photo</span>");
+                        document.write("<span class='file-input-text'>Choose</span>");
                     document.write("</div>");
-                    document.write("<div class='file-input-label' id='imageFileName'>No file selected</div>");
+                    document.write("<div class='file-input-label' id='imageFileName' style='font-size: 11px;'>No file</div>");
                 document.write("</label>");
-                document.write("<button type=\"submit\" class='upload-submit-button'>");
+                document.write("<button type=\"submit\" class='upload-submit-button' style='padding: 6px 12px; font-size: 12px;'>");
                     document.write("<span class='upload-submit-icon'>⬆</span>");
-                    document.write("<span class='upload-submit-text'>Upload</span>");
                 document.write("</button>");
-            document.write("<div class='upload-progress'>");
-                document.write("<div id=\"progressIndicator\" class='progress-text'>Ready to upload</div>");
-                document.write("<div class='progress-bar-container'><div id='imageProgressBar' class='progress-bar'></div></div>");
             document.write("</div>");
-            document.write("<div class='upload-info'>Max size: 50MB</div>");
-            document.write("</div>"); // Close upload-content
-        document.write("</form>");
-    document.write("</div>");
-}
-function writeChatFormVideoUpload() {
-    document.write("<div id='videoUploadContainer' class='upload-container' style='margin-bottom: 20px;'>");
-        document.write("<form id=\"videoUploadForm\" enctype=\"multipart/form-data\" class='upload-form'>");
-            document.write("<div style='padding: 10px 0; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1);'>");
-                document.write("<span style='font-size: 18px; margin-right: 8px;'>🎥</span>");
-                document.write("<span style='font-size: 14px; font-weight: 600; color: #fff;'>Video Upload</span>");
+            document.write("<div class='upload-progress' style='margin-top: 6px;'>");
+                document.write("<div id=\"progressIndicator\" class='progress-text' style='font-size: 10px;'>Ready</div>");
+                document.write("<div class='progress-bar-container' style='height: 3px;'><div id='imageProgressBar' class='progress-bar'></div></div>");
             document.write("</div>");
-            document.write("<div class='upload-content'>");
-                document.write("<label for='videoFileInput' class='file-input-wrapper'>");
-                    document.write("<input type=\"file\" id='videoFileInput' name=\"video\" accept=\"video/*\" required class='file-input'>");
-                    document.write("<div class='file-input-button'>");
-                        document.write("<span class='file-input-icon'>📁</span>");
-                        document.write("<span class='file-input-text'>Choose Video</span>");
-                    document.write("</div>");
-                    document.write("<div class='file-input-label' id='videoFileName'>No file selected</div>");
-                document.write("</label>");
-                document.write("<button type=\"submit\" class='upload-submit-button'>");
-                    document.write("<span class='upload-submit-icon'>⬆</span>");
-                    document.write("<span class='upload-submit-text'>Upload</span>");
-                document.write("</button>");
-            document.write("<div class='upload-progress'>");
-                document.write("<div id=\"videoProgressIndicator\" class='progress-text'>Ready to upload</div>");
-                document.write("<div class='progress-bar-container'><div id='videoProgressBar' class='progress-bar'></div></div>");
-            document.write("</div>");
-            document.write("<div class='upload-info'>Max size: 50MB</div>");
-            document.write("</div>"); // Close upload-content
         document.write("</form>");
     document.write("</div>");
 
+    // Video Upload (right side)
+    document.write("<div id='videoUploadContainer' class='upload-container' style='flex: 1; min-width: 200px;'>");
+        document.write("<form id=\"videoUploadForm\" enctype=\"multipart/form-data\" class='upload-form'>");
+            document.write("<div style='padding: 6px 0; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);'>");
+                document.write("<span style='font-size: 14px; margin-right: 6px;'>🎥</span>");
+                document.write("<span style='font-size: 13px; font-weight: 600; color: #fff;'>Video</span>");
+            document.write("</div>");
+            document.write("<div class='upload-content' style='display: flex; align-items: center; gap: 8px; flex-wrap: wrap;'>");
+                document.write("<label for='videoFileInput' class='file-input-wrapper' style='flex: 1; min-width: 120px;'>");
+                    document.write("<input type=\"file\" id='videoFileInput' name=\"video\" accept=\"video/*\" required class='file-input'>");
+                    document.write("<div class='file-input-button' style='padding: 6px 10px; font-size: 12px;'>");
+                        document.write("<span class='file-input-icon'>📁</span>");
+                        document.write("<span class='file-input-text'>Choose</span>");
+                    document.write("</div>");
+                    document.write("<div class='file-input-label' id='videoFileName' style='font-size: 11px;'>No file</div>");
+                document.write("</label>");
+                document.write("<button type=\"submit\" class='upload-submit-button' style='padding: 6px 12px; font-size: 12px;'>");
+                    document.write("<span class='upload-submit-icon'>⬆</span>");
+                document.write("</button>");
+            document.write("</div>");
+            document.write("<div class='upload-progress' style='margin-top: 6px;'>");
+                document.write("<div id=\"videoProgressIndicator\" class='progress-text' style='font-size: 10px;'>Ready</div>");
+                document.write("<div class='progress-bar-container' style='height: 3px;'><div id='videoProgressBar' class='progress-bar'></div></div>");
+            document.write("</div>");
+        document.write("</form>");
+    document.write("</div>");
+
+    document.write("</div>"); // Close flex container
     document.write("</div>"); // Close uploads-content
     document.write("</div>"); // Close section-container
 }
+
+// Keep old function names for backward compatibility (they now do nothing)
+function writeChatFormFileUpload() {}
+function writeChatFormVideoUpload() {}
 function writeDefaultAutoResponderOptions(responsesObject){
     document.write("<option value=\"blank\" selected>--I don't know what to say--</option>");
     responsesObject.responses.forEach(item => {
