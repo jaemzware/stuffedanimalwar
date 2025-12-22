@@ -19,10 +19,10 @@ function writeStuffedAnimalWar(stuffedAnimalMediaObject, readonly = false){
         document.write("<div class='section-header collapsible' data-target='canvas-complete-content' style='cursor: pointer; user-select: none; margin-top: 10px; padding: 8px 12px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 6px;'>");
         document.write("<span class='section-icon'>🎨</span>");
         document.write("<h3 class='section-title' style='margin: 0; color: white;'>Canvas</h3>");
-        document.write("<span class='collapse-indicator'>▼</span>");
+        document.write("<span class='collapse-indicator'>▶</span>");
         document.write("</div>");
 
-        document.write("<div id='canvas-complete-content' class='section-content'>");
+        document.write("<div id='canvas-complete-content' class='section-content' style='display:none;'>");
         document.write("<div id='sawflexdiv'>");
         writeStuffedAnimalWarDiv(stuffedAnimalMediaObject, false);
         writeStuffedAnimalWarForm(stuffedAnimalMediaObject);
@@ -288,10 +288,10 @@ function writeAudioFromJson(mediaObject){
             document.write("<div class='section-header collapsible' data-target='audio-content' style='cursor: pointer; user-select: none;'>");
             document.write("<span class='section-icon'>🎵</span>");
             document.write("<h3 class='section-title'>Audio Player</h3>");
-            document.write("<span class='collapse-indicator'>▼</span>");
+            document.write("<span class='collapse-indicator'>▶</span>");
             document.write("</div>");
 
-            document.write("<div class='audio-content section-content' id='audio-content'>");
+            document.write("<div class='audio-content section-content' id='audio-content' style='display:none;'>");
                 document.write("<div class='input-group full-width'>");
                     document.write("<label for='selectsongs' id='selectsongs-label' class='input-label'>Select Track</label>");
                     document.write("<select id=\"selectsongs\" class='modern-select'>");
@@ -350,10 +350,10 @@ function writeVideoFromJson(mediaObject){
             document.write("<div class='section-header collapsible' data-target='video-content' style='cursor: pointer; user-select: none;'>");
             document.write("<span class='section-icon'>🎬</span>");
             document.write("<h3 class='section-title'>Video Player</h3>");
-            document.write("<span class='collapse-indicator'>▼</span>");
+            document.write("<span class='collapse-indicator'>▶</span>");
             document.write("</div>");
 
-            document.write("<div class='video-content section-content' id='video-content'>");
+            document.write("<div class='video-content section-content' id='video-content' style='display:none;'>");
                 document.write("<div class='input-group full-width'>");
                     document.write("<label for='selectvideos' class='input-label'>Select Video</label>");
                     document.write("<select id=\"selectvideos\" class='modern-select'>");
@@ -426,10 +426,10 @@ function writePhotosFromJson(mediaObject){
             document.write("<div class='section-header collapsible' data-target='photo-gallery' style='cursor: pointer; user-select: none;'>");
             document.write("<span class='section-icon'>🖼️</span>");
             document.write("<h3 class='section-title'>Photo Gallery</h3>");
-            document.write("<span class='collapse-indicator'>▼</span>");
+            document.write("<span class='collapse-indicator'>▶</span>");
             document.write("</div>");
 
-            document.write("<div class=\"photo-gallery section-content\" id='photo-gallery'>");
+            document.write("<div class=\"photo-gallery section-content\" id='photo-gallery' style='display:none;'>");
             //paint the photos
             let isExternalPath = mediaObject.photospath.startsWith("http://") || mediaObject.photospath.startsWith("https://");
             for (let i=0;i<mediaObject.photos.length;i++){
@@ -473,11 +473,11 @@ function writeChatForm(responsesObject) {
         document.write("</div>");
         document.write("<div style='display: flex; align-items: center; gap: 10px;'>");
         document.write("<span id='endpointInfo' class='endpoint-info' style='margin: 0; padding: 4px 8px;'>Endpoint: <span id='endpointDisplay'></span> | Master: <span id='masterAliasDisplay'></span> | Default: <span id='unspecifiedAliasDisplay'></span></span>");
-        document.write("<span class='collapse-indicator'>▼</span>");
+        document.write("<span class='collapse-indicator'>▶</span>");
         document.write("</div>");
         document.write("</div>");
 
-        document.write("<div class='chat-content section-content' id='chat-content'>");
+        document.write("<div class='chat-content section-content' id='chat-content' style='display:none;'>");
         document.write("<div class='chat-controls'>");
             document.write("<div class='input-group'>");
                 document.write("<label for='chatClientUser' class='input-label'>Alias</label>");
@@ -518,10 +518,10 @@ function writeChatMessagesSection() {
         document.write("<div class='section-header collapsible' data-target='chat-messages-content' style='cursor: pointer; user-select: none;'>");
         document.write("<span class='section-icon'>📜</span>");
         document.write("<h3 class='section-title'>Chat Messages</h3>");
-        document.write("<span class='collapse-indicator'>▼</span>");
+        document.write("<span class='collapse-indicator'>▶</span>");
         document.write("</div>");
 
-        document.write("<div class='chat-messages-content section-content' id='chat-messages-content'>");
+        document.write("<div class='chat-messages-content section-content' id='chat-messages-content' style='display:none;'>");
         document.write("<div id=\"messagesdiv\" style=\"height: 350px; overflow-y: auto; overflow-x: hidden;\"></div>");
         document.write("</div>");
 
@@ -536,10 +536,10 @@ function writeCameraSection() {
         document.write("<div class='section-header collapsible' data-target='camera-content' style='cursor: pointer; user-select: none;'>");
         document.write("<span class='section-icon'>📹</span>");
         document.write("<h3 class='section-title'>Camera</h3>");
-        document.write("<span class='collapse-indicator'>▼</span>");
+        document.write("<span class='collapse-indicator'>▶</span>");
         document.write("</div>");
 
-        document.write("<div class='camera-content section-content' id='camera-content'>");
+        document.write("<div class='camera-content section-content' id='camera-content' style='display:none;'>");
 
         // Voice chat controls
         document.write("<div class='voice-chat-controls' style='display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 15px; padding: 10px; background: rgba(0, 0, 0, 0.3); border-radius: 8px;'>");
@@ -629,10 +629,10 @@ function writeMediaUploadSection() {
     document.write("<div class='section-header collapsible' data-target='uploads-content' style='cursor: pointer; user-select: none; padding: 8px 12px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 6px; margin-bottom: 0;'>");
         document.write("<span class='section-icon'>📤</span>");
         document.write("<h3 class='section-title' style='margin: 0; color: white;'>Media Upload</h3>");
-        document.write("<span class='collapse-indicator'>▼</span>");
+        document.write("<span class='collapse-indicator'>▶</span>");
     document.write("</div>");
 
-    document.write("<div class='section-content' id='uploads-content' style='padding: 10px 0;'>");
+    document.write("<div class='section-content' id='uploads-content' style='display:none; padding: 10px 0;'>");
 
     // Side-by-side container for photo and video uploads
     document.write("<div style='display: flex; gap: 15px; flex-wrap: wrap;'>");
