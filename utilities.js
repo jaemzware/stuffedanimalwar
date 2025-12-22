@@ -103,10 +103,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
     console.log('Found', collapsibleHeaders.length, 'collapsible sections');
 
+    // Collapse all sections by default on page load
+    const allSectionsOnLoad = document.querySelectorAll('.section-content');
+    allSectionsOnLoad.forEach(section => {
+        section.style.display = 'none';
+    });
+    collapsibleHeaders.forEach(header => {
+        const indicator = header.querySelector('.collapse-indicator');
+        if (indicator) {
+            indicator.textContent = '▶';
+        }
+    });
+    console.log('All sections collapsed by default');
+
     // Collapse All button functionality
     const collapseAllButton = document.getElementById('collapseAllButton');
     if (collapseAllButton) {
-        let allExpanded = true; // Track current state
+        let allExpanded = false; // Start collapsed
+        collapseAllButton.textContent = 'Expand All Sections';
 
         collapseAllButton.addEventListener('click', function() {
             const allSections = document.querySelectorAll('.section-content');
