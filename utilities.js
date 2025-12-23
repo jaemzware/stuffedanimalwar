@@ -3,18 +3,10 @@
  */
 // Initialize the color picker after page is fully loaded
 document.addEventListener('DOMContentLoaded', function() {
-    // Fix for mobile canvas rendering issue - force repaint on load
+    // Enable GPU compositing for smoother canvas rendering on mobile
     const canvas = document.getElementById('stuffedanimalwarcanvas');
-    if (canvas && window.innerWidth <= 768) {
-        console.log('Mobile detected - forcing canvas repaint');
-        setTimeout(() => {
-            // Force repaint by toggling a style
-            canvas.style.transform = 'translateZ(0)';
-            // Trigger a redraw
-            if (typeof drawCanvas === 'function') {
-                drawCanvas();
-            }
-        }, 100);
+    if (canvas) {
+        canvas.style.transform = 'translateZ(0)';
     }
     // COLOR PICKER BUTTON CALLBACK FOR RGB VALUES
     if (document.getElementById('colorPickerButton')) {
