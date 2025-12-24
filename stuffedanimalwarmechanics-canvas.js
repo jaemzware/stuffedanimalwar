@@ -32,24 +32,40 @@ let backgroundImageLoaded = false;
 document.addEventListener('DOMContentLoaded', function() {
     canvas = document.getElementById('stuffedanimalwarcanvas');
     if (canvas) {
-        // Set canvas size to match the container
-        resizeCanvas();
+        ctx = canvas.getContext('2d');
         window.addEventListener('resize', resizeCanvas);
 
-        ctx = canvas.getContext('2d');
+        // Use requestAnimationFrame to ensure browser has completed layout
+        // This fixes the race condition where CSS styles aren't fully applied yet
+        function initializeWhenReady() {
+            requestAnimationFrame(function() {
+                resizeCanvas();
 
-        // Check for initial background image from CSS
-        const initialBg = $(canvas).css('background-image');
-        if (initialBg && initialBg !== 'none') {
-            // Extract URL from CSS url() format
-            const urlMatch = initialBg.match(/url\(["']?([^"')]+)["']?\)/);
-            if (urlMatch && urlMatch[1]) {
-                setBackgroundImage(urlMatch[1]);
-            }
+                // Check if canvas got valid dimensions
+                if (canvas.width <= 0 || canvas.height <= 0) {
+                    console.log('Canvas dimensions not ready, retrying...');
+                    // Retry after a short delay if dimensions are invalid
+                    setTimeout(initializeWhenReady, 50);
+                    return;
+                }
+
+                // Check for initial background image from CSS
+                const initialBg = $(canvas).css('background-image');
+                if (initialBg && initialBg !== 'none') {
+                    // Extract URL from CSS url() format
+                    const urlMatch = initialBg.match(/url\(["']?([^"')]+)["']?\)/);
+                    if (urlMatch && urlMatch[1]) {
+                        setBackgroundImage(urlMatch[1]);
+                    }
+                }
+
+                // Start the game loop
+                startGameLoop();
+                console.log('Canvas initialized with dimensions:', canvas.width, 'x', canvas.height);
+            });
         }
 
-        // Start the game loop
-        startGameLoop();
+        initializeWhenReady();
     }
 });
 
@@ -58,8 +74,23 @@ function resizeCanvas() {
 
     const container = document.getElementById('stuffedanimalwardiv');
     if (container) {
-        canvas.width = container.clientWidth;
-        canvas.height = container.clientHeight;
+        // Use getBoundingClientRect for more reliable dimensions
+        const rect = container.getBoundingClientRect();
+        let width = rect.width || container.clientWidth;
+        let height = rect.height || container.clientHeight;
+
+        // If height is still 0, try to get min-height from computed styles
+        if (height <= 0) {
+            const computedStyle = window.getComputedStyle(container);
+            const minHeight = parseInt(computedStyle.minHeight, 10);
+            if (minHeight > 0) {
+                height = minHeight;
+            }
+        }
+
+        // Final fallback to reasonable defaults
+        canvas.width = width > 0 ? width : window.innerWidth * 0.67;
+        canvas.height = height > 0 ? height : 500;
     } else {
         // Fallback to window size
         canvas.width = window.innerWidth;

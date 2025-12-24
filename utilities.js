@@ -3,18 +3,10 @@
  */
 // Initialize the color picker after page is fully loaded
 document.addEventListener('DOMContentLoaded', function() {
-    // Fix for mobile canvas rendering issue - force repaint on load
+    // Enable GPU compositing for smoother canvas rendering on mobile
     const canvas = document.getElementById('stuffedanimalwarcanvas');
-    if (canvas && window.innerWidth <= 768) {
-        console.log('Mobile detected - forcing canvas repaint');
-        setTimeout(() => {
-            // Force repaint by toggling a style
-            canvas.style.transform = 'translateZ(0)';
-            // Trigger a redraw
-            if (typeof drawCanvas === 'function') {
-                drawCanvas();
-            }
-        }, 100);
+    if (canvas) {
+        canvas.style.transform = 'translateZ(0)';
     }
     // COLOR PICKER BUTTON CALLBACK FOR RGB VALUES
     if (document.getElementById('colorPickerButton')) {
@@ -186,6 +178,15 @@ function updateAudioSyncStatus(status) {
     if (label) {
         label.textContent = 'Select Track [' + status + ']';
         console.log('Audio sync status:', status);
+    }
+}
+
+// Update the Select Video label with video sync status for debugging
+function updateVideoSyncStatus(status) {
+    let label = document.getElementById('selectvideos-label');
+    if (label) {
+        label.textContent = 'Select Video [' + status + ']';
+        console.log('Video sync status:', status);
     }
 }
 
@@ -362,6 +363,67 @@ function changeMp4(mp4Url,coverImageUrl){
     videoElement.pause();
     videoElement.load();
     videoElement.play();
+}
+
+function changeVideo(videoUrl, startPaused) {
+    // startPaused: if true, load and cue up the video but don't play
+    // This allows master to broadcast a video URL, have everyone load it paused,
+    // then when master clicks play, everyone starts together (better sync for high latency)
+    startPaused = startPaused || false;
+
+    let $selectVideos = $('#selectvideos');
+    let optionExists = false;
+
+    // Check if the video exists in the dropdown
+    $selectVideos.find('option').each(function() {
+        if ($(this).val() === videoUrl) {
+            optionExists = true;
+            return false; // break the loop
+        }
+    });
+
+    // If the option doesn't exist, add it dynamically
+    if (!optionExists) {
+        // Extract filename from URL for display (DJ-sent links have filenames)
+        let displayText = videoUrl;
+        try {
+            const urlParts = videoUrl.split('/');
+            const filename = urlParts[urlParts.length - 1];
+            if (filename) {
+                displayText = decodeURIComponent(filename);
+            }
+        } catch (e) {
+            // If filename extraction fails, just use the full URL
+            displayText = videoUrl;
+        }
+
+        let newOption = $('<option>')
+            .val(videoUrl)
+            .text(displayText);
+
+        $selectVideos.append(newOption);
+    }
+
+    // Select the option
+    $selectVideos.val(videoUrl);
+
+    // Change the source of the VIDEO player
+    $('#jaemzwaredynamicvideosource').attr("src", videoUrl);
+    $('#jaemzwaredynamicvideosource').attr("type", "video/mp4");
+
+    let videoPlayer = document.getElementById("jaemzwaredynamicvideoplayer");
+    videoPlayer.load();
+
+    if (startPaused) {
+        // Explicitly pause to stop any currently playing video, cue up the new video
+        videoPlayer.pause();
+        updateVideoSyncStatus('CUED: waiting for master to play');
+        console.log('Video cued up and paused, waiting for master to play:', videoUrl);
+    } else {
+        videoPlayer.play().catch(function(err) {
+            console.log('Autoplay blocked - user interaction required:', err.message);
+        });
+    }
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -176,6 +176,7 @@ const stuffedAnimalWarVoiceOfferSocketEvent = 'voiceoffer';
 const stuffedAnimalWarVoiceAnswerSocketEvent = 'voiceanswer';
 const stuffedAnimalWarVoiceIceCandidateSocketEvent = 'voiceicecandidate';
 const stuffedAnimalWarAudioControlSocketEvent = 'audiocontrol';
+const stuffedAnimalWarVideoControlSocketEvent = 'videocontrol';
 const stuffedAnimalWarPageCounters = stuffedAnimalWarEndpoints.reduce((acc, page) => {
     acc[page] = 0; // Set each page name as a key with an initial value of 0
     return acc;
@@ -1083,6 +1084,10 @@ io.on('connection', function(socket){
             //broadcast audio control to everyone else (play, pause, seek, speed)
             sendAudioControlMessage(endpoint + stuffedAnimalWarAudioControlSocketEvent, audioControlMsgObject);
         });
+        socket.on(endpoint + stuffedAnimalWarVideoControlSocketEvent, (videoControlMsgObject) => {
+            //broadcast video control to everyone else (play, pause, seek, speed)
+            sendVideoControlMessage(endpoint + stuffedAnimalWarVideoControlSocketEvent, videoControlMsgObject);
+        });
         socket.on(endpoint + stuffedAnimalWarVoiceOfferSocketEvent, (offerMsgObject) => {
             //send voice offer to specific peer or broadcast to all in this endpoint
             let voiceClientAddress = getClientIp(socket);
@@ -1374,6 +1379,28 @@ io.on('connection', function(socket){
         console.log('AUDIO CONTROL: [' + connectedSockets + ' sockets] event=' + audioControlSocketEvent + ' ' + JSON.stringify(reorderedAudioControlMsgObject));
 
         io.emit(audioControlSocketEvent, reorderedAudioControlMsgObject);
+    }
+
+    function sendVideoControlMessage(videoControlSocketEvent, videoControlMsgObject){
+        let videoControlClientAddress = getClientIp(socket);
+        let videoControlServerDate = new Date();
+        let videoControlPstString = videoControlServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
+
+        //create reordered object with server fields first
+        const reorderedVideoControlMsgObject = {
+            VIDEOCONTROLSERVERENDPOINT: endpoint,
+            VIDEOCONTROLSERVERPORT: listenPort,
+            VIDEOCONTROLSERVERUSER: videoControlClientAddress,
+            VIDEOCONTROLSERVERDATE: videoControlPstString,
+            VIDEOCONTROLUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
+            ...videoControlMsgObject
+        };
+
+        // Debug: log connected socket count
+        const connectedSockets = io.sockets.sockets.size;
+        console.log('VIDEO CONTROL: [' + connectedSockets + ' sockets] event=' + videoControlSocketEvent + ' ' + JSON.stringify(reorderedVideoControlMsgObject));
+
+        io.emit(videoControlSocketEvent, reorderedVideoControlMsgObject);
     }
 
 });
