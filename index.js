@@ -38,6 +38,80 @@ const THUMB_CACHE_DIR = path.join(__dirname, '.thumbcache');
 const THUMB_WIDTH = 200; // Thumbnail width in pixels
 const setupRouter = require('./pisetup/setup-endpoint'); //RASBERRY PI wifi setup
 
+// File extensions for auto-scanning directories
+const PHOTO_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+const VIDEO_EXTENSIONS = ['.mp4', '.mov', '.avi', '.mkv', '.webm'];
+
+/**
+ * Recursively scan a directory for files with specific extensions
+ * @param {string} basePath - The base directory path to scan
+ * @param {string[]} extensions - Array of valid file extensions (lowercase, with dot)
+ * @param {string} relativePath - Current relative path from basePath (used internally for recursion)
+ * @returns {Array<{file: string, title: string}>} - Array of file objects
+ */
+function scanDirectoryForMedia(basePath, extensions, relativePath = '') {
+    const results = [];
+    const currentPath = relativePath ? path.join(basePath, relativePath) : basePath;
+
+    try {
+        if (!fs.existsSync(currentPath)) {
+            console.log(`Directory does not exist: ${currentPath}`);
+            return results;
+        }
+
+        const entries = fs.readdirSync(currentPath, { withFileTypes: true });
+
+        for (const entry of entries) {
+            const entryRelativePath = relativePath ? path.join(relativePath, entry.name) : entry.name;
+
+            if (entry.isDirectory()) {
+                // Recursively scan subdirectories
+                const subResults = scanDirectoryForMedia(basePath, extensions, entryRelativePath);
+                results.push(...subResults);
+            } else if (entry.isFile()) {
+                const ext = path.extname(entry.name).toLowerCase();
+                if (extensions.includes(ext)) {
+                    // Create title from filename without extension
+                    const title = path.basename(entry.name, ext);
+                    results.push({
+                        file: entryRelativePath,
+                        title: title
+                    });
+                }
+            }
+        }
+    } catch (error) {
+        console.error(`Error scanning directory ${currentPath}:`, error.message);
+    }
+
+    // Sort results alphabetically by file path
+    results.sort((a, b) => a.file.localeCompare(b.file));
+
+    return results;
+}
+
+/**
+ * Auto-populate photos and videos in mediaObject if arrays are empty but paths exist
+ * @param {Object} mediaObject - The media object from config
+ */
+function autoPopulateMedia(mediaObject) {
+    if (!mediaObject) return;
+
+    // Auto-populate photos if array is empty/missing but photospath exists
+    if (mediaObject.photospath && (!mediaObject.photos || mediaObject.photos.length === 0)) {
+        console.log(`Auto-scanning photos from: ${mediaObject.photospath}`);
+        mediaObject.photos = scanDirectoryForMedia(mediaObject.photospath, PHOTO_EXTENSIONS);
+        console.log(`Found ${mediaObject.photos.length} photos`);
+    }
+
+    // Auto-populate videos if array is empty/missing but videospath exists
+    if (mediaObject.videospath && (!mediaObject.videos || mediaObject.videos.length === 0)) {
+        console.log(`Auto-scanning videos from: ${mediaObject.videospath}`);
+        mediaObject.videos = scanDirectoryForMedia(mediaObject.videospath, VIDEO_EXTENSIONS);
+        console.log(`Found ${mediaObject.videos.length} videos`);
+    }
+}
+
 //GET PORT TO LISTEN TO
 if(process.argv.length !== 3){
     console.log(`NO PORT SPECIFIED. USING DEFAULT ${listenPort}`);
@@ -49,6 +123,25 @@ else{
 
 //CONFIGURE EXPRESS TO SERVE STATIC FILES LIKE IMAGES AND SCRIPTS
 app.use(express.static(__dirname));
+
+// Serve files from absolute paths (for photospath/videospath that start with /)
+// This allows configs to use absolute paths like /home/user/media/
+app.get('/home/*', (req, res) => {
+    const requestedPath = req.path; // e.g., /home/jaemzware/analogarchive/music/file.mp4
+
+    // Security: prevent directory traversal
+    if (requestedPath.includes('..')) {
+        return res.status(403).send('Forbidden');
+    }
+
+    // Check if file exists
+    if (fs.existsSync(requestedPath)) {
+        res.sendFile(requestedPath);
+    } else {
+        res.status(404).send('File not found');
+    }
+});
+
 //RASPBERRY PI WIFI SETUP PAGE
 app.use(express.json()); // ADD THIS LINE - Parse JSON request bodies
 app.use(setupRouter);
@@ -350,6 +443,9 @@ stuffedAnimalWarEndpoints.forEach(endpoint => {
                 configData.endpoint = endpoint;
                 configData.masterAlias = endpoint.toUpperCase();
             }
+
+            // Auto-populate photos and videos if arrays are empty but paths exist
+            autoPopulateMedia(configData.mediaObject);
 
             // Always use canvas template (SVG is dead, long live canvas)
             let html = templateCanvasHtml;
