@@ -379,7 +379,13 @@ function changeMp4(mp4Url,coverImageUrl){
     }
     videoElement.pause();
     videoElement.load();
-    videoElement.play();
+    // Handle play promise to avoid AbortError when rapidly changing videos
+    videoElement.play().catch(function(err) {
+        // Ignore AbortError (happens when play is interrupted by pause/load)
+        if (err.name !== 'AbortError') {
+            console.log('Video play error:', err.message);
+        }
+    });
 }
 
 function changeVideo(videoUrl, startPaused) {

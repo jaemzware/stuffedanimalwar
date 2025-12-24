@@ -377,13 +377,23 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Videos Path: <span class="validation-status" id="val-videospath"></span></label>
-                    <input type="text" id="videospath" placeholder="videos/" />
+                    <label>Videos Path (URL): <span class="validation-status" id="val-videospath"></span></label>
+                    <input type="text" id="videospath" placeholder="videos/ or https://analogarchive.com/analog/music/" />
                 </div>
 
                 <div class="form-group">
-                    <label>Photos Path: <span class="validation-status" id="val-photospath"></span></label>
-                    <input type="text" id="photospath" placeholder="photos/" />
+                    <label>Videos Scan Path (Filesystem - for auto-scan): <span class="validation-status" id="val-videosScanPath"></span></label>
+                    <input type="text" id="videosScanPath" placeholder="/home/jaemzware/analogarchive/music/ (leave empty if not using auto-scan)" />
+                </div>
+
+                <div class="form-group">
+                    <label>Photos Path (URL): <span class="validation-status" id="val-photospath"></span></label>
+                    <input type="text" id="photospath" placeholder="photos/ or https://analogarchive.com/analog/music/" />
+                </div>
+
+                <div class="form-group">
+                    <label>Photos Scan Path (Filesystem - for auto-scan): <span class="validation-status" id="val-photosScanPath"></span></label>
+                    <input type="text" id="photosScanPath" placeholder="/home/jaemzware/analogarchive/music/ (leave empty if not using auto-scan)" />
                 </div>
 
                 <div class="form-group">
