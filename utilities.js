@@ -43,17 +43,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Once we've seeked to the first frame, capture it
             video.addEventListener("seeked", function () {
-                // Create a canvas to capture the frame
-                const canvas = document.createElement("canvas");
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
+                try {
+                    // Create a canvas to capture the frame
+                    const canvas = document.createElement("canvas");
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
 
-                // Draw the current frame to the canvas
-                const ctx = canvas.getContext("2d");
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    // Draw the current frame to the canvas
+                    const ctx = canvas.getContext("2d");
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-                // Set the poster to the canvas data
-                video.poster = canvas.toDataURL("image/png");
+                    // Set the poster to the canvas data
+                    // This will fail for cross-origin videos (CORS) - that's OK, just skip it
+                    video.poster = canvas.toDataURL("image/png");
+                } catch (e) {
+                    // Cross-origin videos can't have posters auto-generated due to CORS
+                    // This is expected for videos from analogarchive.com or other external domains
+                    console.log('Could not generate video poster (cross-origin):', e.message);
+                }
 
                 // Reset the video's current time to 0
                 video.currentTime = 0;
