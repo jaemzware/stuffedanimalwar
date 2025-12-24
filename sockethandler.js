@@ -34,6 +34,9 @@ let masterAlias=null;
 let unspecifiedAlias=null;
 let audioSyncEnabled=false; // Track if audio sync is enabled (non-master should not auto-advance)
 let isApplyingRemoteAudioControl=false; // Prevent feedback loop when applying received audio commands
+let videoSyncEnabled=false; // Track if video sync is enabled (non-master should not auto-advance)
+let isApplyingRemoteVideoControl=false; // Prevent feedback loop when applying received video commands
+let videoControlSocketEvent = null;
 //free form path drawing vars
 let isDrawing = false;
 let points = [];
@@ -266,6 +269,64 @@ function initializeSocketHandlers(){
         }
     });
 
+    // Video control sync from masteralias - play for everyone who has video sync enabled
+    socket.on(videoControlSocketEvent, function(videoControlMsgObject){
+        let senderUser = videoControlMsgObject.VIDEOCONTROLCLIENTUSER || '';
+        let action = videoControlMsgObject.VIDEOCONTROLACTION;
+        console.log('VIDEO CONTROL EVENT RECEIVED - sender:', senderUser, 'action:', action);
+        updateVideoSyncStatus('RX ' + action.toUpperCase() + ' from:' + senderUser);
+
+        let videoPlayer = document.getElementById('jaemzwaredynamicvideoplayer');
+        if(videoPlayer) {
+            // Set flag to prevent feedback loop (e.g., seek triggers seeked event which would re-broadcast)
+            isApplyingRemoteVideoControl = true;
+
+            switch(action) {
+                case 'play':
+                    // Check if we have the correct video loaded before playing
+                    let masterVideoUrl = videoControlMsgObject.VIDEOCONTROLVIDEOURL;
+                    let currentVideoUrl = $('#jaemzwaredynamicvideosource').attr('src');
+
+                    if (masterVideoUrl && currentVideoUrl !== masterVideoUrl) {
+                        // Wrong video loaded - load the correct one first, then play
+                        console.log('VIDEO SYNC: Loading correct video before playing:', masterVideoUrl);
+                        updateVideoSyncStatus('LOADING: syncing video...');
+                        changeVideo(masterVideoUrl, false); // Load and play immediately
+                    } else {
+                        updateVideoSyncStatus('PLAYING: master started');
+                        videoPlayer.play().catch(function(err) {
+                            updateVideoSyncStatus('BLOCKED: needs interaction');
+                            console.log('Autoplay blocked - user interaction required:', err.message);
+                        });
+                    }
+                    break;
+                case 'pause':
+                    updateVideoSyncStatus('PAUSED: master paused');
+                    videoPlayer.pause();
+                    break;
+                case 'seek':
+                    updateVideoSyncStatus('SEEK: ' + Math.floor(videoControlMsgObject.VIDEOCONTROLTIME) + 's');
+                    videoPlayer.currentTime = videoControlMsgObject.VIDEOCONTROLTIME;
+                    break;
+                case 'speed':
+                    updateVideoSyncStatus('SPEED: ' + videoControlMsgObject.VIDEOCONTROLSPEED + 'x');
+                    videoPlayer.playbackRate = videoControlMsgObject.VIDEOCONTROLSPEED;
+                    break;
+                case 'volume':
+                    updateVideoSyncStatus('VOLUME: ' + Math.floor(videoControlMsgObject.VIDEOCONTROLVOLUME * 100) + '%');
+                    videoPlayer.volume = videoControlMsgObject.VIDEOCONTROLVOLUME;
+                    break;
+            }
+
+            // Clear flag after a short delay to allow events to settle
+            setTimeout(function() {
+                isApplyingRemoteVideoControl = false;
+            }, 100);
+
+            console.log('VIDEO CONTROL RECEIVED:', action, videoControlMsgObject);
+        }
+    });
+
     // Listen for camera broadcaster announcements
     socket.on('camera-broadcaster-available', function(data) {
         console.log("[CLIENT] 📹 Camera broadcaster available:", data);
@@ -379,7 +440,8 @@ function onBaseChatSocketEvent(chatMsgObject){
             }
             else if((chatClientMessage.toLowerCase().endsWith(".mp4") || chatClientMessage.toLowerCase().endsWith(".mov")) && remoteChatClientUser.toLowerCase()===masterAlias.toLowerCase())
             {
-                changeMp4(chatClientMessage);
+                // Load video paused so everyone can buffer, then master clicks play to sync start
+                changeVideo(chatClientMessage, true);
             }
             else if(chatClientMessage.toLowerCase().endsWith(".mp3") || chatClientMessage.toLowerCase().endsWith(".flac"))
             {
@@ -876,6 +938,43 @@ $('#jaemzwaredynamicaudioplayer').on('ratechange', function(){
 $('#jaemzwaredynamicaudioplayer').on('volumechange', function(){
     emitAudioControl('volume', { AUDIOCONTROLVOLUME: this.volume });
 });
+// ENABLE VIDEO SYNC - unlock video playback for browser autoplay policy
+$('#enablevideosync').click(function(){
+    let videoPlayer = document.getElementById('jaemzwaredynamicvideoplayer');
+    if(videoPlayer) {
+        // Save current volume, mute, play briefly, pause, restore volume - completely silent unlock
+        let savedVolume = videoPlayer.volume;
+        videoPlayer.volume = 0;
+        videoPlayer.play().then(function() {
+            videoPlayer.pause();
+            videoPlayer.currentTime = 0;
+            videoPlayer.volume = savedVolume;
+            videoSyncEnabled = true; // Mark sync as enabled - non-master won't auto-advance
+            updateVideoSyncStatus('READY: video sync enabled');
+            $('#enablevideosync').text('Video Sync Enabled').attr('disabled', true).addClass('disabled-button');
+        }).catch(function(err) {
+            videoPlayer.volume = savedVolume;
+            updateVideoSyncStatus('FAILED: ' + err.message);
+            console.log('Failed to enable video sync:', err.message);
+        });
+    }
+});
+// VIDEO CONTROL SYNC - broadcast masteralias video controls to all clients
+$('#jaemzwaredynamicvideoplayer').on('play', function(){
+    emitVideoControl('play', {});
+});
+$('#jaemzwaredynamicvideoplayer').on('pause', function(){
+    emitVideoControl('pause', {});
+});
+$('#jaemzwaredynamicvideoplayer').on('seeked', function(){
+    emitVideoControl('seek', { VIDEOCONTROLTIME: this.currentTime });
+});
+$('#jaemzwaredynamicvideoplayer').on('ratechange', function(){
+    emitVideoControl('speed', { VIDEOCONTROLSPEED: this.playbackRate });
+});
+$('#jaemzwaredynamicvideoplayer').on('volumechange', function(){
+    emitVideoControl('volume', { VIDEOCONTROLVOLUME: this.volume });
+});
 $('#selectvideos').change(function(){
     let videoOption = $('#selectvideos option:selected');
     let videoToPlay = videoOption.attr("value");
@@ -1092,6 +1191,34 @@ function emitAudioControl(action, data) {
     }
 
     socket.emit(audioControlSocketEvent, audioControlObject);
+}
+
+function emitVideoControl(action, data) {
+    // Don't re-broadcast if we're applying a received command (prevents feedback loop)
+    if(isApplyingRemoteVideoControl) {
+        return;
+    }
+    let chatClientUser = $('#chatClientUser').val();
+    // Only masteralias can broadcast video controls (case-insensitive)
+    if(chatClientUser.toLowerCase() !== masterAlias.toLowerCase()) {
+        return;
+    }
+    // Show master what they're broadcasting
+    updateVideoSyncStatus('TX ' + action.toUpperCase());
+
+    // For play action, include the current video URL so clients can verify/load correct video
+    let videoControlObject = {
+        VIDEOCONTROLACTION: action,
+        VIDEOCONTROLCLIENTUSER: chatClientUser,
+        ...data
+    };
+
+    if (action === 'play') {
+        let currentVideoUrl = $('#jaemzwaredynamicvideosource').attr('src');
+        videoControlObject.VIDEOCONTROLVIDEOURL = currentVideoUrl;
+    }
+
+    socket.emit(videoControlSocketEvent, videoControlObject);
 }
 
 function formatChatServerUserIp(chatServerUser) {

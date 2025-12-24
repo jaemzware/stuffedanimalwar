@@ -355,7 +355,7 @@ function writeVideoFromJson(mediaObject){
 
             document.write("<div class='video-content section-content' id='video-content' style='display:none;'>");
                 document.write("<div class='input-group full-width'>");
-                    document.write("<label for='selectvideos' class='input-label'>Select Video</label>");
+                    document.write("<label for='selectvideos' id='selectvideos-label' class='input-label'>Select Video</label>");
                     document.write("<select id=\"selectvideos\" class='modern-select'>");
 
                     //CAMERA OPTIONS WILL BE ADDED DYNAMICALLY BY initializeCameraOptions()
@@ -413,6 +413,12 @@ function writeVideoFromJson(mediaObject){
                     }
                     document.write("</video>");
                 document.write("</div>");
+
+                // Video sync controls (similar to audio sync)
+                document.write("<div class='video-controls-container' style='margin-top: 10px;'>");
+                    document.write("<button type='button' id='enablevideosync' class='action-button primary-button'>Enable Video Sync</button>");
+                document.write("</div>");
+
             document.write("</div>");
 
         document.write("</form>");
