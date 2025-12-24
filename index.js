@@ -256,7 +256,7 @@ server.listen(listenPort, async () => {
 /**
  * ENDPOINTS: Each endpoint uses the custom .json of the same name. if there is not a custom .json of the same name, the fallback is jim.json]
  */
-const stuffedAnimalWarEndpoints = ['jim', 'jimmy', 'maddie', 'jacob', 'katie', 'mark', 'nina', 'onboard'];
+const stuffedAnimalWarEndpoints = ['jim', 'jimmy', 'maddie', 'jacob', 'katie', 'mark', 'nina', 'onboard', 'XXX'];
 const stuffedAnimalWarChatSocketEvent = 'chatmessage';
 const stuffedAnimalWarTapSocketEvent = 'tapmessage';
 const stuffedAnimalWarPathSocketEvent = 'pathmessage';
