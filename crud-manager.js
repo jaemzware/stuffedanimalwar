@@ -152,7 +152,9 @@ function populateForm(data) {
     // Media object
     document.getElementById('songspath').value = data.mediaObject?.songspath || '';
     document.getElementById('videospath').value = data.mediaObject?.videospath || '';
+    document.getElementById('videosScanPath').value = data.mediaObject?.videosScanPath || '';
     document.getElementById('photospath').value = data.mediaObject?.photospath || '';
+    document.getElementById('photosScanPath').value = data.mediaObject?.photosScanPath || '';
     populateSongs(data.mediaObject?.songs || []);
     populatePhotos(data.mediaObject?.photos || []);
     populateVideos(data.mediaObject?.videos || []);
@@ -695,6 +697,16 @@ function collectFormData() {
         photos: [],
         videos: []
     };
+
+    // Add scan paths only if they have values (for analogarchive integration)
+    const videosScanPath = document.getElementById('videosScanPath').value.trim();
+    const photosScanPath = document.getElementById('photosScanPath').value.trim();
+    if (videosScanPath) {
+        data.mediaObject.videosScanPath = videosScanPath;
+    }
+    if (photosScanPath) {
+        data.mediaObject.photosScanPath = photosScanPath;
+    }
 
     const songFiles = document.querySelectorAll('.song-file');
     const songTitles = document.querySelectorAll('.song-title');

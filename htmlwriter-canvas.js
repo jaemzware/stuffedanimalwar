@@ -438,6 +438,7 @@ function writePhotosFromJson(mediaObject){
             document.write("<div class=\"photo-gallery section-content\" id='photo-gallery' style='display:none;'>");
             //paint the photos
             let isExternalPath = mediaObject.photospath.startsWith("http://") || mediaObject.photospath.startsWith("https://");
+            let isAbsolutePath = mediaObject.photospath.startsWith("/");
             for (let i=0;i<mediaObject.photos.length;i++){
                 let isExternalUrl = mediaObject.photos[i].file.startsWith("http://") || mediaObject.photos[i].file.startsWith("https://");
                 let filepath;
@@ -450,17 +451,18 @@ function writePhotosFromJson(mediaObject){
                     let filename = url.substring(lastSlash + 1);
                     filepath = basePath + encodeURIComponent(filename);
                     thumbpath = filepath; // External URLs don't use our thumb endpoint
-                } else if (isExternalPath) {
-                    // photospath is external URL - encode filename and don't use thumb endpoint
-                    filepath = mediaObject.photospath + encodeURIComponent(mediaObject.photos[i].file);
-                    thumbpath = filepath; // External paths don't use our thumb endpoint
+                } else if (isExternalPath || isAbsolutePath) {
+                    // photospath is external URL or absolute path - encode each path segment separately
+                    let encodedFile = mediaObject.photos[i].file.split('/').map(segment => encodeURIComponent(segment)).join('/');
+                    filepath = mediaObject.photospath + encodedFile;
+                    thumbpath = filepath; // Absolute/external paths served directly
                 } else {
                     filepath = mediaObject.photospath + encodeURIComponent(mediaObject.photos[i].file);
-                    // Use /thumb/ endpoint for local images to get auto-generated thumbnails
+                    // Use /thumb/ endpoint for local relative images to get auto-generated thumbnails
                     thumbpath = "/thumb/" + mediaObject.photospath + encodeURIComponent(mediaObject.photos[i].file);
                 }
                 let filetitle=mediaObject.photos[i].title;
-                document.write("<div class=\"photo-item\"><img class=\"photo-thumbnail photosformthumbnail\" src=\""+thumbpath+"\" data-fullsize=\""+filepath+"\" alt=\""+filetitle+"\" /><span class=\"photo-title\">"+filetitle+"</span></div>");
+                document.write("<div class=\"photo-item\"><img class=\"photo-thumbnail photosformthumbnail\" src=\""+thumbpath+"\" data-fullsize=\""+filepath+"\" alt=\""+filetitle+"\" loading=\"lazy\" /><span class=\"photo-title\">"+filetitle+"</span></div>");
             }
             document.write("</div>");
         document.write("</div>");

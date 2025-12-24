@@ -38,6 +38,152 @@ const THUMB_CACHE_DIR = path.join(__dirname, '.thumbcache');
 const THUMB_WIDTH = 200; // Thumbnail width in pixels
 const setupRouter = require('./pisetup/setup-endpoint'); //RASBERRY PI wifi setup
 
+// File extensions for auto-scanning directories
+const PHOTO_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+const VIDEO_EXTENSIONS = ['.mp4', '.mov', '.avi', '.mkv', '.webm'];
+
+// Cache for directory scan results (persists across requests)
+const mediaScanCache = {};
+const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour cache TTL
+const MAX_PHOTOS = 2000; // Max photos to show (prevents huge galleries)
+const MAX_VIDEOS = 500; // Max videos to show in dropdown
+
+/**
+ * Recursively scan a directory for files with specific extensions
+ * @param {string} basePath - The base directory path to scan
+ * @param {string[]} extensions - Array of valid file extensions (lowercase, with dot)
+ * @param {string} relativePath - Current relative path from basePath (used internally for recursion)
+ * @returns {Array<{file: string, title: string}>} - Array of file objects
+ */
+function scanDirectoryForMedia(basePath, extensions, relativePath = '') {
+    const results = [];
+    const currentPath = relativePath ? path.join(basePath, relativePath) : basePath;
+
+    try {
+        if (!fs.existsSync(currentPath)) {
+            console.log(`Directory does not exist: ${currentPath}`);
+            return results;
+        }
+
+        const entries = fs.readdirSync(currentPath, { withFileTypes: true });
+
+        for (const entry of entries) {
+            // Skip hidden files and directories (starting with .)
+            if (entry.name.startsWith('.')) {
+                continue;
+            }
+
+            const entryRelativePath = relativePath ? path.join(relativePath, entry.name) : entry.name;
+
+            if (entry.isDirectory()) {
+                // Recursively scan subdirectories
+                const subResults = scanDirectoryForMedia(basePath, extensions, entryRelativePath);
+                results.push(...subResults);
+            } else if (entry.isFile()) {
+                const ext = path.extname(entry.name).toLowerCase();
+                if (extensions.includes(ext)) {
+                    // Create title from filename without extension
+                    const title = path.basename(entry.name, ext);
+                    results.push({
+                        file: entryRelativePath,
+                        title: title
+                    });
+                }
+            }
+        }
+    } catch (error) {
+        console.error(`Error scanning directory ${currentPath}:`, error.message);
+    }
+
+    // Sort results alphabetically by file path
+    results.sort((a, b) => a.file.localeCompare(b.file));
+
+    return results;
+}
+
+/**
+ * Get cached scan results or scan and cache if not available/expired
+ * @param {string} basePath - Directory to scan
+ * @param {string[]} extensions - File extensions to match
+ * @param {string} cacheKey - Unique key for this cache entry
+ * @returns {Array} - Array of file objects
+ */
+function getCachedMediaScan(basePath, extensions, cacheKey) {
+    const cached = mediaScanCache[cacheKey];
+    const now = Date.now();
+
+    // Return cached results if valid
+    if (cached && (now - cached.timestamp) < CACHE_TTL_MS) {
+        console.log(`Using cached results for ${cacheKey} (${cached.results.length} items)`);
+        return cached.results;
+    }
+
+    // Scan and cache
+    console.log(`Scanning directory (cache miss/expired): ${basePath}`);
+    const results = scanDirectoryForMedia(basePath, extensions);
+    mediaScanCache[cacheKey] = {
+        results: results,
+        timestamp: now
+    };
+    console.log(`Cached ${results.length} items for ${cacheKey}`);
+
+    return results;
+}
+
+/**
+ * Auto-populate photos and videos in mediaObject if arrays are empty but paths exist
+ * Uses caching to avoid re-scanning on every request
+ *
+ * ANALOGARCHIVE INTEGRATION NOTE:
+ * This scanning feature is designed for stuffedanimalwar + analogarchive deployments
+ * where both services run on the same server and share filesystem access.
+ * - photosScanPath/videosScanPath: filesystem path to scan (e.g., /home/jaemzware/analogarchive/music/)
+ * - photospath/videospath: URL where files are served (e.g., https://analogarchive.com/analog/music/)
+ *
+ * @param {Object} mediaObject - The media object from config
+ */
+function autoPopulateMedia(mediaObject) {
+    if (!mediaObject) return;
+
+    // Auto-populate photos if array is empty/missing but scan path exists
+    // Use photosScanPath for scanning, photospath for URL output
+    const photosScanPath = mediaObject.photosScanPath || mediaObject.photospath;
+    if (photosScanPath && (!mediaObject.photos || mediaObject.photos.length === 0)) {
+        const cacheKey = `photos:${photosScanPath}`;
+        let photos = getCachedMediaScan(photosScanPath, PHOTO_EXTENSIONS, cacheKey);
+        console.log(`PHOTOS SCAN: Found ${photos.length} total photos in ${photosScanPath}`);
+        // Log unique directories found
+        const photoDirs = [...new Set(photos.map(p => p.file.includes('/') ? p.file.split('/')[0] : '(root)'))];
+        console.log(`PHOTOS SCAN: Found in directories: ${photoDirs.join(', ')}`);
+        // Limit number of photos to prevent huge galleries
+        if (photos.length > MAX_PHOTOS) {
+            console.log(`Limiting photos from ${photos.length} to ${MAX_PHOTOS}`);
+            photos = photos.slice(0, MAX_PHOTOS);
+        }
+        mediaObject.photos = photos;
+        console.log(`Photos will be served from URL: ${mediaObject.photospath}`);
+    }
+
+    // Auto-populate videos if array is empty/missing but scan path exists
+    // Use videosScanPath for scanning, videospath for URL output
+    const videosScanPath = mediaObject.videosScanPath || mediaObject.videospath;
+    if (videosScanPath && (!mediaObject.videos || mediaObject.videos.length === 0)) {
+        const cacheKey = `videos:${videosScanPath}`;
+        let videos = getCachedMediaScan(videosScanPath, VIDEO_EXTENSIONS, cacheKey);
+        console.log(`VIDEOS SCAN: Found ${videos.length} total videos in ${videosScanPath}`);
+        // Log unique directories found
+        const videoDirs = [...new Set(videos.map(v => v.file.includes('/') ? v.file.split('/')[0] : '(root)'))];
+        console.log(`VIDEOS SCAN: Found in directories: ${videoDirs.join(', ')}`);
+        // Limit number of videos to prevent huge dropdowns
+        if (videos.length > MAX_VIDEOS) {
+            console.log(`Limiting videos from ${videos.length} to ${MAX_VIDEOS}`);
+            videos = videos.slice(0, MAX_VIDEOS);
+        }
+        mediaObject.videos = videos;
+        console.log(`Videos will be served from URL: ${mediaObject.videospath}`);
+    }
+}
+
 //GET PORT TO LISTEN TO
 if(process.argv.length !== 3){
     console.log(`NO PORT SPECIFIED. USING DEFAULT ${listenPort}`);
@@ -49,6 +195,7 @@ else{
 
 //CONFIGURE EXPRESS TO SERVE STATIC FILES LIKE IMAGES AND SCRIPTS
 app.use(express.static(__dirname));
+
 //RASPBERRY PI WIFI SETUP PAGE
 app.use(express.json()); // ADD THIS LINE - Parse JSON request bodies
 app.use(setupRouter);
@@ -163,7 +310,7 @@ server.listen(listenPort, async () => {
 /**
  * ENDPOINTS: Each endpoint uses the custom .json of the same name. if there is not a custom .json of the same name, the fallback is jim.json]
  */
-const stuffedAnimalWarEndpoints = ['jim', 'jimmy', 'maddie', 'jacob', 'katie', 'mark', 'nina', 'onboard'];
+const stuffedAnimalWarEndpoints = ['jim', 'maddie', 'jacob', 'katie', 'mark', 'nina', 'onboard'];
 const stuffedAnimalWarChatSocketEvent = 'chatmessage';
 const stuffedAnimalWarTapSocketEvent = 'tapmessage';
 const stuffedAnimalWarPathSocketEvent = 'pathmessage';
@@ -350,6 +497,9 @@ stuffedAnimalWarEndpoints.forEach(endpoint => {
                 configData.endpoint = endpoint;
                 configData.masterAlias = endpoint.toUpperCase();
             }
+
+            // Auto-populate photos and videos if arrays are empty but paths exist
+            autoPopulateMedia(configData.mediaObject);
 
             // Always use canvas template (SVG is dead, long live canvas)
             let html = templateCanvasHtml;
