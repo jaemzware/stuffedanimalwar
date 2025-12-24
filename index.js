@@ -45,8 +45,8 @@ const VIDEO_EXTENSIONS = ['.mp4', '.mov', '.avi', '.mkv', '.webm'];
 // Cache for directory scan results (persists across requests)
 const mediaScanCache = {};
 const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour cache TTL
-const MAX_PHOTOS = 500; // Max photos to show (prevents huge galleries)
-const MAX_VIDEOS = 200; // Max videos to show in dropdown
+const MAX_PHOTOS = 2000; // Max photos to show (prevents huge galleries)
+const MAX_VIDEOS = 500; // Max videos to show in dropdown
 
 /**
  * Recursively scan a directory for files with specific extensions
@@ -151,6 +151,10 @@ function autoPopulateMedia(mediaObject) {
     if (photosScanPath && (!mediaObject.photos || mediaObject.photos.length === 0)) {
         const cacheKey = `photos:${photosScanPath}`;
         let photos = getCachedMediaScan(photosScanPath, PHOTO_EXTENSIONS, cacheKey);
+        console.log(`PHOTOS SCAN: Found ${photos.length} total photos in ${photosScanPath}`);
+        // Log unique directories found
+        const photoDirs = [...new Set(photos.map(p => p.file.includes('/') ? p.file.split('/')[0] : '(root)'))];
+        console.log(`PHOTOS SCAN: Found in directories: ${photoDirs.join(', ')}`);
         // Limit number of photos to prevent huge galleries
         if (photos.length > MAX_PHOTOS) {
             console.log(`Limiting photos from ${photos.length} to ${MAX_PHOTOS}`);
@@ -166,6 +170,10 @@ function autoPopulateMedia(mediaObject) {
     if (videosScanPath && (!mediaObject.videos || mediaObject.videos.length === 0)) {
         const cacheKey = `videos:${videosScanPath}`;
         let videos = getCachedMediaScan(videosScanPath, VIDEO_EXTENSIONS, cacheKey);
+        console.log(`VIDEOS SCAN: Found ${videos.length} total videos in ${videosScanPath}`);
+        // Log unique directories found
+        const videoDirs = [...new Set(videos.map(v => v.file.includes('/') ? v.file.split('/')[0] : '(root)'))];
+        console.log(`VIDEOS SCAN: Found in directories: ${videoDirs.join(', ')}`);
         // Limit number of videos to prevent huge dropdowns
         if (videos.length > MAX_VIDEOS) {
             console.log(`Limiting videos from ${videos.length} to ${MAX_VIDEOS}`);
