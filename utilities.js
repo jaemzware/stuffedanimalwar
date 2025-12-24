@@ -196,19 +196,31 @@ function PlayNextTrack(currentFile){
         return;
     }
 
-    var current=$('#selectsongs option[value="'+currentFile+'"]').attr('value');
-    var first=$('#selectsongs option').first().attr('value');
-    var last=$('#selectsongs option').last().attr('value');
-    var next=$('#selectsongs option[value="'+currentFile+'"]').next().attr('value');
+    var $currentOption = $('#selectsongs option[value="'+currentFile+'"]');
+    var current = $currentOption.attr('value');
+    var first = $('#selectsongs option').first().attr('value');
+    var last = $('#selectsongs option').last().attr('value');
+    var next = $currentOption.next().attr('value');
 
     console.log("FIRST:"+first+" CURRENT:"+current+" NEXT:"+next+" LAST:"+last);
+
+    // If current song not found in dropdown, don't auto-advance (prevents jumping to first song unexpectedly)
+    if(!current || $currentOption.length === 0){
+        console.log('PlayNextTrack: current file not found in dropdown, not advancing');
+        return;
+    }
 
     //if the current song is the last song, play the first song
     if(current===last){
         changeAudio(first);
     }
-    else{ //otherwise, play the next song
+    else if(next) { //otherwise, play the next song if it exists
         changeAudio(next);
+    }
+    else {
+        // No next song found, wrap to first
+        console.log('PlayNextTrack: no next song found, wrapping to first');
+        changeAudio(first);
     }
 }
 function PlayNextVideo(currentFile){
@@ -250,12 +262,13 @@ function changeAudio(audioUrl, startPaused) {
     });
 
     // If the option doesn't exist, add it dynamically with the URL as the display text
+    // Prepend so newest songs are at top, creating a reverse playlist effect
     if (!optionExists) {
         let newOption = $('<option>')
             .val(audioUrl)
             .text(audioUrl); // Just show the URL so we know it's a DJ selection
 
-        $selectSongs.append(newOption);
+        $selectSongs.prepend(newOption);
     }
 
     // Select the option
@@ -329,6 +342,7 @@ function changeMp4(mp4Url,coverImageUrl){
     });
 
     // If the option doesn't exist, add it dynamically
+    // Prepend so newest videos are at top, creating a reverse playlist effect
     if (!optionExists) {
         // Extract filename from URL for display (DJ-sent links have filenames)
         let displayText = mp4Url;
@@ -347,7 +361,7 @@ function changeMp4(mp4Url,coverImageUrl){
             .val(mp4Url)
             .text(displayText);
 
-        $selectVideos.append(newOption);
+        $selectVideos.prepend(newOption);
     }
 
     // Select the option
@@ -383,6 +397,7 @@ function changeVideo(videoUrl, startPaused) {
     });
 
     // If the option doesn't exist, add it dynamically
+    // Prepend so newest videos are at top, creating a reverse playlist effect
     if (!optionExists) {
         // Extract filename from URL for display (DJ-sent links have filenames)
         let displayText = videoUrl;
@@ -401,7 +416,7 @@ function changeVideo(videoUrl, startPaused) {
             .val(videoUrl)
             .text(displayText);
 
-        $selectVideos.append(newOption);
+        $selectVideos.prepend(newOption);
     }
 
     // Select the option

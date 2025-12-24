@@ -885,13 +885,12 @@ $('#jaemzwaredynamicvideoplayer').bind("ended", function(){
 //AUDIO PLAYER HTML EVENTS
 $('#jaemzwaredynamicaudioplayer').bind("ended", function(){
     let currentFile = $(this).children(":first").attr('src');
-    let chatClientUser = $("#chatClientUser").val();
 
-    // If audio sync is enabled and user is NOT master, don't auto-advance
-    // Wait for master to select the next song to stay in sync
-    if (audioSyncEnabled && chatClientUser.toLowerCase() !== masterAlias.toLowerCase()) {
-        updateAudioSyncStatus('ENDED: waiting for master');
-        console.log('Audio sync enabled - waiting for master to select next track');
+    // If audio sync is enabled, don't auto-advance for ANYONE (including master)
+    // Master should manually control when to play next song for better sync
+    if (audioSyncEnabled) {
+        updateAudioSyncStatus('ENDED: select next track');
+        console.log('Audio sync enabled - waiting for manual track selection');
         return;
     }
 
