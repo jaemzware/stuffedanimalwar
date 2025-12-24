@@ -82,7 +82,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (targetContent) {
                 if (targetContent.style.display === 'none') {
-                    targetContent.style.display = 'block';
+                    // Use empty string to remove inline style and let CSS take over
+                    // This preserves display:grid for photo-gallery, display:flex for others, etc.
+                    targetContent.style.display = '';
                     if (indicator) indicator.textContent = '▼';
                 } else {
                     targetContent.style.display = 'none';
@@ -139,7 +141,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Expand all
                 console.log('Expanding all sections...');
                 allSections.forEach(section => {
-                    section.style.display = 'block';
+                    // Use empty string to remove inline style and let CSS take over
+                    section.style.display = '';
                 });
 
                 allHeaders.forEach(header => {
