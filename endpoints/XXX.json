@@ -97,8 +97,11 @@
     },
     "mediaObject": {
         "songspath": "songs/",
-        "videospath": "/home/jaemzware/analogarchive/music/",
-        "photospath": "/home/jaemzware/analogarchive/music/",
+        "_comment": "scanPath = filesystem path for server to scan, urlPath = web URL where files are served",
+        "videosScanPath": "/home/jaemzware/analogarchive/music/",
+        "videospath": "https://analogarchive.com/analog/music/",
+        "photosScanPath": "/home/jaemzware/analogarchive/music/",
+        "photospath": "https://analogarchive.com/analog/music/",
         "songs": [
             {
                 "file": "pixies-imamazed-brokenface-demo.mp3",

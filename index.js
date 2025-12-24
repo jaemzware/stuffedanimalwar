@@ -133,33 +133,46 @@ function getCachedMediaScan(basePath, extensions, cacheKey) {
 /**
  * Auto-populate photos and videos in mediaObject if arrays are empty but paths exist
  * Uses caching to avoid re-scanning on every request
+ *
+ * ANALOGARCHIVE INTEGRATION NOTE:
+ * This scanning feature is designed for stuffedanimalwar + analogarchive deployments
+ * where both services run on the same server and share filesystem access.
+ * - photosScanPath/videosScanPath: filesystem path to scan (e.g., /home/jaemzware/analogarchive/music/)
+ * - photospath/videospath: URL where files are served (e.g., https://analogarchive.com/analog/music/)
+ *
  * @param {Object} mediaObject - The media object from config
  */
 function autoPopulateMedia(mediaObject) {
     if (!mediaObject) return;
 
-    // Auto-populate photos if array is empty/missing but photospath exists
-    if (mediaObject.photospath && (!mediaObject.photos || mediaObject.photos.length === 0)) {
-        const cacheKey = `photos:${mediaObject.photospath}`;
-        let photos = getCachedMediaScan(mediaObject.photospath, PHOTO_EXTENSIONS, cacheKey);
+    // Auto-populate photos if array is empty/missing but scan path exists
+    // Use photosScanPath for scanning, photospath for URL output
+    const photosScanPath = mediaObject.photosScanPath || mediaObject.photospath;
+    if (photosScanPath && (!mediaObject.photos || mediaObject.photos.length === 0)) {
+        const cacheKey = `photos:${photosScanPath}`;
+        let photos = getCachedMediaScan(photosScanPath, PHOTO_EXTENSIONS, cacheKey);
         // Limit number of photos to prevent huge galleries
         if (photos.length > MAX_PHOTOS) {
             console.log(`Limiting photos from ${photos.length} to ${MAX_PHOTOS}`);
             photos = photos.slice(0, MAX_PHOTOS);
         }
         mediaObject.photos = photos;
+        console.log(`Photos will be served from URL: ${mediaObject.photospath}`);
     }
 
-    // Auto-populate videos if array is empty/missing but videospath exists
-    if (mediaObject.videospath && (!mediaObject.videos || mediaObject.videos.length === 0)) {
-        const cacheKey = `videos:${mediaObject.videospath}`;
-        let videos = getCachedMediaScan(mediaObject.videospath, VIDEO_EXTENSIONS, cacheKey);
+    // Auto-populate videos if array is empty/missing but scan path exists
+    // Use videosScanPath for scanning, videospath for URL output
+    const videosScanPath = mediaObject.videosScanPath || mediaObject.videospath;
+    if (videosScanPath && (!mediaObject.videos || mediaObject.videos.length === 0)) {
+        const cacheKey = `videos:${videosScanPath}`;
+        let videos = getCachedMediaScan(videosScanPath, VIDEO_EXTENSIONS, cacheKey);
         // Limit number of videos to prevent huge dropdowns
         if (videos.length > MAX_VIDEOS) {
             console.log(`Limiting videos from ${videos.length} to ${MAX_VIDEOS}`);
             videos = videos.slice(0, MAX_VIDEOS);
         }
         mediaObject.videos = videos;
+        console.log(`Videos will be served from URL: ${mediaObject.videospath}`);
     }
 }
 
@@ -174,24 +187,6 @@ else{
 
 //CONFIGURE EXPRESS TO SERVE STATIC FILES LIKE IMAGES AND SCRIPTS
 app.use(express.static(__dirname));
-
-// Serve files from absolute paths (for photospath/videospath that start with /)
-// This allows configs to use absolute paths like /home/user/media/
-app.get('/home/*', (req, res) => {
-    const requestedPath = req.path; // e.g., /home/jaemzware/analogarchive/music/file.mp4
-
-    // Security: prevent directory traversal
-    if (requestedPath.includes('..')) {
-        return res.status(403).send('Forbidden');
-    }
-
-    // Check if file exists
-    if (fs.existsSync(requestedPath)) {
-        res.sendFile(requestedPath);
-    } else {
-        res.status(404).send('File not found');
-    }
-});
 
 //RASPBERRY PI WIFI SETUP PAGE
 app.use(express.json()); // ADD THIS LINE - Parse JSON request bodies
