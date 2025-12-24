@@ -42,6 +42,12 @@ const setupRouter = require('./pisetup/setup-endpoint'); //RASBERRY PI wifi setu
 const PHOTO_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
 const VIDEO_EXTENSIONS = ['.mp4', '.mov', '.avi', '.mkv', '.webm'];
 
+// Cache for directory scan results (persists across requests)
+const mediaScanCache = {};
+const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour cache TTL
+const MAX_PHOTOS = 500; // Max photos to show (prevents huge galleries)
+const MAX_VIDEOS = 200; // Max videos to show in dropdown
+
 /**
  * Recursively scan a directory for files with specific extensions
  * @param {string} basePath - The base directory path to scan
@@ -62,6 +68,11 @@ function scanDirectoryForMedia(basePath, extensions, relativePath = '') {
         const entries = fs.readdirSync(currentPath, { withFileTypes: true });
 
         for (const entry of entries) {
+            // Skip hidden files and directories (starting with .)
+            if (entry.name.startsWith('.')) {
+                continue;
+            }
+
             const entryRelativePath = relativePath ? path.join(relativePath, entry.name) : entry.name;
 
             if (entry.isDirectory()) {
@@ -91,7 +102,37 @@ function scanDirectoryForMedia(basePath, extensions, relativePath = '') {
 }
 
 /**
+ * Get cached scan results or scan and cache if not available/expired
+ * @param {string} basePath - Directory to scan
+ * @param {string[]} extensions - File extensions to match
+ * @param {string} cacheKey - Unique key for this cache entry
+ * @returns {Array} - Array of file objects
+ */
+function getCachedMediaScan(basePath, extensions, cacheKey) {
+    const cached = mediaScanCache[cacheKey];
+    const now = Date.now();
+
+    // Return cached results if valid
+    if (cached && (now - cached.timestamp) < CACHE_TTL_MS) {
+        console.log(`Using cached results for ${cacheKey} (${cached.results.length} items)`);
+        return cached.results;
+    }
+
+    // Scan and cache
+    console.log(`Scanning directory (cache miss/expired): ${basePath}`);
+    const results = scanDirectoryForMedia(basePath, extensions);
+    mediaScanCache[cacheKey] = {
+        results: results,
+        timestamp: now
+    };
+    console.log(`Cached ${results.length} items for ${cacheKey}`);
+
+    return results;
+}
+
+/**
  * Auto-populate photos and videos in mediaObject if arrays are empty but paths exist
+ * Uses caching to avoid re-scanning on every request
  * @param {Object} mediaObject - The media object from config
  */
 function autoPopulateMedia(mediaObject) {
@@ -99,16 +140,26 @@ function autoPopulateMedia(mediaObject) {
 
     // Auto-populate photos if array is empty/missing but photospath exists
     if (mediaObject.photospath && (!mediaObject.photos || mediaObject.photos.length === 0)) {
-        console.log(`Auto-scanning photos from: ${mediaObject.photospath}`);
-        mediaObject.photos = scanDirectoryForMedia(mediaObject.photospath, PHOTO_EXTENSIONS);
-        console.log(`Found ${mediaObject.photos.length} photos`);
+        const cacheKey = `photos:${mediaObject.photospath}`;
+        let photos = getCachedMediaScan(mediaObject.photospath, PHOTO_EXTENSIONS, cacheKey);
+        // Limit number of photos to prevent huge galleries
+        if (photos.length > MAX_PHOTOS) {
+            console.log(`Limiting photos from ${photos.length} to ${MAX_PHOTOS}`);
+            photos = photos.slice(0, MAX_PHOTOS);
+        }
+        mediaObject.photos = photos;
     }
 
     // Auto-populate videos if array is empty/missing but videospath exists
     if (mediaObject.videospath && (!mediaObject.videos || mediaObject.videos.length === 0)) {
-        console.log(`Auto-scanning videos from: ${mediaObject.videospath}`);
-        mediaObject.videos = scanDirectoryForMedia(mediaObject.videospath, VIDEO_EXTENSIONS);
-        console.log(`Found ${mediaObject.videos.length} videos`);
+        const cacheKey = `videos:${mediaObject.videospath}`;
+        let videos = getCachedMediaScan(mediaObject.videospath, VIDEO_EXTENSIONS, cacheKey);
+        // Limit number of videos to prevent huge dropdowns
+        if (videos.length > MAX_VIDEOS) {
+            console.log(`Limiting videos from ${videos.length} to ${MAX_VIDEOS}`);
+            videos = videos.slice(0, MAX_VIDEOS);
+        }
+        mediaObject.videos = videos;
     }
 }
 
