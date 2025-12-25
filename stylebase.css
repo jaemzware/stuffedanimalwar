@@ -1010,6 +1010,28 @@ body:has(.readonly) #audioform {
     border: 1px solid #ccc; /* Optional: Add a border */
     cursor: pointer; /* Change cursor to indicate it's clickable */
 }
+
+/* Chat image container and AI description */
+.chat-image-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    margin-bottom: 4px;
+}
+
+.image-description {
+    font-size: 11px;
+    color: #a8d5ff;
+    font-style: italic;
+    max-width: 150px;
+    word-wrap: break-word;
+    line-height: 1.3;
+    padding: 4px 6px;
+    background: rgba(168, 213, 255, 0.1);
+    border-radius: 4px;
+    border-left: 2px solid #a8d5ff;
+}
 #sawflexdiv {
     display: flex;
     align-items: stretch; /* Changed from flex-start to stretch to make children equal height */
