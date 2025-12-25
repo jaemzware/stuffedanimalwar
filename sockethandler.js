@@ -431,7 +431,21 @@ function onBaseChatSocketEvent(chatMsgObject){
                     setBackgroundImage(chatClientMessage);
                 });
 
-                img.prependTo("#messagesdiv");
+                // Create a container for the image and its description
+                var imgContainer = $("<div>").attr({ class: "chat-image-container" });
+                var descLabel = $("<div>").attr({ class: "image-description" }).text("Analyzing image...");
+
+                imgContainer.append(img).append(descLabel);
+                imgContainer.prependTo("#messagesdiv");
+
+                // Call the API to get image description
+                $.get('/api/describe-image', { url: chatClientMessage })
+                    .done(function(data) {
+                        descLabel.text(data.description || "No description available");
+                    })
+                    .fail(function() {
+                        descLabel.text("");
+                    });
             }
             else if((chatClientMessage.toLowerCase().endsWith(".mp3") || chatClientMessage.toLowerCase().endsWith(".flac")) && remoteChatClientUser.toLowerCase()===masterAlias.toLowerCase())
             {
