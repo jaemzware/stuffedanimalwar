@@ -197,7 +197,7 @@ else{
 app.use(express.static(__dirname));
 
 //RASPBERRY PI WIFI SETUP PAGE
-app.use(express.json()); // ADD THIS LINE - Parse JSON request bodies
+app.use(express.json({ limit: '50mb' })); // Parse JSON request bodies with increased limit for base64 images
 app.use(setupRouter);
 //CONFIGURE EXPRESS TO TRUST PROXY ON FILE UPLOAD
 app.set('trust proxy', true); // Trust the first proxy
