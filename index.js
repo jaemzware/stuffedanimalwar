@@ -197,7 +197,7 @@ else{
 app.use(express.static(__dirname));
 
 //RASPBERRY PI WIFI SETUP PAGE
-app.use(express.json()); // ADD THIS LINE - Parse JSON request bodies
+app.use(express.json({ limit: '50mb' })); // Parse JSON request bodies with increased limit for base64 images
 app.use(setupRouter);
 //CONFIGURE EXPRESS TO TRUST PROXY ON FILE UPLOAD
 app.set('trust proxy', true); // Trust the first proxy
@@ -925,6 +925,95 @@ app.get('/api/describe-image', async (req, res) => {
 
     } catch (error) {
         console.error('Error describing image:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Describe uploaded base64 image using Anthropic API
+app.post('/api/describe-image-base64', async (req, res) => {
+    try {
+        const { imageData } = req.body;
+        if (!imageData) {
+            return res.status(400).json({ error: 'imageData is required' });
+        }
+
+        const apiKey = process.env.ANTHROPIC_API_KEY;
+        if (!apiKey) {
+            return res.status(500).json({ error: 'ANTHROPIC_API_KEY not configured' });
+        }
+
+        // Parse base64 data URI: "data:image/png;base64,..."
+        const matches = imageData.match(/^data:([^;]+);base64,(.+)$/);
+        if (!matches) {
+            return res.status(400).json({ error: 'Invalid base64 image format' });
+        }
+
+        const mediaType = matches[1];
+        const base64Data = matches[2];
+
+        const requestBody = JSON.stringify({
+            model: "claude-sonnet-4-20250514",
+            max_tokens: 256,
+            messages: [
+                {
+                    role: "user",
+                    content: [
+                        {
+                            type: "image",
+                            source: {
+                                type: "base64",
+                                media_type: mediaType,
+                                data: base64Data
+                            }
+                        },
+                        {
+                            type: "text",
+                            text: "Describe what you see in this image in one concise sentence (under 100 characters if possible)."
+                        }
+                    ]
+                }
+            ]
+        });
+
+        const response = await new Promise((resolve, reject) => {
+            const options = {
+                hostname: 'api.anthropic.com',
+                path: '/v1/messages',
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-api-key': apiKey,
+                    'anthropic-version': '2023-06-01'
+                }
+            };
+
+            const apiReq = https.request(options, (apiRes) => {
+                let data = '';
+                apiRes.on('data', chunk => data += chunk);
+                apiRes.on('end', () => {
+                    try {
+                        resolve(JSON.parse(data));
+                    } catch (e) {
+                        reject(new Error('Failed to parse API response'));
+                    }
+                });
+            });
+
+            apiReq.on('error', reject);
+            apiReq.write(requestBody);
+            apiReq.end();
+        });
+
+        if (response.error) {
+            console.error('Anthropic API error:', response.error);
+            return res.status(500).json({ error: response.error.message || 'API error' });
+        }
+
+        const description = response.content?.[0]?.text || 'No description available';
+        res.json({ description });
+
+    } catch (error) {
+        console.error('Error describing base64 image:', error);
         res.status(500).json({ error: error.message });
     }
 });

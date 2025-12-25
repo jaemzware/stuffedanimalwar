@@ -102,8 +102,31 @@ function initializeSocketHandlers(){
             setBackgroundImage(chatImageMsgObject.CHATCLIENTIMAGE);
         });
 
-        // Prepend the image (or linked image) to the #messagesdiv
-        img.prependTo("#messagesdiv");
+        // Create container with image and description label
+        var imgContainer = $("<div>").attr({ class: "chat-image-container" });
+        var descLabel = $("<div>").attr({ class: "image-description" }).text("Analyzing image...");
+
+        imgContainer.append(img).append(descLabel);
+        imgContainer.prependTo("#messagesdiv");
+
+        // Call API to get image description
+        $.ajax({
+            url: '/api/describe-image-base64',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ imageData: chatImageMsgObject.CHATCLIENTIMAGE }),
+            success: function(data) {
+                if (data.error) {
+                    descLabel.text("Error: " + data.error);
+                } else {
+                    descLabel.text(data.description || "No description available");
+                }
+            },
+            error: function(xhr) {
+                var errorMsg = xhr.responseJSON?.error || xhr.statusText || "API error";
+                descLabel.text("Error: " + errorMsg);
+            }
+        });
     });
     socket.on(chatVideoSocketEvent, function(chatVideoMsgObject){
         let chatServerDate = chatVideoMsgObject.CHATSERVERDATE;
