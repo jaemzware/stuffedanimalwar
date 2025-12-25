@@ -441,10 +441,15 @@ function onBaseChatSocketEvent(chatMsgObject){
                 // Call the API to get image description
                 $.get('/api/describe-image', { url: chatClientMessage })
                     .done(function(data) {
-                        descLabel.text(data.description || "No description available");
+                        if (data.error) {
+                            descLabel.text("Error: " + data.error);
+                        } else {
+                            descLabel.text(data.description || "No description available");
+                        }
                     })
-                    .fail(function() {
-                        descLabel.text("");
+                    .fail(function(xhr) {
+                        var errorMsg = xhr.responseJSON?.error || xhr.statusText || "API error";
+                        descLabel.text("Error: " + errorMsg);
                     });
             }
             else if((chatClientMessage.toLowerCase().endsWith(".mp3") || chatClientMessage.toLowerCase().endsWith(".flac")) && remoteChatClientUser.toLowerCase()===masterAlias.toLowerCase())
