@@ -948,8 +948,32 @@ app.post('/api/describe-image-base64', async (req, res) => {
             return res.status(400).json({ error: 'Invalid base64 image format' });
         }
 
-        const mediaType = matches[1];
-        const base64Data = matches[2];
+        let mediaType = matches[1];
+        let base64Data = matches[2];
+
+        // Anthropic API has a 5MB limit for base64 images
+        // Resize if the image is too large (using 4.5MB threshold for safety buffer)
+        const MAX_SIZE_BYTES = 4.5 * 1024 * 1024;
+        const imageSizeBytes = Buffer.from(base64Data, 'base64').length;
+
+        if (imageSizeBytes > MAX_SIZE_BYTES) {
+            console.log(`Image too large (${(imageSizeBytes / 1024 / 1024).toFixed(2)}MB), resizing...`);
+            try {
+                const imageBuffer = Buffer.from(base64Data, 'base64');
+                // Resize to max 2048px on longest side and convert to JPEG with 80% quality
+                const resizedBuffer = await sharp(imageBuffer)
+                    .resize(2048, 2048, { fit: 'inside', withoutEnlargement: true })
+                    .jpeg({ quality: 80 })
+                    .toBuffer();
+
+                base64Data = resizedBuffer.toString('base64');
+                mediaType = 'image/jpeg';
+                console.log(`Resized image to ${(resizedBuffer.length / 1024 / 1024).toFixed(2)}MB`);
+            } catch (resizeError) {
+                console.error('Error resizing image:', resizeError);
+                return res.status(500).json({ error: 'Failed to resize large image' });
+            }
+        }
 
         const requestBody = JSON.stringify({
             model: "claude-sonnet-4-20250514",
