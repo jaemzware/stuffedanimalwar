@@ -480,7 +480,7 @@ function writeChatForm(responsesObject) {
         document.write("<h3 class='section-title'>Chat</h3>");
         document.write("</div>");
         document.write("<div style='display: flex; align-items: center; gap: 10px;'>");
-        document.write("<span id='endpointInfo' class='endpoint-info' style='margin: 0; padding: 4px 8px;'>Endpoint: <span id='endpointDisplay'></span> | Master: <span id='masterAliasDisplay' style='color: #1a1a2e; background: transparent;'></span> | Default: <span id='unspecifiedAliasDisplay'></span></span>");
+        document.write("<span id='endpointInfo' class='endpoint-info' style='margin: 0; padding: 4px 8px;'>Endpoint: <span id='endpointDisplay'></span> | <span style='color: #2a2c47;'>Master: <span id='masterAliasDisplay' style='color: #2a2c47;'></span></span> | Default: <span id='unspecifiedAliasDisplay'></span></span>");
         document.write("<span class='collapse-indicator'>▶</span>");
         document.write("</div>");
         document.write("</div>");
