@@ -234,7 +234,7 @@ class CameraBroadcaster:
 
     def _register_endpoint_handlers(self, endpoint: str):
         """Register Socket.io handlers for a specific endpoint"""
-        event_prefix = f"{endpoint}cameracamera"
+        event_prefix = f"{endpoint}camera"
 
         # Handle incoming offers
         async def handle_offer(data):
@@ -270,7 +270,7 @@ class CameraBroadcaster:
     async def send_name_updates(self):
         """Send camera name to all endpoints"""
         for endpoint in self.endpoints:
-            event_name = f"{endpoint}cameracamera" + "nameupdate"
+            event_name = f"{endpoint}camera" + "nameupdate"
             await self.sio.emit(event_name, {"cameraName": self.camera_name})
             logger.info(f"Sent name update to {endpoint}: {self.camera_name}")
 
@@ -301,7 +301,7 @@ class CameraBroadcaster:
         @pc.on("icecandidate")
         async def on_icecandidate(candidate):
             if candidate:
-                event_name = f"{endpoint}cameracamera" + "voiceicecandidate"
+                event_name = f"{endpoint}camera" + "voiceicecandidate"
                 await self.sio.emit(event_name, {
                     "candidate": {
                         "candidate": candidate.candidate,
@@ -335,7 +335,7 @@ class CameraBroadcaster:
         offer = await pc.createOffer()
         await pc.setLocalDescription(offer)
 
-        event_name = f"{endpoint}cameracamera" + "voiceoffer"
+        event_name = f"{endpoint}camera" + "voiceoffer"
         await self.sio.emit(event_name, {
             "offer": {
                 "type": pc.localDescription.type,
@@ -363,7 +363,7 @@ class CameraBroadcaster:
         offer = await pc.createOffer()
         await pc.setLocalDescription(offer)
 
-        event_name = f"{endpoint}cameracamera" + "voiceoffer"
+        event_name = f"{endpoint}camera" + "voiceoffer"
         await self.sio.emit(event_name, {
             "offer": {
                 "type": pc.localDescription.type,
@@ -397,7 +397,7 @@ class CameraBroadcaster:
         answer = await pc.createAnswer()
         await pc.setLocalDescription(answer)
 
-        event_name = f"{endpoint}cameracamera" + "voiceanswer"
+        event_name = f"{endpoint}camera" + "voiceanswer"
         await self.sio.emit(event_name, {
             "answer": {
                 "type": pc.localDescription.type,
