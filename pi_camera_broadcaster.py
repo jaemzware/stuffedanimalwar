@@ -230,6 +230,7 @@ class CameraBroadcaster:
             # Handle peer connections (new peer joined)
             @self.sio.on(f"{event_prefix}connect")
             async def handle_peer_connect(data, endpoint=endpoint):
+                logger.info(f"Handler triggered for {endpoint}connect with data: {data}")
                 await self.handle_peer_join(endpoint, data)
 
             # Handle peer disconnections
