@@ -215,6 +215,7 @@ class CameraBroadcaster:
             # Route camera events to appropriate handlers
             for endpoint in self.endpoints:
                 prefix = f"{endpoint}cameracamera"
+                logger.info(f"DEBUG: Checking endpoint='{endpoint}', prefix='{prefix}', looking for '{prefix}connect'")
 
                 if event == f"{prefix}connect":
                     logger.info(f"Routing {event} to handle_peer_join")
