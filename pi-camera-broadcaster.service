@@ -5,11 +5,11 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-User=pi
-Group=pi
-WorkingDirectory=/home/pi/stuffedanimalwar
+User=jaemzware
+Group=jaemzware
+WorkingDirectory=/home/jaemzware/stuffedanimalwar
 Environment="PYTHONUNBUFFERED=1"
-ExecStart=/usr/bin/python3 /home/pi/stuffedanimalwar/pi_camera_broadcaster.py
+ExecStart=/home/jaemzware/stuffedanimalwar/venv/bin/python /home/jaemzware/stuffedanimalwar/pi_camera_broadcaster.py
 Restart=always
 RestartSec=10
 StandardOutput=journal
@@ -20,7 +20,7 @@ NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=read-only
-ReadWritePaths=/home/pi/stuffedanimalwar
+ReadWritePaths=/home/jaemzware/stuffedanimalwar
 
 [Install]
 WantedBy=multi-user.target

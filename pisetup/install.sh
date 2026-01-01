@@ -180,6 +180,43 @@ rm -f /etc/nginx/sites-enabled/default
 # Test nginx config
 nginx -t
 
+echo "[10.5/12] Installing Camera Broadcaster (USB Camera Support)..."
+# Install system dependencies for camera broadcaster
+apt install -y libsrtp2-1 libavdevice-dev libavfilter-dev libopus-dev libvpx-dev \
+    libopenblas0 libopenblas-dev libglib2.0-0 libsm6 libxext6 libxrender-dev \
+    libgomp1 python3-opencv libffi-dev python3-dev build-essential pkg-config
+
+# Create Python virtual environment with system site packages (for opencv)
+cd "$SAW_DIR"
+if [ ! -d "venv" ]; then
+    sudo -u jaemzware python3 -m venv --system-site-packages venv
+    echo "  - Created Python virtual environment"
+fi
+
+# Install Python packages for camera broadcaster
+sudo -u jaemzware "$SAW_DIR/venv/bin/pip" install aiortc python-socketio[asyncio_client] av numpy
+
+# Install camera broadcaster service
+cp "$SCRIPT_DIR/../pi-camera-broadcaster.service" /etc/systemd/system/
+
+# Create default config if it doesn't exist
+if [ ! -f "$SAW_DIR/pi_camera_config.json" ]; then
+    cat > "$SAW_DIR/pi_camera_config.json" << 'CAMEOF'
+{
+  "server_url": "https://stuffedanimalwar.local",
+  "camera_name": "Pi Camera",
+  "endpoints": ["jim999camera"],
+  "verify_ssl": false
+}
+CAMEOF
+    chown jaemzware:jaemzware "$SAW_DIR/pi_camera_config.json"
+    echo "  - Created default camera config (edit pi_camera_config.json to customize)"
+fi
+
+echo "  - Camera broadcaster installed (service disabled by default)"
+echo "  - To enable: sudo systemctl enable pi-camera-broadcaster.service"
+echo "  - To start: sudo systemctl start pi-camera-broadcaster.service"
+
 echo "[11/12] Installing WiFi Manager and application services..."
 cp "$SCRIPT_DIR/wifi-manager.service" /etc/systemd/system/
 chmod +x "$SCRIPT_DIR/wifi-manager.sh"

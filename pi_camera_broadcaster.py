@@ -13,21 +13,29 @@ from typing import Dict, Set
 import ssl
 
 import socketio
-from aiortc import RTCPeerConnection, RTCSessionDescription, RTCIceCandidate, VideoStreamTrack
+from aiortc import RTCPeerConnection, RTCSessionDescription, RTCIceCandidate, VideoStreamTrack, RTCConfiguration, RTCIceServer
 from aiortc.contrib.media import MediaPlayer
 from av import VideoFrame
 from fractions import Fraction
 
-# Try to import picamera2, fallback to file/test pattern if not available
+# Try to import camera libraries
+import numpy as np
+
+try:
+    import cv2
+    OPENCV_AVAILABLE = True
+except ImportError:
+    OPENCV_AVAILABLE = False
+    logging.warning("opencv not available")
+
 try:
     from picamera2 import Picamera2
     from picamera2.encoders import H264Encoder
     from picamera2.outputs import FileOutput
-    import numpy as np
     PICAMERA_AVAILABLE = True
 except ImportError:
     PICAMERA_AVAILABLE = False
-    logging.warning("picamera2 not available, will use test pattern or file input")
+    logging.warning("picamera2 not available")
 
 # Configure logging
 logging.basicConfig(
@@ -39,50 +47,82 @@ logger = logging.getLogger(__name__)
 
 class PiCameraTrack(VideoStreamTrack):
     """
-    Video track that streams from Raspberry Pi camera
+    Video track that streams from USB camera or Raspberry Pi camera
     """
     def __init__(self):
         super().__init__()
         self.camera = None
+        self.camera_type = None
         self.frame_count = 0
 
-        if PICAMERA_AVAILABLE:
+        # Try USB camera first (OpenCV)
+        if OPENCV_AVAILABLE:
             try:
-                self.camera = Picamera2()
+                cap = cv2.VideoCapture(0)
+                if cap.isOpened():
+                    # Set camera properties for better quality
+                    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+                    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+                    cap.set(cv2.CAP_PROP_FPS, 30)
+                    self.camera = cap
+                    self.camera_type = "usb"
+                    logger.info("USB Camera initialized successfully")
+                else:
+                    cap.release()
+            except Exception as e:
+                logger.error(f"Failed to initialize USB Camera: {e}")
+
+        # Try Pi Camera Module if USB camera not found
+        if not self.camera and PICAMERA_AVAILABLE:
+            try:
+                picam = Picamera2()
                 # Configure for video streaming
-                config = self.camera.create_video_configuration(
+                config = picam.create_video_configuration(
                     main={"size": (1280, 720), "format": "RGB888"},
                     controls={"FrameRate": 30}
                 )
-                self.camera.configure(config)
-                self.camera.start()
-                logger.info("Pi Camera initialized successfully")
+                picam.configure(config)
+                picam.start()
+                self.camera = picam
+                self.camera_type = "csi"
+                logger.info("Pi Camera Module (CSI) initialized successfully")
             except Exception as e:
-                logger.error(f"Failed to initialize Pi Camera: {e}")
-                self.camera = None
+                logger.error(f"Failed to initialize Pi Camera Module: {e}")
 
         if not self.camera:
-            logger.warning("Using test pattern instead of real camera")
+            logger.warning("No camera found - using test pattern")
 
     async def recv(self):
         """
-        Generate video frames from Pi camera or test pattern
+        Generate video frames from USB camera, Pi camera, or test pattern
         """
         pts, time_base = await self.next_timestamp()
 
         if self.camera:
             try:
-                # Capture frame from Pi camera
-                array = self.camera.capture_array()
-                frame = VideoFrame.from_ndarray(array, format="rgb24")
-                frame.pts = pts
-                frame.time_base = time_base
-                return frame
+                if self.camera_type == "usb":
+                    # Capture frame from USB camera via OpenCV
+                    ret, frame_bgr = self.camera.read()
+                    if ret:
+                        # Convert BGR to RGB
+                        frame_rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
+                        frame = VideoFrame.from_ndarray(frame_rgb, format="rgb24")
+                        frame.pts = pts
+                        frame.time_base = time_base
+                        return frame
+                    else:
+                        logger.error("Failed to read from USB camera")
+                elif self.camera_type == "csi":
+                    # Capture frame from Pi Camera Module
+                    array = self.camera.capture_array()
+                    frame = VideoFrame.from_ndarray(array, format="rgb24")
+                    frame.pts = pts
+                    frame.time_base = time_base
+                    return frame
             except Exception as e:
-                logger.error(f"Error capturing from camera: {e}")
+                logger.error(f"Error capturing from {self.camera_type} camera: {e}")
 
         # Generate test pattern (color bars)
-        import numpy as np
         width, height = 1280, 720
 
         # Create color bars
@@ -117,11 +157,15 @@ class PiCameraTrack(VideoStreamTrack):
         super().stop()
         if self.camera:
             try:
-                self.camera.stop()
-                self.camera.close()
-                logger.info("Camera stopped and closed")
+                if self.camera_type == "usb":
+                    self.camera.release()
+                    logger.info("USB camera released")
+                elif self.camera_type == "csi":
+                    self.camera.stop()
+                    self.camera.close()
+                    logger.info("Pi Camera Module stopped and closed")
             except Exception as e:
-                logger.error(f"Error stopping camera: {e}")
+                logger.error(f"Error stopping {self.camera_type} camera: {e}")
 
 
 class CameraBroadcaster:
@@ -164,56 +208,82 @@ class CameraBroadcaster:
         async def connect_error(data):
             logger.error(f"Connection error: {data}")
 
-        # Setup handlers for each endpoint
-        for endpoint in self.endpoints:
-            event_prefix = f"{endpoint}cameracamera"
+        # Use catch-all to manually route events to handlers
+        @self.sio.on("*")
+        async def catch_all(event, data):
+            logger.info(f"CATCH-ALL TRIGGERED: event='{event}'")
+            # Route camera events to appropriate handlers
+            for endpoint in self.endpoints:
+                prefix = f"{endpoint}camera"
+                logger.info(f"DEBUG: Checking endpoint='{endpoint}', prefix='{prefix}', looking for '{prefix}connect'")
 
-            # Handle incoming offers
-            @self.sio.on(f"{event_prefix}voiceoffer")
-            async def handle_offer(data, endpoint=endpoint):
-                await self.handle_remote_offer(endpoint, data)
+                if event == f"{prefix}connect":
+                    logger.info(f"Routing {event} to handle_peer_join")
+                    await self.handle_peer_join(endpoint, data)
+                elif event == f"{prefix}reconnect":
+                    logger.info(f"Routing {event} to handle_reconnect_request")
+                    await self.handle_reconnect_request(endpoint, data)
+                elif event == f"{prefix}voiceoffer":
+                    await self.handle_remote_offer(endpoint, data)
+                elif event == f"{prefix}voiceanswer":
+                    await self.handle_remote_answer(endpoint, data)
+                elif event == f"{prefix}voiceicecandidate":
+                    await self.handle_remote_ice_candidate(endpoint, data)
+                elif event == f"{prefix}disconnect":
+                    await self.handle_peer_leave(endpoint, data)
 
-            # Handle incoming answers
-            @self.sio.on(f"{event_prefix}voiceanswer")
-            async def handle_answer(data, endpoint=endpoint):
-                await self.handle_remote_answer(endpoint, data)
+    def _register_endpoint_handlers(self, endpoint: str):
+        """Register Socket.io handlers for a specific endpoint"""
+        event_prefix = f"{endpoint}camera"
 
-            # Handle ICE candidates
-            @self.sio.on(f"{event_prefix}voiceicecandidate")
-            async def handle_ice_candidate(data, endpoint=endpoint):
-                await self.handle_remote_ice_candidate(endpoint, data)
+        # Handle incoming offers
+        async def handle_offer(data):
+            await self.handle_remote_offer(endpoint, data)
+        self.sio.on(f"{event_prefix}voiceoffer", handle_offer)
 
-            # Handle peer connections (new peer joined)
-            @self.sio.on(f"{event_prefix}connect")
-            async def handle_peer_connect(data, endpoint=endpoint):
-                await self.handle_peer_join(endpoint, data)
+        # Handle incoming answers
+        async def handle_answer(data):
+            await self.handle_remote_answer(endpoint, data)
+        self.sio.on(f"{event_prefix}voiceanswer", handle_answer)
 
-            # Handle peer disconnections
-            @self.sio.on(f"{event_prefix}disconnect")
-            async def handle_peer_disconnect(data, endpoint=endpoint):
-                await self.handle_peer_leave(endpoint, data)
+        # Handle ICE candidates
+        async def handle_ice_candidate(data):
+            await self.handle_remote_ice_candidate(endpoint, data)
+        self.sio.on(f"{event_prefix}voiceicecandidate", handle_ice_candidate)
 
-            # Handle reconnect requests
-            @self.sio.on(f"{event_prefix}reconnect")
-            async def handle_reconnect(data, endpoint=endpoint):
-                await self.handle_reconnect_request(endpoint, data)
+        # Handle peer connections (new peer joined)
+        async def handle_peer_connect(data):
+            logger.info(f"Handler triggered for {endpoint}connect with data: {data}")
+            await self.handle_peer_join(endpoint, data)
+        self.sio.on(f"{event_prefix}connect", handle_peer_connect)
+
+        # Handle peer disconnections
+        async def handle_peer_disconnect(data):
+            await self.handle_peer_leave(endpoint, data)
+        self.sio.on(f"{event_prefix}disconnect", handle_peer_disconnect)
+
+        # Handle reconnect requests
+        async def handle_reconnect(data):
+            await self.handle_reconnect_request(endpoint, data)
+        self.sio.on(f"{event_prefix}reconnect", handle_reconnect)
 
     async def send_name_updates(self):
         """Send camera name to all endpoints"""
         for endpoint in self.endpoints:
-            event_name = f"{endpoint}cameracamera" + "nameupdate"
+            event_name = f"{endpoint}camera" + "nameupdate"
             await self.sio.emit(event_name, {"cameraName": self.camera_name})
             logger.info(f"Sent name update to {endpoint}: {self.camera_name}")
 
     async def create_peer_connection(self, endpoint: str, peer_id: str) -> RTCPeerConnection:
         """Create a new RTCPeerConnection for a peer"""
 
-        pc = RTCPeerConnection(configuration={
-            "iceServers": [
-                {"urls": "stun:stun.l.google.com:19302"},
-                {"urls": "stun:stun1.l.google.com:19302"},
+        configuration = RTCConfiguration(
+            iceServers=[
+                RTCIceServer(urls=["stun:stun.l.google.com:19302"]),
+                RTCIceServer(urls=["stun:stun1.l.google.com:19302"]),
             ]
-        })
+        )
+        pc = RTCPeerConnection(configuration=configuration)
 
         # Store peer connection
         if endpoint not in self.peer_connections:
@@ -231,7 +301,7 @@ class CameraBroadcaster:
         @pc.on("icecandidate")
         async def on_icecandidate(candidate):
             if candidate:
-                event_name = f"{endpoint}cameracamera" + "voiceicecandidate"
+                event_name = f"{endpoint}camera" + "voiceicecandidate"
                 await self.sio.emit(event_name, {
                     "candidate": {
                         "candidate": candidate.candidate,
@@ -265,7 +335,7 @@ class CameraBroadcaster:
         offer = await pc.createOffer()
         await pc.setLocalDescription(offer)
 
-        event_name = f"{endpoint}cameracamera" + "voiceoffer"
+        event_name = f"{endpoint}camera" + "voiceoffer"
         await self.sio.emit(event_name, {
             "offer": {
                 "type": pc.localDescription.type,
@@ -293,7 +363,7 @@ class CameraBroadcaster:
         offer = await pc.createOffer()
         await pc.setLocalDescription(offer)
 
-        event_name = f"{endpoint}cameracamera" + "voiceoffer"
+        event_name = f"{endpoint}camera" + "voiceoffer"
         await self.sio.emit(event_name, {
             "offer": {
                 "type": pc.localDescription.type,
@@ -327,7 +397,7 @@ class CameraBroadcaster:
         answer = await pc.createAnswer()
         await pc.setLocalDescription(answer)
 
-        event_name = f"{endpoint}cameracamera" + "voiceanswer"
+        event_name = f"{endpoint}camera" + "voiceanswer"
         await self.sio.emit(event_name, {
             "answer": {
                 "type": pc.localDescription.type,
