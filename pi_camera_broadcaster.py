@@ -208,14 +208,27 @@ class CameraBroadcaster:
         async def connect_error(data):
             logger.error(f"Connection error: {data}")
 
-        # Debug: Test if handler registration works at all
+        # Use catch-all to manually route events to handlers
         @self.sio.on("*")
         async def catch_all(event, data):
-            logger.info(f"CATCH-ALL: Event '{event}' received with data: {data}")
+            # Route camera events to appropriate handlers
+            for endpoint in self.endpoints:
+                prefix = f"{endpoint}cameracamera"
 
-        # Setup handlers for each endpoint
-        for endpoint in self.endpoints:
-            self._register_endpoint_handlers(endpoint)
+                if event == f"{prefix}connect":
+                    logger.info(f"Routing {event} to handle_peer_join")
+                    await self.handle_peer_join(endpoint, data)
+                elif event == f"{prefix}reconnect":
+                    logger.info(f"Routing {event} to handle_reconnect_request")
+                    await self.handle_reconnect_request(endpoint, data)
+                elif event == f"{prefix}voiceoffer":
+                    await self.handle_remote_offer(endpoint, data)
+                elif event == f"{prefix}voiceanswer":
+                    await self.handle_remote_answer(endpoint, data)
+                elif event == f"{prefix}voiceicecandidate":
+                    await self.handle_remote_ice_candidate(endpoint, data)
+                elif event == f"{prefix}disconnect":
+                    await self.handle_peer_leave(endpoint, data)
 
     def _register_endpoint_handlers(self, endpoint: str):
         """Register Socket.io handlers for a specific endpoint"""
