@@ -13,7 +13,7 @@ from typing import Dict, Set
 import ssl
 
 import socketio
-from aiortc import RTCPeerConnection, RTCSessionDescription, RTCIceCandidate, VideoStreamTrack
+from aiortc import RTCPeerConnection, RTCSessionDescription, RTCIceCandidate, VideoStreamTrack, RTCConfiguration, RTCIceServer
 from aiortc.contrib.media import MediaPlayer
 from av import VideoFrame
 from fractions import Fraction
@@ -277,12 +277,13 @@ class CameraBroadcaster:
     async def create_peer_connection(self, endpoint: str, peer_id: str) -> RTCPeerConnection:
         """Create a new RTCPeerConnection for a peer"""
 
-        pc = RTCPeerConnection(configuration={
-            "iceServers": [
-                {"urls": "stun:stun.l.google.com:19302"},
-                {"urls": "stun:stun1.l.google.com:19302"},
+        configuration = RTCConfiguration(
+            iceServers=[
+                RTCIceServer(urls=["stun:stun.l.google.com:19302"]),
+                RTCIceServer(urls=["stun:stun1.l.google.com:19302"]),
             ]
-        })
+        )
+        pc = RTCPeerConnection(configuration=configuration)
 
         # Store peer connection
         if endpoint not in self.peer_connections:
