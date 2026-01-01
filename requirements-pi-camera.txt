@@ -10,10 +10,12 @@ python-socketio[asyncio_client]>=5.10.0
 av>=10.0.0
 numpy>=1.24.0
 
-# Raspberry Pi camera support (only needed on Pi)
-# Install with: pip install picamera2
-# Note: picamera2 has system dependencies, see PI_CAMERA_SETUP.md
-# picamera2
+# USB camera support (OpenCV)
+# Uncomment if using USB camera:
+opencv-python>=4.8.0
 
-# Optional: for alternative video sources
-# opencv-python>=4.8.0
+# Raspberry Pi CSI camera support (Pi Camera Module)
+# Install with: pip install picamera2
+# Note: picamera2 has system dependencies (libcamera-dev, python3-picamera2)
+# Uncomment if using Pi Camera Module:
+# picamera2

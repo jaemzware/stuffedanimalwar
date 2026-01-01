@@ -18,16 +18,24 @@ from aiortc.contrib.media import MediaPlayer
 from av import VideoFrame
 from fractions import Fraction
 
-# Try to import picamera2, fallback to file/test pattern if not available
+# Try to import camera libraries
+import numpy as np
+
+try:
+    import cv2
+    OPENCV_AVAILABLE = True
+except ImportError:
+    OPENCV_AVAILABLE = False
+    logging.warning("opencv not available")
+
 try:
     from picamera2 import Picamera2
     from picamera2.encoders import H264Encoder
     from picamera2.outputs import FileOutput
-    import numpy as np
     PICAMERA_AVAILABLE = True
 except ImportError:
     PICAMERA_AVAILABLE = False
-    logging.warning("picamera2 not available, will use test pattern or file input")
+    logging.warning("picamera2 not available")
 
 # Configure logging
 logging.basicConfig(
@@ -39,50 +47,82 @@ logger = logging.getLogger(__name__)
 
 class PiCameraTrack(VideoStreamTrack):
     """
-    Video track that streams from Raspberry Pi camera
+    Video track that streams from USB camera or Raspberry Pi camera
     """
     def __init__(self):
         super().__init__()
         self.camera = None
+        self.camera_type = None
         self.frame_count = 0
 
-        if PICAMERA_AVAILABLE:
+        # Try USB camera first (OpenCV)
+        if OPENCV_AVAILABLE:
             try:
-                self.camera = Picamera2()
+                cap = cv2.VideoCapture(0)
+                if cap.isOpened():
+                    # Set camera properties for better quality
+                    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+                    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+                    cap.set(cv2.CAP_PROP_FPS, 30)
+                    self.camera = cap
+                    self.camera_type = "usb"
+                    logger.info("USB Camera initialized successfully")
+                else:
+                    cap.release()
+            except Exception as e:
+                logger.error(f"Failed to initialize USB Camera: {e}")
+
+        # Try Pi Camera Module if USB camera not found
+        if not self.camera and PICAMERA_AVAILABLE:
+            try:
+                picam = Picamera2()
                 # Configure for video streaming
-                config = self.camera.create_video_configuration(
+                config = picam.create_video_configuration(
                     main={"size": (1280, 720), "format": "RGB888"},
                     controls={"FrameRate": 30}
                 )
-                self.camera.configure(config)
-                self.camera.start()
-                logger.info("Pi Camera initialized successfully")
+                picam.configure(config)
+                picam.start()
+                self.camera = picam
+                self.camera_type = "csi"
+                logger.info("Pi Camera Module (CSI) initialized successfully")
             except Exception as e:
-                logger.error(f"Failed to initialize Pi Camera: {e}")
-                self.camera = None
+                logger.error(f"Failed to initialize Pi Camera Module: {e}")
 
         if not self.camera:
-            logger.warning("Using test pattern instead of real camera")
+            logger.warning("No camera found - using test pattern")
 
     async def recv(self):
         """
-        Generate video frames from Pi camera or test pattern
+        Generate video frames from USB camera, Pi camera, or test pattern
         """
         pts, time_base = await self.next_timestamp()
 
         if self.camera:
             try:
-                # Capture frame from Pi camera
-                array = self.camera.capture_array()
-                frame = VideoFrame.from_ndarray(array, format="rgb24")
-                frame.pts = pts
-                frame.time_base = time_base
-                return frame
+                if self.camera_type == "usb":
+                    # Capture frame from USB camera via OpenCV
+                    ret, frame_bgr = self.camera.read()
+                    if ret:
+                        # Convert BGR to RGB
+                        frame_rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
+                        frame = VideoFrame.from_ndarray(frame_rgb, format="rgb24")
+                        frame.pts = pts
+                        frame.time_base = time_base
+                        return frame
+                    else:
+                        logger.error("Failed to read from USB camera")
+                elif self.camera_type == "csi":
+                    # Capture frame from Pi Camera Module
+                    array = self.camera.capture_array()
+                    frame = VideoFrame.from_ndarray(array, format="rgb24")
+                    frame.pts = pts
+                    frame.time_base = time_base
+                    return frame
             except Exception as e:
-                logger.error(f"Error capturing from camera: {e}")
+                logger.error(f"Error capturing from {self.camera_type} camera: {e}")
 
         # Generate test pattern (color bars)
-        import numpy as np
         width, height = 1280, 720
 
         # Create color bars
@@ -117,11 +157,15 @@ class PiCameraTrack(VideoStreamTrack):
         super().stop()
         if self.camera:
             try:
-                self.camera.stop()
-                self.camera.close()
-                logger.info("Camera stopped and closed")
+                if self.camera_type == "usb":
+                    self.camera.release()
+                    logger.info("USB camera released")
+                elif self.camera_type == "csi":
+                    self.camera.stop()
+                    self.camera.close()
+                    logger.info("Pi Camera Module stopped and closed")
             except Exception as e:
-                logger.error(f"Error stopping camera: {e}")
+                logger.error(f"Error stopping {self.camera_type} camera: {e}")
 
 
 class CameraBroadcaster:
