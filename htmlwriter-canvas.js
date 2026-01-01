@@ -256,17 +256,23 @@ function writeStuffedAnimalWarForm(stuffedAnimalMediaObject){
 
     document.write("<tr>");
     document.write("<td colspan='4'>");
-    // Combined points and speed slider row
-    document.write("<div style=\"display: flex; align-items: center; width: 100%; margin-top: 10px;\">");
+    // Combined points, speed, and amplitude slider row
+    document.write("<div style=\"display: flex; align-items: center; width: 100%; margin-top: 10px; flex-wrap: wrap; gap: 10px;\">");
     // Points display that will adjust its width based on content
-    document.write("<div style=\"display: flex; align-items: center; white-space: nowrap; margin-right: 10px;\">");
+    document.write("<div style=\"display: flex; align-items: center; white-space: nowrap;\">");
     document.write("Points: <span id='points'>0</span><span></span>");
     document.write("</div>");
-    // Speed label and slider that take remaining space
-    document.write("<div style=\"display: flex; align-items: center; flex-grow: 1; min-width: 0;\">");
+    // Speed label and slider
+    document.write("<div style=\"display: flex; align-items: center; flex-grow: 1; min-width: 120px;\">");
     document.write("<label for=\"speedSlider\" style=\"margin-right: 5px; white-space: nowrap;\">Delay:</label>");
     document.write("<input type=\"range\" id=\"speedSlider\" min=\"1\" max=\"100\" value=\"50\" style=\"flex-grow: 1; margin-right: 5px; min-width: 50px;\">");
     document.write("<span id=\"speedValue\" style=\"min-width: 25px; text-align: right;\">50</span>");
+    document.write("</div>");
+    // Amplitude label and slider for sine wave
+    document.write("<div style=\"display: flex; align-items: center; flex-grow: 1; min-width: 120px;\">");
+    document.write("<label for=\"amplitudeSlider\" style=\"margin-right: 5px; white-space: nowrap;\">Amplitude:</label>");
+    document.write("<input type=\"range\" id=\"amplitudeSlider\" min=\"10\" max=\"200\" value=\"50\" style=\"flex-grow: 1; margin-right: 5px; min-width: 50px;\">");
+    document.write("<span id=\"amplitudeValue\" style=\"min-width: 25px; text-align: right;\">50</span>");
     document.write("</div>");
     document.write("</div>"); // End of combined row
     document.write("</td>");

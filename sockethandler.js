@@ -1170,6 +1170,7 @@ function emitTapMessage(xcoord,ycoord) {
         blue:colorPickerButton.attr("data-blue"),
         lineWidth:parseInt(colorPickerButton.attr("data-line-width")) || 5,
         speed:getSpeed(),
+        amplitude:parseInt($('#amplitudeSlider').val()) || 50,
         CHATCLIENTUSER: chatClientUser
     };
 

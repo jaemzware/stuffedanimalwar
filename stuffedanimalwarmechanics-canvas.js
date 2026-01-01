@@ -19,6 +19,7 @@ let imageHeightPixels = 100;
 let imageWidthPixels = 100;
 let oldPointForLineToolX = null;
 let oldPointForLineToolY = null;
+let sineAmplitude = 50; // Amplitude for sine wave movement
 const imageCache = {};
 
 // Canvas references
@@ -62,6 +63,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Start the game loop
                 startGameLoop();
                 console.log('Canvas initialized with dimensions:', canvas.width, 'x', canvas.height);
+
+                // Set up amplitude slider event listener
+                const amplitudeSlider = document.getElementById('amplitudeSlider');
+                const amplitudeValue = document.getElementById('amplitudeValue');
+                if (amplitudeSlider && amplitudeValue) {
+                    amplitudeSlider.addEventListener('input', function() {
+                        sineAmplitude = parseInt(this.value, 10);
+                        amplitudeValue.textContent = this.value;
+                    });
+                }
             });
         }
 
@@ -340,7 +351,7 @@ function updateAnimalPosition(animal) {
         case 'R-SINE':
             if (!animal.baselineY) animal.baselineY = animal.y;
             animal.x += animalPositionIncrement;
-            animal.y = 50 * Math.sin(0.05 * animal.x) + animal.baselineY;
+            animal.y = animal.amplitude * Math.sin(0.05 * animal.x) + animal.baselineY;
             if (animal.x > canvasWidth) {
                 animal.x = 0;
                 animal.y = animal.baselineY;
@@ -349,7 +360,7 @@ function updateAnimalPosition(animal) {
         case 'L-SINE':
             if (!animal.baselineY) animal.baselineY = animal.y;
             animal.x -= animalPositionIncrement;
-            animal.y = 50 * Math.sin(0.05 * animal.x) + animal.baselineY;
+            animal.y = animal.amplitude * Math.sin(0.05 * animal.x) + animal.baselineY;
             if (animal.x < 0) {
                 animal.x = canvasWidth;
                 animal.y = animal.baselineY;
@@ -409,7 +420,7 @@ function updateShapePosition(shape) {
         case 'R-SINE':
             if (!shape.baselineY) shape.baselineY = shape.y;
             shape.x += shapePositionIncrement;
-            shape.y = 50 * Math.sin(0.05 * shape.x) + shape.baselineY;
+            shape.y = shape.amplitude * Math.sin(0.05 * shape.x) + shape.baselineY;
             if (shape.x > canvasWidth) {
                 shape.x = 0;
                 shape.y = shape.baselineY;
@@ -418,7 +429,7 @@ function updateShapePosition(shape) {
         case 'L-SINE':
             if (!shape.baselineY) shape.baselineY = shape.y;
             shape.x -= shapePositionIncrement;
-            shape.y = 50 * Math.sin(0.05 * shape.x) + shape.baselineY;
+            shape.y = shape.amplitude * Math.sin(0.05 * shape.x) + shape.baselineY;
             if (shape.x < 0) {
                 shape.x = canvasWidth;
                 shape.y = shape.baselineY;
@@ -488,6 +499,7 @@ function onBaseTapSocketEventDots(tapMsgObject) {
         color: color,
         movement: tapMsgObject.movement,
         speed: tapMsgObject.speed,
+        amplitude: tapMsgObject.amplitude || 50,
         lastUpdate: null,
         user: tapMsgObject.CHATCLIENTUSER
     };
@@ -570,6 +582,7 @@ function onBaseTapSocketEventImages(tapMsgObject) {
         imageObj: imageObj,
         movement: tapMsgObject.movement,
         speed: tapMsgObject.speed,
+        amplitude: tapMsgObject.amplitude || 50,
         lastUpdate: null,
         user: tapMsgObject.CHATCLIENTUSER,
         animalName: tapMsgObject.animalName,
