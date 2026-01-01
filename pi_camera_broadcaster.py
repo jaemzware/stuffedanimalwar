@@ -214,7 +214,7 @@ class CameraBroadcaster:
             logger.info(f"CATCH-ALL TRIGGERED: event='{event}'")
             # Route camera events to appropriate handlers
             for endpoint in self.endpoints:
-                prefix = f"{endpoint}cameracamera"
+                prefix = f"{endpoint}camera"
                 logger.info(f"DEBUG: Checking endpoint='{endpoint}', prefix='{prefix}', looking for '{prefix}connect'")
 
                 if event == f"{prefix}connect":
