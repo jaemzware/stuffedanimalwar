@@ -210,38 +210,42 @@ class CameraBroadcaster:
 
         # Setup handlers for each endpoint
         for endpoint in self.endpoints:
-            event_prefix = f"{endpoint}cameracamera"
+            self._register_endpoint_handlers(endpoint)
 
-            # Handle incoming offers
-            @self.sio.on(f"{event_prefix}voiceoffer")
-            async def handle_offer(data, endpoint=endpoint):
-                await self.handle_remote_offer(endpoint, data)
+    def _register_endpoint_handlers(self, endpoint: str):
+        """Register Socket.io handlers for a specific endpoint"""
+        event_prefix = f"{endpoint}cameracamera"
 
-            # Handle incoming answers
-            @self.sio.on(f"{event_prefix}voiceanswer")
-            async def handle_answer(data, endpoint=endpoint):
-                await self.handle_remote_answer(endpoint, data)
+        # Handle incoming offers
+        async def handle_offer(data):
+            await self.handle_remote_offer(endpoint, data)
+        self.sio.on(f"{event_prefix}voiceoffer", handle_offer)
 
-            # Handle ICE candidates
-            @self.sio.on(f"{event_prefix}voiceicecandidate")
-            async def handle_ice_candidate(data, endpoint=endpoint):
-                await self.handle_remote_ice_candidate(endpoint, data)
+        # Handle incoming answers
+        async def handle_answer(data):
+            await self.handle_remote_answer(endpoint, data)
+        self.sio.on(f"{event_prefix}voiceanswer", handle_answer)
 
-            # Handle peer connections (new peer joined)
-            @self.sio.on(f"{event_prefix}connect")
-            async def handle_peer_connect(data, endpoint=endpoint):
-                logger.info(f"Handler triggered for {endpoint}connect with data: {data}")
-                await self.handle_peer_join(endpoint, data)
+        # Handle ICE candidates
+        async def handle_ice_candidate(data):
+            await self.handle_remote_ice_candidate(endpoint, data)
+        self.sio.on(f"{event_prefix}voiceicecandidate", handle_ice_candidate)
 
-            # Handle peer disconnections
-            @self.sio.on(f"{event_prefix}disconnect")
-            async def handle_peer_disconnect(data, endpoint=endpoint):
-                await self.handle_peer_leave(endpoint, data)
+        # Handle peer connections (new peer joined)
+        async def handle_peer_connect(data):
+            logger.info(f"Handler triggered for {endpoint}connect with data: {data}")
+            await self.handle_peer_join(endpoint, data)
+        self.sio.on(f"{event_prefix}connect", handle_peer_connect)
 
-            # Handle reconnect requests
-            @self.sio.on(f"{event_prefix}reconnect")
-            async def handle_reconnect(data, endpoint=endpoint):
-                await self.handle_reconnect_request(endpoint, data)
+        # Handle peer disconnections
+        async def handle_peer_disconnect(data):
+            await self.handle_peer_leave(endpoint, data)
+        self.sio.on(f"{event_prefix}disconnect", handle_peer_disconnect)
+
+        # Handle reconnect requests
+        async def handle_reconnect(data):
+            await self.handle_reconnect_request(endpoint, data)
+        self.sio.on(f"{event_prefix}reconnect", handle_reconnect)
 
     async def send_name_updates(self):
         """Send camera name to all endpoints"""
