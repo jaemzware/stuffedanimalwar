@@ -211,6 +211,7 @@ class CameraBroadcaster:
         # Use catch-all to manually route events to handlers
         @self.sio.on("*")
         async def catch_all(event, data):
+            logger.info(f"CATCH-ALL TRIGGERED: event='{event}'")
             # Route camera events to appropriate handlers
             for endpoint in self.endpoints:
                 prefix = f"{endpoint}cameracamera"
