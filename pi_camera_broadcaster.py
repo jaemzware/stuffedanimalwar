@@ -9,6 +9,7 @@ import json
 import logging
 import os
 import sys
+import time
 from typing import Dict, Set
 import ssl
 
@@ -55,6 +56,32 @@ class PiCameraTrack(VideoStreamTrack):
         self.camera_type = None
         self.frame_count = 0
 
+        # Health check / reconnect settings
+        self.consecutive_failures = 0
+        self.max_failures_before_reconnect = 10  # Reconnect after 10 failed frames
+        self.last_successful_frame_time = None
+        self.reconnect_cooldown = 5.0  # Seconds to wait between reconnect attempts
+        self.last_reconnect_attempt = 0
+
+        # Initialize camera
+        self._init_camera()
+
+    def _init_camera(self):
+        """Initialize or reinitialize the camera"""
+        # Release existing camera if any
+        if self.camera:
+            try:
+                if self.camera_type == "usb":
+                    self.camera.release()
+                elif self.camera_type == "csi":
+                    self.camera.stop()
+                    self.camera.close()
+                logger.info(f"Released existing {self.camera_type} camera for reinitialization")
+            except Exception as e:
+                logger.warning(f"Error releasing camera during reinit: {e}")
+            self.camera = None
+            self.camera_type = None
+
         # Try USB camera first (OpenCV)
         if OPENCV_AVAILABLE:
             try:
@@ -64,9 +91,17 @@ class PiCameraTrack(VideoStreamTrack):
                     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
                     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
                     cap.set(cv2.CAP_PROP_FPS, 30)
-                    self.camera = cap
-                    self.camera_type = "usb"
-                    logger.info("USB Camera initialized successfully")
+                    # Read a test frame to verify camera is working
+                    ret, _ = cap.read()
+                    if ret:
+                        self.camera = cap
+                        self.camera_type = "usb"
+                        self.consecutive_failures = 0
+                        self.last_successful_frame_time = time.time()
+                        logger.info("USB Camera initialized successfully")
+                    else:
+                        logger.warning("USB camera opened but failed to read test frame")
+                        cap.release()
                 else:
                     cap.release()
             except Exception as e:
@@ -85,12 +120,16 @@ class PiCameraTrack(VideoStreamTrack):
                 picam.start()
                 self.camera = picam
                 self.camera_type = "csi"
+                self.consecutive_failures = 0
+                self.last_successful_frame_time = time.time()
                 logger.info("Pi Camera Module (CSI) initialized successfully")
             except Exception as e:
                 logger.error(f"Failed to initialize Pi Camera Module: {e}")
 
         if not self.camera:
             logger.warning("No camera found - using test pattern")
+
+        self.last_reconnect_attempt = time.time()
 
     async def recv(self):
         """
@@ -103,24 +142,51 @@ class PiCameraTrack(VideoStreamTrack):
                 if self.camera_type == "usb":
                     # Capture frame from USB camera via OpenCV
                     ret, frame_bgr = self.camera.read()
-                    if ret:
+                    if ret and frame_bgr is not None and frame_bgr.size > 0:
                         # Convert BGR to RGB
                         frame_rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
                         frame = VideoFrame.from_ndarray(frame_rgb, format="rgb24")
                         frame.pts = pts
                         frame.time_base = time_base
+                        # Reset failure counter on success
+                        self.consecutive_failures = 0
+                        self.last_successful_frame_time = time.time()
                         return frame
                     else:
-                        logger.error("Failed to read from USB camera")
+                        self.consecutive_failures += 1
+                        logger.warning(f"Failed to read from USB camera (failure {self.consecutive_failures}/{self.max_failures_before_reconnect})")
                 elif self.camera_type == "csi":
                     # Capture frame from Pi Camera Module
                     array = self.camera.capture_array()
-                    frame = VideoFrame.from_ndarray(array, format="rgb24")
-                    frame.pts = pts
-                    frame.time_base = time_base
-                    return frame
+                    if array is not None and array.size > 0:
+                        frame = VideoFrame.from_ndarray(array, format="rgb24")
+                        frame.pts = pts
+                        frame.time_base = time_base
+                        # Reset failure counter on success
+                        self.consecutive_failures = 0
+                        self.last_successful_frame_time = time.time()
+                        return frame
+                    else:
+                        self.consecutive_failures += 1
+                        logger.warning(f"Failed to capture from CSI camera (failure {self.consecutive_failures}/{self.max_failures_before_reconnect})")
             except Exception as e:
-                logger.error(f"Error capturing from {self.camera_type} camera: {e}")
+                self.consecutive_failures += 1
+                logger.error(f"Error capturing from {self.camera_type} camera (failure {self.consecutive_failures}): {e}")
+
+        # Check if we should attempt to reconnect the camera
+        time_since_reconnect = time.time() - self.last_reconnect_attempt
+        should_reconnect = (
+            self.consecutive_failures >= self.max_failures_before_reconnect and
+            time_since_reconnect >= self.reconnect_cooldown
+        )
+
+        if should_reconnect:
+            logger.info(f"Attempting camera reconnection after {self.consecutive_failures} failures...")
+            self._init_camera()
+            if self.camera:
+                logger.info("Camera reconnected successfully!")
+            else:
+                logger.warning("Camera reconnection failed, continuing with test pattern")
 
         # Generate test pattern (color bars)
         width, height = 1280, 720
