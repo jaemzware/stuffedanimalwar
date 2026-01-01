@@ -208,6 +208,11 @@ class CameraBroadcaster:
         async def connect_error(data):
             logger.error(f"Connection error: {data}")
 
+        # Debug: Test if handler registration works at all
+        @self.sio.on("*")
+        async def catch_all(event, data):
+            logger.info(f"CATCH-ALL: Event '{event}' received with data: {data}")
+
         # Setup handlers for each endpoint
         for endpoint in self.endpoints:
             self._register_endpoint_handlers(endpoint)
