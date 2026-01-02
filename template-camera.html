@@ -2766,7 +2766,14 @@
                         const video = videoWrapper.querySelector('video');
 
                         // Update or set the stream (handles both new tracks and renegotiation)
-                        if (video.srcObject !== event.streams[0]) {
+                        // Handle case where track arrives without an associated stream (common with aiortc)
+                        let remoteStream = event.streams[0];
+                        if (!remoteStream) {
+                            console.warn('⚠️ No stream provided with track from peer:', peerId, '- creating synthetic stream');
+                            remoteStream = new MediaStream([event.track]);
+                        }
+
+                        if (video.srcObject !== remoteStream) {
                             console.log('🔄 Updating video stream for peer:', peerId);
 
                             // Clean up old monitors if exists
@@ -2777,8 +2784,8 @@
                                 clearInterval(video._diagInterval);
                             }
 
-                            video.srcObject = event.streams[0];
-                            remoteCameraStreams[peerId] = event.streams[0];
+                            video.srcObject = remoteStream;
+                            remoteCameraStreams[peerId] = remoteStream;
 
                             // Force play safely without triggering fullscreen
                             safePlayVideo(video).catch(err => {
