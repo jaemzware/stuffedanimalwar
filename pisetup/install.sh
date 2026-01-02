@@ -183,7 +183,7 @@ nginx -t
 echo "[10.5/12] Installing Camera Broadcaster (USB Camera Support)..."
 # Install system dependencies for camera broadcaster
 apt install -y libsrtp2-1 libavdevice-dev libavfilter-dev libopus-dev libvpx-dev \
-    libopenblas0 libopenblas-dev libglib2.0-0 libsm6 libxext6 libxrender-dev \
+    libopenblas0 libopenblas-dev libglib2.0-0t64 libsm6 libxext6 libxrender-dev \
     libgomp1 python3-opencv libffi-dev python3-dev build-essential pkg-config
 
 # Create Python virtual environment with system site packages (for opencv)
