@@ -1291,11 +1291,27 @@ let connectedPeers = new Set();
 let pendingIceCandidates = {}; // Store ICE candidates that arrive before remote description
 let lastPeerCount = 0; // Track peer count for notification sound
 
-// ICE server configuration (using public STUN servers)
+// ICE server configuration (STUN + TURN servers for NAT traversal)
 const iceServers = {
     iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' }
+        { urls: 'stun:stun1.l.google.com:19302' },
+        // OpenRelay free TURN servers (provided by Metered.ca)
+        {
+            urls: 'turn:openrelay.metered.ca:80',
+            username: 'openrelayproject',
+            credential: 'openrelayproject'
+        },
+        {
+            urls: 'turn:openrelay.metered.ca:443',
+            username: 'openrelayproject',
+            credential: 'openrelayproject'
+        },
+        {
+            urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+            username: 'openrelayproject',
+            credential: 'openrelayproject'
+        }
     ]
 };
 

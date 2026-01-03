@@ -347,6 +347,22 @@ class CameraBroadcaster:
             iceServers=[
                 RTCIceServer(urls=["stun:stun.l.google.com:19302"]),
                 RTCIceServer(urls=["stun:stun1.l.google.com:19302"]),
+                # OpenRelay free TURN servers (provided by Metered.ca)
+                RTCIceServer(
+                    urls=["turn:openrelay.metered.ca:80"],
+                    username="openrelayproject",
+                    credential="openrelayproject"
+                ),
+                RTCIceServer(
+                    urls=["turn:openrelay.metered.ca:443"],
+                    username="openrelayproject",
+                    credential="openrelayproject"
+                ),
+                RTCIceServer(
+                    urls=["turn:openrelay.metered.ca:443?transport=tcp"],
+                    username="openrelayproject",
+                    credential="openrelayproject"
+                ),
             ]
         )
         pc = RTCPeerConnection(configuration=configuration)
