@@ -70,20 +70,31 @@ For Raspberry Pi OS Bullseye or newer, picamera2 is the recommended way to acces
 sudo apt install -y python3-picamera2
 ```
 
-Or install via pip if the apt package isn't available:
+Or install via pip if the apt package isn't available (do this inside your virtual environment after step 3):
 
 ```bash
-pip3 install picamera2
+source venv/bin/activate
+pip install picamera2
 ```
 
 ### 3. Install Python Dependencies
 
-Navigate to your stuffedanimalwar directory and install the Python requirements:
+Navigate to your stuffedanimalwar directory and create a virtual environment to install the Python requirements:
 
 ```bash
 cd /path/to/stuffedanimalwar
-pip3 install -r requirements-pi-camera.txt
+
+# Create a virtual environment
+python3 -m venv venv
+
+# Activate the virtual environment
+source venv/bin/activate
+
+# Install requirements (inside the virtual environment)
+pip install -r requirements-pi-camera.txt
 ```
+
+**Note:** On Raspberry Pi OS Bookworm or newer, you must use a virtual environment. Direct `pip3 install` will give an "externally managed environment" error.
 
 ### 4. Configure the Broadcaster
 
@@ -115,9 +126,12 @@ Edit `pi_camera_config.json` to match your setup:
 
 ### 5. Test the Broadcaster
 
-Before setting up as a service, test that it works:
+Before setting up as a service, test that it works (make sure your virtual environment is activated):
 
 ```bash
+# Activate venv if not already active
+source venv/bin/activate
+
 python3 pi_camera_broadcaster.py
 ```
 
@@ -148,6 +162,8 @@ sudo cp pi-camera-broadcaster.service /etc/systemd/system/
 # Edit the service file to match your paths
 sudo nano /etc/systemd/system/pi-camera-broadcaster.service
 # Update WorkingDirectory and ExecStart paths as needed
+# IMPORTANT: ExecStart should use the venv python, e.g.:
+# ExecStart=/path/to/stuffedanimalwar/venv/bin/python3 pi_camera_broadcaster.py
 
 # Reload systemd to pick up the new service
 sudo systemctl daemon-reload
@@ -309,10 +325,10 @@ sudo rm /etc/systemd/system/pi-camera-broadcaster.service
 sudo systemctl daemon-reload
 ```
 
-To remove Python dependencies:
+To remove Python dependencies (just delete the virtual environment):
 
 ```bash
-pip3 uninstall -r requirements-pi-camera.txt
+rm -rf /path/to/stuffedanimalwar/venv
 ```
 
 ## Support
