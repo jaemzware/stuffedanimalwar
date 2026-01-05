@@ -407,7 +407,162 @@ function removeCameraBroadcasterOption(broadcasterId) {
         option.remove();
         console.log("Removed broadcaster option from dropdown");
     }
+
+    // If we were connected to this broadcaster, clean up
+    if (broadcasterConnection && broadcasterConnection.broadcasterId === broadcasterId) {
+        disconnectFromBroadcaster();
+    }
 }
+
+// WebRTC Broadcaster Viewer Connection
+// ICE servers for broadcaster connections (same as voice chat)
+const broadcasterIceServers = {
+    iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+        {
+            urls: 'turn:openrelay.metered.ca:80',
+            username: 'openrelayproject',
+            credential: 'openrelayproject'
+        },
+        {
+            urls: 'turn:openrelay.metered.ca:443',
+            username: 'openrelayproject',
+            credential: 'openrelayproject'
+        },
+        {
+            urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+            username: 'openrelayproject',
+            credential: 'openrelayproject'
+        }
+    ],
+    iceCandidatePoolSize: 10
+};
+
+let broadcasterConnection = null;
+
+function connectToBroadcaster(broadcasterId) {
+    console.log('[VIEWER] Connecting to broadcaster:', broadcasterId);
+
+    // Clean up existing connection
+    if (broadcasterConnection) {
+        disconnectFromBroadcaster();
+    }
+
+    const pc = new RTCPeerConnection(broadcasterIceServers);
+    broadcasterConnection = {
+        pc: pc,
+        broadcasterId: broadcasterId
+    };
+
+    // We only receive video, not send
+    pc.addTransceiver('video', { direction: 'recvonly' });
+
+    // Handle incoming tracks
+    pc.ontrack = function(event) {
+        console.log('[VIEWER] Received track from broadcaster:', event.track.kind);
+        const videoElement = document.getElementById('jaemzwaredynamicvideoplayer');
+        if (videoElement && event.streams[0]) {
+            // Clear any existing src
+            videoElement.removeAttribute('src');
+            const sourceElement = document.getElementById('jaemzwaredynamicvideosource');
+            if (sourceElement) {
+                sourceElement.removeAttribute('src');
+            }
+            // Set the WebRTC stream
+            videoElement.srcObject = event.streams[0];
+            videoElement.play().catch(function(err) {
+                console.log('[VIEWER] Video play error:', err.message);
+            });
+        }
+    };
+
+    // Handle ICE candidates
+    pc.onicecandidate = function(event) {
+        if (event.candidate) {
+            socket.emit('broadcaster-ice-candidate', {
+                candidate: event.candidate,
+                to: broadcasterId
+            });
+        }
+    };
+
+    // Handle connection state changes
+    pc.onconnectionstatechange = function() {
+        console.log('[VIEWER] Connection state:', pc.connectionState);
+        if (pc.connectionState === 'connected') {
+            console.log('[VIEWER] Connected to broadcaster');
+        } else if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
+            console.log('[VIEWER] Disconnected from broadcaster');
+        }
+    };
+
+    // Request stream from broadcaster
+    socket.emit('viewer-request-stream', { broadcasterId: broadcasterId });
+}
+
+function disconnectFromBroadcaster() {
+    if (broadcasterConnection) {
+        console.log('[VIEWER] Disconnecting from broadcaster');
+        if (broadcasterConnection.pc) {
+            broadcasterConnection.pc.close();
+        }
+        broadcasterConnection = null;
+
+        // Restore video element to normal mode
+        const videoElement = document.getElementById('jaemzwaredynamicvideoplayer');
+        if (videoElement) {
+            videoElement.srcObject = null;
+        }
+    }
+}
+
+// Initialize broadcaster socket handlers (called after socket is set up)
+function initializeBroadcasterSocketHandlers() {
+    // Handle offer from broadcaster
+    socket.on('broadcaster-offer', async function(data) {
+        console.log('[VIEWER] Received offer from broadcaster:', data.from);
+
+        if (!broadcasterConnection || broadcasterConnection.broadcasterId !== data.from) {
+            console.log('[VIEWER] Ignoring offer - not connected to this broadcaster');
+            return;
+        }
+
+        const pc = broadcasterConnection.pc;
+
+        try {
+            await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
+            const answer = await pc.createAnswer();
+            await pc.setLocalDescription(answer);
+
+            socket.emit('broadcaster-answer', {
+                answer: pc.localDescription,
+                to: data.from
+            });
+
+            console.log('[VIEWER] Sent answer to broadcaster');
+        } catch (error) {
+            console.error('[VIEWER] Error handling broadcaster offer:', error);
+        }
+    });
+
+    // Handle ICE candidates from broadcaster
+    socket.on('broadcaster-ice-candidate', async function(data) {
+        if (!broadcasterConnection || broadcasterConnection.broadcasterId !== data.from) {
+            return;
+        }
+
+        const pc = broadcasterConnection.pc;
+        if (pc && data.candidate) {
+            try {
+                await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+            } catch (error) {
+                console.error('[VIEWER] Error adding ICE candidate:', error);
+            }
+        }
+    });
+}
+
 function onBaseChatSocketEvent(chatMsgObject){
     let remoteChatClientUser = chatMsgObject.CHATCLIENTUSER;
     let chatServerUser = chatMsgObject.CHATSERVERUSER;
@@ -1023,8 +1178,8 @@ $('#selectvideos').change(function(){
     changeMp4(videoToPlay,poster);
     let chatClientUser = $("#chatClientUser").val();
 
-    // Don't broadcast camera streams to other users (they're local device streams)
-    if(chatClientUser.toLowerCase()===masterAlias.toLowerCase() && !videoToPlay.startsWith('camera://')){
+    // Don't broadcast camera or webrtc streams to other users (they're local/WebRTC streams)
+    if(chatClientUser.toLowerCase()===masterAlias.toLowerCase() && !videoToPlay.startsWith('camera://') && !videoToPlay.startsWith('webrtc://')){
         // If the video path is relative (doesn't start with http), prepend server origin
         let videoUrl = videoToPlay;
         if (!videoToPlay.toLowerCase().startsWith('http://') && !videoToPlay.toLowerCase().startsWith('https://')) {
@@ -1352,6 +1507,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Set up WebRTC socket listeners
     initializeVoiceChatSocketHandlers();
+
+    // Set up broadcaster socket listeners (for viewing webcam broadcasts)
+    initializeBroadcasterSocketHandlers();
 
     // Refresh peers button
     const refreshPeersButton = document.getElementById('refreshPeersButton');
