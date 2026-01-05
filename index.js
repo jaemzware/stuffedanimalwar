@@ -329,6 +329,9 @@ const stuffedAnimalWarPageCounters = stuffedAnimalWarEndpoints.reduce((acc, page
     return acc;
 }, {});
 
+// Track active camera broadcasters (for /camera-broadcaster page)
+const activeBroadcasters = new Map();
+
 //add stuffedAnimalWarEndpoints jim000 through jim999
 for (let i = 1; i <= 999; i++) {
     const paddedNumber = String(i).padStart(3, '0');
@@ -474,6 +477,12 @@ ${linksHtml}
 
     res.send(html);
 });
+
+// Camera broadcaster page - for broadcasting webcam as a video source
+app.get('/camera-broadcaster', function(req, res){
+    res.sendFile(__dirname + '/camera-broadcaster.html');
+});
+
 /**
  * 1 - define endpoints to serve custom stuffedanimalwar pages (e.g. jim.json)
  */
@@ -1388,8 +1397,17 @@ io.on('connection', function(socket){
             console.log(`[CAMERA] Broadcasting disconnect for ${endpoint}, socket: ${socket.id}`);
             io.emit(cameraDisconnectEvent, cameraDisconnectMsg);
         }
+
+        // If this was a broadcaster, notify all clients
+        if (activeBroadcasters.has(socket.id)) {
+            console.log('[BROADCASTER] Broadcaster disconnected:', socket.id);
+            activeBroadcasters.delete(socket.id);
+            io.emit('camera-broadcaster-unavailable', {
+                broadcasterId: socket.id
+            });
+        }
     });
-         
+
     //ON ERROR
     socket.on('error', function(errorMsgObject){
         let chatClientAddress = getClientIp(socket);
@@ -1402,6 +1420,72 @@ io.on('connection', function(socket){
         errorMsgObject.CHATCLIENTMESSAGE = 'ERROR';
         errorMsgObject.CHATCLIENTUSER = '';
         console.log("ERROR:" + " ENDPOINT: " + endpoint  + ":" + listenPort + " CLIENT: " + chatClientAddress + " TIME: " + chatPstString + " ROOM COUNT: " + stuffedAnimalWarPageCounters[endpoint]);
+    });
+
+    //CAMERA BROADCASTER------------------------------------------------------------------------------
+    // Register a camera broadcaster (from /camera-broadcaster page)
+    socket.on('register-camera-broadcaster', function(data) {
+        console.log('[BROADCASTER] Registering camera broadcaster:', socket.id, 'label:', data.label);
+        activeBroadcasters.set(socket.id, { label: data.label, socketId: socket.id });
+        // Announce to all clients that a new broadcaster is available
+        io.emit('camera-broadcaster-available', {
+            broadcasterId: socket.id,
+            label: data.label
+        });
+        // Send list of existing broadcasters to the new connection
+        activeBroadcasters.forEach((broadcaster, id) => {
+            if (id !== socket.id) {
+                socket.emit('camera-broadcaster-available', {
+                    broadcasterId: id,
+                    label: broadcaster.label
+                });
+            }
+        });
+    });
+
+    // Unregister a camera broadcaster
+    socket.on('unregister-camera-broadcaster', function() {
+        if (activeBroadcasters.has(socket.id)) {
+            console.log('[BROADCASTER] Unregistering camera broadcaster:', socket.id);
+            activeBroadcasters.delete(socket.id);
+            io.emit('camera-broadcaster-unavailable', {
+                broadcasterId: socket.id
+            });
+        }
+    });
+
+    // Viewer requests stream from broadcaster
+    socket.on('viewer-request-stream', function(data) {
+        console.log('[BROADCASTER] Viewer', socket.id, 'requesting stream from broadcaster:', data.broadcasterId);
+        io.to(data.broadcasterId).emit('viewer-request-stream', {
+            viewerId: socket.id
+        });
+    });
+
+    // Broadcaster sends offer to viewer
+    socket.on('broadcaster-offer', function(data) {
+        console.log('[BROADCASTER] Offer from', socket.id, 'to viewer:', data.to);
+        io.to(data.to).emit('broadcaster-offer', {
+            offer: data.offer,
+            from: socket.id
+        });
+    });
+
+    // Viewer sends answer to broadcaster
+    socket.on('broadcaster-answer', function(data) {
+        console.log('[BROADCASTER] Answer from', socket.id, 'to broadcaster:', data.to);
+        io.to(data.to).emit('broadcaster-answer', {
+            answer: data.answer,
+            from: socket.id
+        });
+    });
+
+    // ICE candidate exchange for broadcaster connections
+    socket.on('broadcaster-ice-candidate', function(data) {
+        io.to(data.to).emit('broadcaster-ice-candidate', {
+            candidate: data.candidate,
+            from: socket.id
+        });
     });
 
     /**

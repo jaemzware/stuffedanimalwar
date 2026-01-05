@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Camera Broadcaster</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .status {
+            text-align: center;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            font-size: 14px;
+        }
+
+        .status.connected {
+            color: #28a745;
+        }
+
+        .status.disconnected {
+            color: #dc3545;
+        }
+
+        .status.broadcasting {
+            color: #ffc107;
+        }
+
+        .video-container {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        #localVideo {
+            width: 100%;
+            max-height: 400px;
+            object-fit: contain;
+            display: block;
+            background: #000;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .control-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        label {
+            font-size: 14px;
+            min-width: 100px;
+        }
+
+        input[type="text"], select {
+            flex: 1;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        input[type="text"]::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        select option {
+            background: #2a2a3e;
+            color: white;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-start {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-start:hover:not(:disabled) {
+            background: #218838;
+        }
+
+        .btn-stop {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-stop:hover:not(:disabled) {
+            background: #c82333;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .viewer-count {
+            text-align: center;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .viewer-count span {
+            font-size: 24px;
+            font-weight: bold;
+            color: #28a745;
+        }
+
+        .instructions {
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .instructions h3 {
+            margin-bottom: 10px;
+            color: #ffc107;
+        }
+
+        .instructions ol {
+            margin-left: 20px;
+        }
+
+        .instructions li {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Camera Broadcaster</h1>
+
+        <div id="status" class="status disconnected">Connecting to server...</div>
+
+        <div class="video-container">
+            <video id="localVideo" autoplay muted playsinline></video>
+        </div>
+
+        <div class="controls">
+            <div class="control-row">
+                <label for="cameraSelect">Camera:</label>
+                <select id="cameraSelect">
+                    <option value="">Select a camera...</option>
+                </select>
+            </div>
+            <div class="control-row">
+                <label for="labelInput">Label:</label>
+                <input type="text" id="labelInput" placeholder="My Webcam" value="USB Webcam">
+            </div>
+            <div class="control-row">
+                <button id="startBtn" class="btn btn-start" disabled>Start Broadcasting</button>
+                <button id="stopBtn" class="btn btn-stop" disabled>Stop Broadcasting</button>
+            </div>
+        </div>
+
+        <div class="viewer-count">
+            Connected Viewers: <span id="viewerCount">0</span>
+        </div>
+
+        <div class="instructions">
+            <h3>How to Use</h3>
+            <ol>
+                <li>Select your camera from the dropdown</li>
+                <li>Enter a label for your camera (this appears in the video dropdown)</li>
+                <li>Click "Start Broadcasting"</li>
+                <li>Your camera will appear in the video player dropdown on all clients</li>
+                <li>Keep this page open while broadcasting</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        // ICE servers for WebRTC (same as template-camera.html)
+        const iceServers = {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' },
+                {
+                    urls: 'turn:openrelay.metered.ca:80',
+                    username: 'openrelayproject',
+                    credential: 'openrelayproject'
+                },
+                {
+                    urls: 'turn:openrelay.metered.ca:443',
+                    username: 'openrelayproject',
+                    credential: 'openrelayproject'
+                },
+                {
+                    urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+                    username: 'openrelayproject',
+                    credential: 'openrelayproject'
+                }
+            ],
+            iceCandidatePoolSize: 10
+        };
+
+        // State
+        let socket = null;
+        let localStream = null;
+        let isBroadcasting = false;
+        const peerConnections = {}; // viewerId -> RTCPeerConnection
+
+        // DOM elements
+        const statusEl = document.getElementById('status');
+        const localVideo = document.getElementById('localVideo');
+        const cameraSelect = document.getElementById('cameraSelect');
+        const labelInput = document.getElementById('labelInput');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const viewerCountEl = document.getElementById('viewerCount');
+
+        // Initialize
+        async function init() {
+            // Connect to socket.io with broadcaster endpoint
+            socket = io({
+                query: { endpoint: 'broadcaster' }
+            });
+
+            socket.on('connect', () => {
+                console.log('Connected to server:', socket.id);
+                updateStatus('Connected - Ready to broadcast', 'connected');
+                startBtn.disabled = false;
+            });
+
+            socket.on('disconnect', () => {
+                console.log('Disconnected from server');
+                updateStatus('Disconnected from server', 'disconnected');
+                startBtn.disabled = true;
+                stopBroadcasting();
+            });
+
+            // Handle viewer requesting stream
+            socket.on('viewer-request-stream', async (data) => {
+                console.log('Viewer requesting stream:', data.viewerId);
+                if (isBroadcasting && localStream) {
+                    await createOfferForViewer(data.viewerId);
+                }
+            });
+
+            // Handle viewer's answer
+            socket.on('broadcaster-answer', async (data) => {
+                console.log('Received answer from viewer:', data.from);
+                const pc = peerConnections[data.from];
+                if (pc && pc.signalingState === 'have-local-offer') {
+                    try {
+                        await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+                        console.log('Set remote description for viewer:', data.from);
+                    } catch (error) {
+                        console.error('Error setting remote description:', error);
+                    }
+                }
+            });
+
+            // Handle ICE candidates from viewer
+            socket.on('broadcaster-ice-candidate', async (data) => {
+                console.log('Received ICE candidate from viewer:', data.from);
+                const pc = peerConnections[data.from];
+                if (pc && data.candidate) {
+                    try {
+                        await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+                    } catch (error) {
+                        console.error('Error adding ICE candidate:', error);
+                    }
+                }
+            });
+
+            // Enumerate cameras
+            await enumerateCameras();
+
+            // Button handlers
+            startBtn.onclick = startBroadcasting;
+            stopBtn.onclick = stopBroadcasting;
+            cameraSelect.onchange = onCameraChange;
+        }
+
+        async function enumerateCameras() {
+            try {
+                // Request permission first
+                const tempStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                tempStream.getTracks().forEach(track => track.stop());
+
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const cameras = devices.filter(device => device.kind === 'videoinput');
+
+                cameraSelect.innerHTML = '<option value="">Select a camera...</option>';
+                cameras.forEach((camera, index) => {
+                    const option = document.createElement('option');
+                    option.value = camera.deviceId;
+                    option.textContent = camera.label || `Camera ${index + 1}`;
+                    cameraSelect.appendChild(option);
+                });
+
+                if (cameras.length > 0) {
+                    cameraSelect.value = cameras[0].deviceId;
+                    await startPreview(cameras[0].deviceId);
+                }
+            } catch (error) {
+                console.error('Error enumerating cameras:', error);
+                updateStatus('Error accessing camera: ' + error.message, 'disconnected');
+            }
+        }
+
+        async function startPreview(deviceId) {
+            try {
+                if (localStream) {
+                    localStream.getTracks().forEach(track => track.stop());
+                }
+
+                localStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        deviceId: deviceId ? { exact: deviceId } : undefined,
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 },
+                        frameRate: { ideal: 30 }
+                    },
+                    audio: false
+                });
+
+                localVideo.srcObject = localStream;
+            } catch (error) {
+                console.error('Error starting preview:', error);
+                updateStatus('Error accessing camera: ' + error.message, 'disconnected');
+            }
+        }
+
+        async function onCameraChange() {
+            const deviceId = cameraSelect.value;
+            if (deviceId) {
+                await startPreview(deviceId);
+
+                // If broadcasting, update all peer connections with new stream
+                if (isBroadcasting) {
+                    for (const viewerId of Object.keys(peerConnections)) {
+                        const pc = peerConnections[viewerId];
+                        const senders = pc.getSenders();
+                        const videoSender = senders.find(s => s.track && s.track.kind === 'video');
+                        if (videoSender && localStream) {
+                            const newTrack = localStream.getVideoTracks()[0];
+                            if (newTrack) {
+                                await videoSender.replaceTrack(newTrack);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        async function startBroadcasting() {
+            if (!localStream) {
+                updateStatus('No camera selected', 'disconnected');
+                return;
+            }
+
+            const label = labelInput.value.trim() || 'USB Webcam';
+
+            isBroadcasting = true;
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+            labelInput.disabled = true;
+
+            // Register with server
+            socket.emit('register-camera-broadcaster', { label: label });
+
+            updateStatus('Broadcasting as "' + label + '"', 'broadcasting');
+            console.log('Started broadcasting as:', label);
+        }
+
+        function stopBroadcasting() {
+            if (!isBroadcasting) return;
+
+            isBroadcasting = false;
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            labelInput.disabled = false;
+
+            // Unregister from server
+            socket.emit('unregister-camera-broadcaster');
+
+            // Close all peer connections
+            for (const viewerId of Object.keys(peerConnections)) {
+                peerConnections[viewerId].close();
+                delete peerConnections[viewerId];
+            }
+
+            updateViewerCount();
+            updateStatus('Stopped broadcasting', 'connected');
+            console.log('Stopped broadcasting');
+        }
+
+        async function createOfferForViewer(viewerId) {
+            console.log('Creating offer for viewer:', viewerId);
+
+            // Close existing connection if any
+            if (peerConnections[viewerId]) {
+                peerConnections[viewerId].close();
+            }
+
+            const pc = new RTCPeerConnection(iceServers);
+            peerConnections[viewerId] = pc;
+
+            // Add local stream tracks
+            if (localStream) {
+                localStream.getTracks().forEach(track => {
+                    console.log('Adding track to peer connection:', track.kind);
+                    pc.addTrack(track, localStream);
+                });
+            }
+
+            // Handle ICE candidates
+            pc.onicecandidate = (event) => {
+                if (event.candidate) {
+                    socket.emit('broadcaster-ice-candidate', {
+                        candidate: event.candidate,
+                        to: viewerId
+                    });
+                }
+            };
+
+            // Handle connection state changes
+            pc.onconnectionstatechange = () => {
+                console.log('Connection state for', viewerId, ':', pc.connectionState);
+                if (pc.connectionState === 'connected') {
+                    updateViewerCount();
+                } else if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed' || pc.connectionState === 'closed') {
+                    delete peerConnections[viewerId];
+                    updateViewerCount();
+                }
+            };
+
+            // Create and send offer
+            try {
+                const offer = await pc.createOffer();
+                await pc.setLocalDescription(offer);
+
+                socket.emit('broadcaster-offer', {
+                    offer: pc.localDescription,
+                    to: viewerId
+                });
+
+                console.log('Sent offer to viewer:', viewerId);
+            } catch (error) {
+                console.error('Error creating offer:', error);
+            }
+        }
+
+        function updateViewerCount() {
+            const count = Object.keys(peerConnections).filter(id => {
+                const pc = peerConnections[id];
+                return pc && pc.connectionState === 'connected';
+            }).length;
+            viewerCountEl.textContent = count;
+        }
+
+        function updateStatus(message, className) {
+            statusEl.textContent = message;
+            statusEl.className = 'status ' + className;
+        }
+
+        // Start
+        init();
+    </script>
+</body>
+</html>

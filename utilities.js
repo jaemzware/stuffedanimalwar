@@ -340,6 +340,18 @@ function changeMp4(mp4Url){
 function changeMp4(mp4Url,coverImageUrl){
     console.log("CHANGE MP4");
 
+    // Handle WebRTC broadcaster streams
+    if (mp4Url && mp4Url.startsWith('webrtc://')) {
+        const broadcasterId = mp4Url.replace('webrtc://', '');
+        console.log('Connecting to WebRTC broadcaster:', broadcasterId);
+        if (typeof connectToBroadcaster === 'function') {
+            connectToBroadcaster(broadcasterId);
+        } else {
+            console.error('connectToBroadcaster function not found');
+        }
+        return;
+    }
+
     let $selectVideos = $('#selectvideos');
     let optionExists = false;
 
