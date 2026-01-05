@@ -55,44 +55,43 @@ On your Raspberry Pi, install required system packages:
 
 ```bash
 sudo apt update
-sudo apt install -y python3-pip python3-dev python3-numpy \
+sudo apt install -y python3-pip python3-dev python3-venv \
     libavformat-dev libavcodec-dev libavdevice-dev \
     libavutil-dev libswscale-dev libswresample-dev \
     libavfilter-dev libopus-dev libvpx-dev pkg-config \
     libsrtp2-dev
 ```
 
-### 2. Install picamera2
+### 2. Install Camera Support
 
-For Raspberry Pi OS Bullseye or newer, picamera2 is the recommended way to access the camera:
+**For USB Webcam:**
+```bash
+sudo apt install -y python3-opencv
+```
 
+**For Pi Camera Module (CSI):**
 ```bash
 sudo apt install -y python3-picamera2
 ```
 
-Or install via pip if the apt package isn't available (do this inside your virtual environment after step 3):
-
-```bash
-source venv/bin/activate
-pip install picamera2
-```
-
 ### 3. Install Python Dependencies
 
-Navigate to your stuffedanimalwar directory and create a virtual environment to install the Python requirements:
+Navigate to your stuffedanimalwar directory and create a virtual environment:
 
 ```bash
 cd /path/to/stuffedanimalwar
 
 # Create a virtual environment
-python3 -m venv venv
+python3 -m venv venv --system-site-packages
 
 # Activate the virtual environment
 source venv/bin/activate
 
-# Install requirements (inside the virtual environment)
-pip install -r requirements-pi-camera.txt
+# Install requirements
+pip install aiortc python-socketio[asyncio_client] dnspython numpy av
 ```
+
+**Note:** The `--system-site-packages` flag allows the venv to access system-installed packages like `python3-opencv` and `python3-picamera2`.
 
 **Note:** On Raspberry Pi OS Bookworm or newer, you must use a virtual environment. Direct `pip3 install` will give an "externally managed environment" error.
 
