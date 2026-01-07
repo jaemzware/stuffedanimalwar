@@ -533,6 +533,35 @@
         </style>
     </head>
     <body>
+        <!-- PASSWORD MODAL -->
+        <div id="passwordModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 99999; justify-content: center; align-items: center;">
+            <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 40px; border-radius: 12px; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.5); max-width: 400px; width: 90%;">
+                <h2 style="color: #fff; margin: 0 0 20px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Enter Room Password</h2>
+                <input type="password" id="passwordInput" placeholder="Password" style="width: 100%; padding: 12px; font-size: 16px; border: 2px solid #444; border-radius: 6px; background: #2a2a4a; color: #fff; box-sizing: border-box; margin-bottom: 15px;" onkeypress="if(event.key==='Enter')checkPassword()">
+                <button onclick="checkPassword()" style="width: 100%; padding: 12px; font-size: 16px; font-weight: bold; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 6px; cursor: pointer;">Enter</button>
+                <p id="passwordError" style="color: #ff6b6b; margin: 15px 0 0 0; display: none;">Incorrect password</p>
+            </div>
+        </div>
+        <script>
+            const roomPassword = '{{PASSWORD}}';
+            const storageKey = 'saw_auth_' + '{{ENDPOINT}}';
+
+            function checkPassword() {
+                const input = document.getElementById('passwordInput').value;
+                if (input === roomPassword) {
+                    sessionStorage.setItem(storageKey, 'true');
+                    document.getElementById('passwordModal').style.display = 'none';
+                } else {
+                    document.getElementById('passwordError').style.display = 'block';
+                    document.getElementById('passwordInput').value = '';
+                }
+            }
+
+            // Check if already authenticated or no password required
+            if (roomPassword && sessionStorage.getItem(storageKey) !== 'true') {
+                document.getElementById('passwordModal').style.display = 'flex';
+            }
+        </script>
         <!-- Navigation Links -->
         <div style="margin-bottom: 10px; display: flex; gap: 8px;">
             <a id="canvasLink" href="#" style="padding: 6px 12px; background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 4px;">

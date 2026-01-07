@@ -144,6 +144,7 @@ function populateForm(data) {
     document.getElementById('endpoint').value = data.endpoint || '';
     document.getElementById('masterAlias').value = data.masterAlias || '';
     document.getElementById('unspecifiedAlias').value = data.unspecifiedAlias || '';
+    document.getElementById('password').value = data.password || '';
 
     // Stuffed animal media
     document.getElementById('backgroundimage').value = data.stuffedAnimalMediaObject?.backgroundimage || '';
@@ -669,6 +670,7 @@ function collectFormData() {
     // Basic info
     const data = {
         endpoint: document.getElementById('endpoint').value,
+        password: document.getElementById('password').value,
         masterAlias: document.getElementById('masterAlias').value,
         unspecifiedAlias: document.getElementById('unspecifiedAlias').value
     };

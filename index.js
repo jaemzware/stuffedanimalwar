@@ -522,6 +522,7 @@ stuffedAnimalWarEndpoints.forEach(endpoint => {
             html = html.replace('{{STUFFED_ANIMAL_MEDIA_OBJECT}}', JSON.stringify(configData.stuffedAnimalMediaObject, null, 2));
             html = html.replace('{{MEDIA_OBJECT}}', JSON.stringify(configData.mediaObject, null, 2));
             html = html.replace('{{RESPONSES_OBJECT}}', JSON.stringify(configData.responsesObject, null, 2));
+            html = html.replace('{{PASSWORD}}', configData.password || '');
 
             // Send the generated HTML
             res.send(html);
@@ -537,8 +538,19 @@ stuffedAnimalWarEndpoints.forEach(endpoint => {
             let html = templateCameraHtml;
             console.log(`Serving camera endpoint for ${endpoint}`);
 
+            // Read the config to get the password
+            const configPath = path.join(__dirname, 'endpoints', endpoint + '.json');
+            let password = '';
+            try {
+                const configData = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+                password = configData.password || '';
+            } catch (fileError) {
+                console.log(`No config found for camera endpoint ${endpoint}`);
+            }
+
             // Replace endpoint placeholder
             html = html.replace(/{{ENDPOINT}}/g, endpoint);
+            html = html.replace('{{PASSWORD}}', password);
 
             res.send(html);
         } catch (error) {

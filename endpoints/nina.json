@@ -1,5 +1,6 @@
 {
     "endpoint": "nina",
+    "password": "anin",
     "masterAlias": "NINA",
     "unspecifiedAlias": "anonymous",
     "stuffedAnimalMediaObject": {

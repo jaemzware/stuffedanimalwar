@@ -1,5 +1,6 @@
 {
     "endpoint": "mark",
+    "password": "kram",
     "masterAlias": "MARK",
     "unspecifiedAlias": "anonymous",
     "stuffedAnimalMediaObject": {
