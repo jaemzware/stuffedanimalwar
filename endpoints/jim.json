@@ -1,5 +1,6 @@
 {
     "endpoint": "jim",
+    "password": "mij",
     "masterAlias": "JIM",
     "unspecifiedAlias": "mr nobody",
     "stuffedAnimalMediaObject": {
