@@ -357,6 +357,17 @@
                 background: rgba(40, 167, 69, 0.8);
             }
 
+            .peer-action-btn:disabled {
+                opacity: 0.3;
+                cursor: not-allowed;
+                transform: none;
+            }
+
+            .peer-action-btn:disabled:hover {
+                background: rgba(0, 0, 0, 0.6);
+                transform: none;
+            }
+
             /* Local camera action buttons */
             .local-actions {
                 position: absolute;
@@ -1394,20 +1405,26 @@
                 isRemoteAudioMuted = !isChecked;
                 console.log('🔊 Accept Remote Audio changed to:', isChecked, '→ isRemoteAudioMuted:', isRemoteAudioMuted);
 
-                // Mute/unmute all existing remote audio elements and update per-peer state
+                // Mute/unmute all existing remote audio elements
                 const audioElements = document.querySelectorAll('audio[id^="remoteAudio_"]');
                 console.log(`🔇 Updating ${audioElements.length} audio element(s)`);
                 audioElements.forEach(audioElement => {
-                    const peerId = audioElement.id.replace('remoteAudio_', '');
                     audioElement.muted = isRemoteAudioMuted;
+                    console.log('  ↳ Set', audioElement.id, 'muted:', audioElement.muted);
+                });
+
+                // Update all per-peer state and button icons (based on video elements, not audio)
+                const videoWrappers = document.querySelectorAll('[id^="remoteVideo_"]');
+                console.log(`🔊 Updating ${videoWrappers.length} peer button(s)`);
+                videoWrappers.forEach(wrapper => {
+                    const peerId = wrapper.id.replace('remoteVideo_', '');
                     peerAudioMuted[peerId] = isRemoteAudioMuted;
-                    // Update button icon
                     const audioBtn = document.getElementById('audioBtn_' + peerId);
-                    if (audioBtn) {
+                    // Only update icon/title for enabled buttons (peers with audio)
+                    if (audioBtn && !audioBtn.disabled) {
                         audioBtn.innerHTML = isRemoteAudioMuted ? '🔇' : '🔊';
                         audioBtn.title = isRemoteAudioMuted ? 'Unmute this peer' : 'Mute this peer';
                     }
-                    console.log('  ↳ Set', audioElement.id, 'muted:', audioElement.muted);
                 });
             }
 
@@ -2782,15 +2799,13 @@
                                 maximizeVideo('remoteVideoElement_' + peerId, displayName);
                             };
 
-                            // Audio mute button for this peer
+                            // Audio mute button for this peer (starts disabled until audio track received)
                             const audioBtn = document.createElement('button');
                             audioBtn.className = 'peer-action-btn';
                             audioBtn.id = 'audioBtn_' + peerId;
-                            // Initialize to muted if global mute is on, or check per-peer state
-                            const isMuted = peerAudioMuted[peerId] !== undefined ? peerAudioMuted[peerId] : isRemoteAudioMuted;
-                            peerAudioMuted[peerId] = isMuted;
-                            audioBtn.innerHTML = isMuted ? '🔇' : '🔊';
-                            audioBtn.title = isMuted ? 'Unmute this peer' : 'Mute this peer';
+                            audioBtn.innerHTML = '🔇';
+                            audioBtn.title = 'No audio from this peer';
+                            audioBtn.disabled = true;
                             audioBtn.onclick = (e) => {
                                 e.stopPropagation();
                                 togglePeerAudio(peerId);
@@ -2954,6 +2969,7 @@
                             audioElement.autoplay = true;
                             // Use per-peer mute state if set, otherwise fall back to global state
                             const peerMuteState = peerAudioMuted[peerId] !== undefined ? peerAudioMuted[peerId] : isRemoteAudioMuted;
+                            peerAudioMuted[peerId] = peerMuteState;
                             audioElement.muted = peerMuteState;
                             audioElement.volume = 1.0;
                             audioElement.style.display = 'none';
@@ -2962,6 +2978,16 @@
                         }
 
                         audioElement.srcObject = event.streams[0];
+
+                        // Enable the audio mute button now that we have audio
+                        const audioBtn = document.getElementById('audioBtn_' + peerId);
+                        if (audioBtn) {
+                            audioBtn.disabled = false;
+                            const isMuted = peerAudioMuted[peerId];
+                            audioBtn.innerHTML = isMuted ? '🔇' : '🔊';
+                            audioBtn.title = isMuted ? 'Unmute this peer' : 'Mute this peer';
+                            console.log('🔊 Enabled audio button for peer:', peerId, 'muted:', isMuted);
+                        }
 
                         // Try to play audio
                         audioElement.play().then(() => {
