@@ -965,6 +965,7 @@
             let pendingIceCandidates = {}; // Queue for ICE candidates that arrive before remote description
             let myCameraName = ''; // User's custom camera name
             let peerCameraNames = {}; // Map of peerId -> camera name
+            let peerAudioMuted = {}; // Map of peerId -> boolean (true = muted)
             let lastPeerCount = 0; // Track peer count for notifications
 
             // ICE servers (STUN + TURN for NAT traversal)
@@ -1393,13 +1394,44 @@
                 isRemoteAudioMuted = !isChecked;
                 console.log('🔊 Accept Remote Audio changed to:', isChecked, '→ isRemoteAudioMuted:', isRemoteAudioMuted);
 
-                // Mute/unmute all existing remote audio elements
+                // Mute/unmute all existing remote audio elements and update per-peer state
                 const audioElements = document.querySelectorAll('audio[id^="remoteAudio_"]');
                 console.log(`🔇 Updating ${audioElements.length} audio element(s)`);
                 audioElements.forEach(audioElement => {
+                    const peerId = audioElement.id.replace('remoteAudio_', '');
                     audioElement.muted = isRemoteAudioMuted;
+                    peerAudioMuted[peerId] = isRemoteAudioMuted;
+                    // Update button icon
+                    const audioBtn = document.getElementById('audioBtn_' + peerId);
+                    if (audioBtn) {
+                        audioBtn.innerHTML = isRemoteAudioMuted ? '🔇' : '🔊';
+                        audioBtn.title = isRemoteAudioMuted ? 'Unmute this peer' : 'Mute this peer';
+                    }
                     console.log('  ↳ Set', audioElement.id, 'muted:', audioElement.muted);
                 });
+            }
+
+            function togglePeerAudio(peerId) {
+                const audioElement = document.getElementById('remoteAudio_' + peerId);
+                const audioBtn = document.getElementById('audioBtn_' + peerId);
+
+                // Toggle the muted state
+                const newMutedState = !peerAudioMuted[peerId];
+                peerAudioMuted[peerId] = newMutedState;
+
+                // Update audio element if it exists
+                if (audioElement) {
+                    audioElement.muted = newMutedState;
+                    console.log('🔊 Toggled audio for peer:', peerId, '→ muted:', newMutedState);
+                } else {
+                    console.log('🔊 Set audio mute state for peer:', peerId, '→ muted:', newMutedState, '(audio element not yet created)');
+                }
+
+                // Update button icon
+                if (audioBtn) {
+                    audioBtn.innerHTML = newMutedState ? '🔇' : '🔊';
+                    audioBtn.title = newMutedState ? 'Unmute this peer' : 'Mute this peer';
+                }
             }
 
             async function startCamera() {
@@ -2750,9 +2782,24 @@
                                 maximizeVideo('remoteVideoElement_' + peerId, displayName);
                             };
 
+                            // Audio mute button for this peer
+                            const audioBtn = document.createElement('button');
+                            audioBtn.className = 'peer-action-btn';
+                            audioBtn.id = 'audioBtn_' + peerId;
+                            // Initialize to muted if global mute is on, or check per-peer state
+                            const isMuted = peerAudioMuted[peerId] !== undefined ? peerAudioMuted[peerId] : isRemoteAudioMuted;
+                            peerAudioMuted[peerId] = isMuted;
+                            audioBtn.innerHTML = isMuted ? '🔇' : '🔊';
+                            audioBtn.title = isMuted ? 'Unmute this peer' : 'Mute this peer';
+                            audioBtn.onclick = (e) => {
+                                e.stopPropagation();
+                                togglePeerAudio(peerId);
+                            };
+
                             actions.appendChild(refreshBtn);
                             actions.appendChild(diagBtn);
                             actions.appendChild(maxBtn);
+                            actions.appendChild(audioBtn);
 
                             // Diagnostics overlay
                             const diagnostics = document.createElement('div');
@@ -2905,7 +2952,9 @@
                             audioElement = document.createElement('audio');
                             audioElement.id = 'remoteAudio_' + peerId;
                             audioElement.autoplay = true;
-                            audioElement.muted = isRemoteAudioMuted;
+                            // Use per-peer mute state if set, otherwise fall back to global state
+                            const peerMuteState = peerAudioMuted[peerId] !== undefined ? peerAudioMuted[peerId] : isRemoteAudioMuted;
+                            audioElement.muted = peerMuteState;
                             audioElement.volume = 1.0;
                             audioElement.style.display = 'none';
                             document.body.appendChild(audioElement);
@@ -3192,6 +3241,11 @@
                 // Clean up peer camera name
                 if (peerCameraNames[data.userId]) {
                     delete peerCameraNames[data.userId];
+                }
+
+                // Clean up per-peer audio mute state
+                if (peerAudioMuted[data.userId] !== undefined) {
+                    delete peerAudioMuted[data.userId];
                 }
 
                 delete remoteCameraStreams[data.userId];
