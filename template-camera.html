@@ -1411,6 +1411,13 @@
                 audioElements.forEach(audioElement => {
                     audioElement.muted = isRemoteAudioMuted;
                     console.log('  ↳ Set', audioElement.id, 'muted:', audioElement.muted);
+
+                    // If unmuting, try to play in case browser paused it
+                    if (!isRemoteAudioMuted) {
+                        audioElement.play().catch(err => {
+                            console.warn('⚠️ Could not resume audio:', audioElement.id, err.message);
+                        });
+                    }
                 });
 
                 // Update all per-peer state and button icons (based on video elements, not audio)
@@ -1440,6 +1447,15 @@
                 if (audioElement) {
                     audioElement.muted = newMutedState;
                     console.log('🔊 Toggled audio for peer:', peerId, '→ muted:', newMutedState);
+
+                    // If unmuting, try to play in case browser paused it
+                    if (!newMutedState) {
+                        audioElement.play().then(() => {
+                            console.log('🔊 Audio resumed for peer:', peerId);
+                        }).catch(err => {
+                            console.warn('⚠️ Could not resume audio for peer:', peerId, err.message);
+                        });
+                    }
                 } else {
                     console.log('🔊 Set audio mute state for peer:', peerId, '→ muted:', newMutedState, '(audio element not yet created)');
                 }
