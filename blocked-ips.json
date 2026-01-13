@@ -1,0 +1,4 @@
+{
+  "blocked": [],
+  "notes": "Add IP addresses to the 'blocked' array to block them from canvas and camera pages. Example: [\"192.168.1.100\", \"10.0.0.50\"]. Changes are hot-reloaded automatically."
+}
