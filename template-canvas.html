@@ -21,7 +21,8 @@
 </div>
 <script>
     const roomPassword = '{{PASSWORD}}';
-    const storageKey = 'saw_auth_' + '{{ENDPOINT}}';
+    const serverInstanceId = '{{SERVER_INSTANCE_ID}}';
+    const storageKey = 'saw_auth_' + '{{ENDPOINT}}' + '_' + serverInstanceId;
 
     function checkPassword() {
         const input = document.getElementById('passwordInput').value;

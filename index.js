@@ -33,6 +33,10 @@ const path = require('path');
 const sharp = require('sharp');
 let listenPort =55556;
 
+// Server instance ID - changes on each restart to invalidate client sessions
+const SERVER_INSTANCE_ID = Date.now().toString(36) + Math.random().toString(36).substring(2, 8);
+console.log(`[SERVER] Instance ID: ${SERVER_INSTANCE_ID}`);
+
 // Thumbnail cache directory
 const THUMB_CACHE_DIR = path.join(__dirname, '.thumbcache');
 const THUMB_WIDTH = 200; // Thumbnail width in pixels
@@ -47,6 +51,66 @@ const mediaScanCache = {};
 const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour cache TTL
 const MAX_PHOTOS = 2000; // Max photos to show (prevents huge galleries)
 const MAX_VIDEOS = 500; // Max videos to show in dropdown
+
+// IP Blocking configuration
+const BLOCKED_IPS_FILE = path.join(__dirname, 'blocked-ips.json');
+let blockedIps = new Set();
+
+/**
+ * Load blocked IPs from JSON file
+ */
+function loadBlockedIps() {
+    try {
+        if (fs.existsSync(BLOCKED_IPS_FILE)) {
+            const data = JSON.parse(fs.readFileSync(BLOCKED_IPS_FILE, 'utf8'));
+            blockedIps = new Set(data.blocked || []);
+            console.log(`[IP-BLOCK] Loaded ${blockedIps.size} blocked IP(s)`);
+        }
+    } catch (error) {
+        console.error('[IP-BLOCK] Error loading blocked IPs:', error.message);
+    }
+}
+
+// Load blocked IPs on startup
+loadBlockedIps();
+
+// Watch for changes to blocked-ips.json (hot-reload)
+fs.watch(BLOCKED_IPS_FILE, { persistent: false }, (eventType) => {
+    if (eventType === 'change') {
+        console.log('[IP-BLOCK] Detected change in blocked-ips.json, reloading...');
+        setTimeout(loadBlockedIps, 100); // Small delay to ensure file write is complete
+    }
+});
+
+/**
+ * Get client IP from HTTP request
+ */
+function getClientIpFromRequest(req) {
+    const forwardedFor = req.headers['x-forwarded-for'];
+    if (forwardedFor) {
+        return forwardedFor.split(',')[0].trim();
+    }
+    return req.ip || req.connection?.remoteAddress || '';
+}
+
+/**
+ * Check if an IP is blocked
+ */
+function isIpBlocked(ip) {
+    return blockedIps.has(ip);
+}
+
+/**
+ * Express middleware to block IPs on canvas and camera routes
+ */
+function ipBlockMiddleware(req, res, next) {
+    const clientIp = getClientIpFromRequest(req);
+    if (isIpBlocked(clientIp)) {
+        console.log(`[IP-BLOCK] Blocked HTTP request from ${clientIp} to ${req.path}`);
+        return res.status(403).send('Access denied');
+    }
+    next();
+}
 
 /**
  * Recursively scan a directory for files with specific extensions
@@ -488,7 +552,7 @@ app.get('/camera-broadcaster', function(req, res){
  */
 stuffedAnimalWarEndpoints.forEach(endpoint => {
     //SERVE THE HTML PAGE ENDPOINT
-    app.get('/' + endpoint, function(req, res){
+    app.get('/' + endpoint, ipBlockMiddleware, function(req, res){
         try {
             // Try to read the endpoint-specific JSON configuration
             const configPath = path.join(__dirname, 'endpoints', endpoint + '.json');
@@ -523,6 +587,7 @@ stuffedAnimalWarEndpoints.forEach(endpoint => {
             html = html.replace('{{MEDIA_OBJECT}}', JSON.stringify(configData.mediaObject, null, 2));
             html = html.replace('{{RESPONSES_OBJECT}}', JSON.stringify(configData.responsesObject, null, 2));
             html = html.replace('{{PASSWORD}}', configData.password || '');
+            html = html.replace('{{SERVER_INSTANCE_ID}}', SERVER_INSTANCE_ID);
 
             // Send the generated HTML
             res.send(html);
@@ -533,7 +598,7 @@ stuffedAnimalWarEndpoints.forEach(endpoint => {
     });
 
     //SERVE THE CAMERA ENDPOINT FOR THIS ROOM
-    app.get('/' + endpoint + 'camera', function(req, res){
+    app.get('/' + endpoint + 'camera', ipBlockMiddleware, function(req, res){
         try {
             let html = templateCameraHtml;
             console.log(`Serving camera endpoint for ${endpoint}`);
@@ -551,6 +616,7 @@ stuffedAnimalWarEndpoints.forEach(endpoint => {
             // Replace endpoint placeholder
             html = html.replace(/{{ENDPOINT}}/g, endpoint);
             html = html.replace('{{PASSWORD}}', password);
+            html = html.replace('{{SERVER_INSTANCE_ID}}', SERVER_INSTANCE_ID);
 
             res.send(html);
         } catch (error) {
@@ -1335,6 +1401,16 @@ function getClientIp(socket) {
     }
     return socket.handshake.address;
 }
+
+// Socket.io middleware to block IPs before connection is established
+io.use((socket, next) => {
+    const clientIp = getClientIp(socket);
+    if (isIpBlocked(clientIp)) {
+        console.log(`[IP-BLOCK] Blocked WebSocket connection from ${clientIp}`);
+        return next(new Error('Access denied'));
+    }
+    next();
+});
 
 /**
  *  ON PERSISTENT CONNECTION
