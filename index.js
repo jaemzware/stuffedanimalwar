@@ -33,6 +33,10 @@ const path = require('path');
 const sharp = require('sharp');
 let listenPort =55556;
 
+// Server instance ID - changes on each restart to invalidate client sessions
+const SERVER_INSTANCE_ID = Date.now().toString(36) + Math.random().toString(36).substring(2, 8);
+console.log(`[SERVER] Instance ID: ${SERVER_INSTANCE_ID}`);
+
 // Thumbnail cache directory
 const THUMB_CACHE_DIR = path.join(__dirname, '.thumbcache');
 const THUMB_WIDTH = 200; // Thumbnail width in pixels
@@ -583,6 +587,7 @@ stuffedAnimalWarEndpoints.forEach(endpoint => {
             html = html.replace('{{MEDIA_OBJECT}}', JSON.stringify(configData.mediaObject, null, 2));
             html = html.replace('{{RESPONSES_OBJECT}}', JSON.stringify(configData.responsesObject, null, 2));
             html = html.replace('{{PASSWORD}}', configData.password || '');
+            html = html.replace('{{SERVER_INSTANCE_ID}}', SERVER_INSTANCE_ID);
 
             // Send the generated HTML
             res.send(html);
@@ -611,6 +616,7 @@ stuffedAnimalWarEndpoints.forEach(endpoint => {
             // Replace endpoint placeholder
             html = html.replace(/{{ENDPOINT}}/g, endpoint);
             html = html.replace('{{PASSWORD}}', password);
+            html = html.replace('{{SERVER_INSTANCE_ID}}', SERVER_INSTANCE_ID);
 
             res.send(html);
         } catch (error) {

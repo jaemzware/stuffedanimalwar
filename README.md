@@ -298,6 +298,7 @@ stuffedanimalwar/
 ├── sockethandler.js              # Client-side socket event handlers
 ├── htmlwriter-canvas.js          # Dynamic HTML generation for main rooms
 ├── endpoints/{username}.json     # Configuration files for each endpoint
+├── blocked-ips.json              # IP addresses blocked from access (hot-reloaded)
 ├── crud-manager.html             # CRUD interface for endpoint management
 ├── pisetup/                      # Raspberry Pi WiFi setup utilities
 └── package.json
@@ -505,6 +506,36 @@ This platform is designed with privacy as a core principle:
 - **P2P Video/Audio**: Camera streams use WebRTC peer-to-peer connections - no central recording
 - **No cloud services**: All video/audio stays within your local network
 - **Room isolation**: Each camera endpoint is completely separate with no cross-room access
+- **IP blocking**: Block specific IP addresses from accessing canvas and camera pages
+- **Session invalidation**: Room passwords must be re-entered after server restart
+
+### IP Blocking
+
+Block specific IP addresses from accessing canvas and camera pages by editing `blocked-ips.json`:
+
+```json
+{
+  "blocked": ["192.168.1.100", "10.0.0.50"],
+  "notes": "Add IP addresses to block them from canvas and camera pages"
+}
+```
+
+**Features:**
+- **Hot-reload**: Changes take effect immediately without server restart
+- **Dual protection**: Blocks both HTTP page requests and WebSocket connections
+- **Logging**: All blocked attempts are logged with `[IP-BLOCK]` prefix
+- **Proxy support**: Handles `x-forwarded-for` headers for proxied connections
+
+**Blocked users will see:**
+- HTTP requests: `403 Access denied`
+- WebSocket connections: Rejected with "Access denied" error
+
+### Session Management
+
+Room passwords are tied to the server instance. When the server is stopped/started or restarted:
+- All authenticated sessions are invalidated
+- Users must re-enter the room password to access protected rooms
+- This ensures no stale sessions persist across server restarts
 
 ## 🤝 Contributing
 
