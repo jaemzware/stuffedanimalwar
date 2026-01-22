@@ -409,11 +409,760 @@ let templateCanvasHtml = fs.readFileSync(path.join(__dirname, 'template-canvas.h
 // Load camera template HTML
 let templateCameraHtml = fs.readFileSync(path.join(__dirname, 'template-camera.html'), 'utf8');
 
-//SERVE INDEX FOR NO ENDPOINT AFTER PORT ADDRESS
+//SERVE LANDING PAGE FOR ROOT
 app.get('/', function(req, res){
+    // Generate room buttons for the "Try It Now" section (first 6 rooms)
+    const roomsHtml = stuffedAnimalWarEndpoints.slice(0, 6).map(endpoint => {
+        const href = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+        const roomName = endpoint.startsWith('/') ? endpoint.substring(1) : endpoint;
+        return `<a class="room-pill" href="${href}">${roomName}</a>`;
+    }).join('\n                        ');
+
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stuffed Animal War - Ephemeral Chat | Privacy by Design</title>
+    <meta name="description" content="Real-time collaboration that's architecturally incapable of storing your data. Photos and videos exist only in browser memory. Close the browser, data gone forever.">
+    <meta name="keywords" content="ephemeral chat, privacy, self-hosted, raspberry pi, secure messaging, no data storage">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    
+    <!-- Open Graph / Social -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://stuffedanimalwar.com/">
+    <meta property="og:title" content="Stuffed Animal War - Ephemeral Chat">
+    <meta property="og:description" content="Real-time collaboration that's architecturally incapable of storing your data.">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --teal: #00d4aa;
+            --purple: #a855f7;
+            --blue: #58a6ff;
+            --dark: #0d1117;
+            --dark-secondary: #161b22;
+            --dark-border: #30363d;
+            --text: #e6edf3;
+            --text-muted: #8b949e;
+            --red: #ff6b6b;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--dark);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Navigation */
+        nav {
+            padding: 20px 0;
+            border-bottom: 1px solid var(--dark-border);
+        }
+
+        nav .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--text);
+            text-decoration: none;
+        }
+
+        .logo span {
+            color: var(--teal);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 24px;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.95rem;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--text);
+        }
+
+        .nav-cta {
+            background: var(--teal);
+            color: var(--dark) !important;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+
+        .nav-cta:hover {
+            background: #00b894;
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 80px 0;
+            text-align: center;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: var(--dark-secondary);
+            border: 1px solid var(--teal);
+            color: var(--teal);
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 900;
+            margin-bottom: 20px;
+            line-height: 1.1;
+        }
+
+        .hero h1 .highlight {
+            color: var(--teal);
+        }
+
+        .hero .subtitle {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            max-width: 700px;
+            margin: 0 auto 40px;
+        }
+
+        .hero-ctas {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--teal);
+            color: var(--dark);
+        }
+
+        .btn-primary:hover {
+            background: #00b894;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: var(--dark-secondary);
+            color: var(--text);
+            border: 1px solid var(--dark-border);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--teal);
+        }
+
+        /* Problem Section */
+        .problem {
+            padding: 80px 0;
+            background: var(--dark-secondary);
+        }
+
+        .section-label {
+            color: var(--red);
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 16px;
+        }
+
+        .problem h2 {
+            font-size: 2.5rem;
+            margin-bottom: 24px;
+        }
+
+        .problem-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-top: 40px;
+        }
+
+        .problem-card {
+            background: var(--dark);
+            border-radius: 12px;
+            padding: 24px;
+            border-left: 4px solid var(--red);
+        }
+
+        .problem-card .stat {
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--red);
+            margin-bottom: 8px;
+        }
+
+        .problem-card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* Solution Section */
+        .solution {
+            padding: 80px 0;
+        }
+
+        .solution .section-label {
+            color: var(--teal);
+        }
+
+        .solution h2 {
+            font-size: 2.5rem;
+            margin-bottom: 24px;
+        }
+
+        .solution-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-top: 40px;
+        }
+
+        .solution-card {
+            background: var(--dark-secondary);
+            border-radius: 12px;
+            padding: 28px;
+            border-top: 4px solid var(--teal);
+        }
+
+        .solution-card.purple {
+            border-top-color: var(--purple);
+        }
+
+        .solution-card.blue {
+            border-top-color: var(--blue);
+        }
+
+        .solution-card .icon {
+            font-size: 2.5rem;
+            margin-bottom: 16px;
+        }
+
+        .solution-card h3 {
+            font-size: 1.25rem;
+            margin-bottom: 12px;
+        }
+
+        .solution-card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* How It Works */
+        .how-it-works {
+            padding: 80px 0;
+            background: var(--dark-secondary);
+        }
+
+        .how-it-works h2 {
+            font-size: 2.5rem;
+            margin-bottom: 48px;
+            text-align: center;
+        }
+
+        .flow {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .flow-step {
+            background: var(--dark);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            width: 160px;
+            border-top: 3px solid var(--teal);
+        }
+
+        .flow-step .icon {
+            font-size: 2rem;
+            margin-bottom: 12px;
+        }
+
+        .flow-step .label {
+            font-weight: 700;
+            color: var(--teal);
+            font-size: 0.85rem;
+            margin-bottom: 4px;
+        }
+
+        .flow-step .desc {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .flow-arrow {
+            color: var(--dark-border);
+            font-size: 1.5rem;
+        }
+
+        .guarantees {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-top: 48px;
+        }
+
+        .guarantee {
+            background: var(--dark);
+            border: 1px solid #238636;
+            border-radius: 8px;
+            padding: 16px 20px;
+        }
+
+        .guarantee h4 {
+            color: #238636;
+            font-size: 0.9rem;
+            margin-bottom: 6px;
+        }
+
+        .guarantee p {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        /* Pricing */
+        .pricing {
+            padding: 80px 0;
+        }
+
+        .pricing h2 {
+            font-size: 2.5rem;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .pricing .subtitle {
+            color: var(--text-muted);
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .pricing-card {
+            background: var(--dark-secondary);
+            border-radius: 16px;
+            padding: 32px;
+            border-top: 4px solid var(--blue);
+            text-align: center;
+        }
+
+        .pricing-card.featured {
+            border-top-color: var(--teal);
+        }
+
+        .pricing-card .tier {
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--blue);
+            margin-bottom: 8px;
+        }
+
+        .pricing-card.featured .tier {
+            color: var(--teal);
+        }
+
+        .pricing-card .price {
+            font-size: 3rem;
+            font-weight: 900;
+            margin-bottom: 8px;
+        }
+
+        .pricing-card .hardware {
+            color: var(--text-muted);
+            margin-bottom: 24px;
+        }
+
+        .pricing-card ul {
+            list-style: none;
+            text-align: left;
+            margin-bottom: 24px;
+        }
+
+        .pricing-card li {
+            padding: 8px 0;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .pricing-card li::before {
+            content: "✓";
+            color: #238636;
+            font-weight: bold;
+        }
+
+        .pricing-card .btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        /* Try It Section */
+        .try-it {
+            padding: 80px 0;
+            background: var(--dark-secondary);
+            text-align: center;
+        }
+
+        .try-it h2 {
+            font-size: 2.5rem;
+            margin-bottom: 16px;
+        }
+
+        .try-it .subtitle {
+            color: var(--text-muted);
+            margin-bottom: 32px;
+        }
+
+        .rooms-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 24px;
+        }
+
+        .room-pill {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .room-pill:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .try-it .all-rooms {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.95rem;
+        }
+
+        .try-it .all-rooms:hover {
+            color: var(--teal);
+        }
+
+        /* Footer */
+        footer {
+            padding: 48px 0;
+            border-top: 1px solid var(--dark-border);
+        }
+
+        footer .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 24px;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 24px;
+        }
+
+        .footer-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .footer-links a:hover {
+            color: var(--text);
+        }
+
+        .footer-copy {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero .subtitle {
+                font-size: 1.1rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .flow {
+                flex-direction: column;
+            }
+
+            .flow-arrow {
+                transform: rotate(90deg);
+            }
+
+            .flow-step {
+                width: 100%;
+                max-width: 280px;
+            }
+
+            footer .container {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="container">
+            <a href="/" class="logo">STUFFED<span>ANIMAL</span>WAR</a>
+            <div class="nav-links">
+                <a href="#how-it-works">How It Works</a>
+                <a href="#pricing">Hardware</a>
+                <a href="https://github.com/jaemzware" target="_blank">GitHub</a>
+                <a href="/rooms" class="nav-cta">Enter a Room →</a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="container">
+            <span class="hero-badge">🔒 Privacy by Design, Not Policy</span>
+            <h1>Real-time collaboration that <span class="highlight">can't store your data</span></h1>
+            <p class="subtitle">Photos and videos exist only in browser memory. No database. No logs. Close the browser, and your data is gone forever. Not because we promise—because it's architecturally impossible.</p>
+            <div class="hero-ctas">
+                <a href="/rooms" class="btn btn-primary">Try It Free →</a>
+                <a href="#pricing" class="btn btn-secondary">Get Your Own Server</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="problem">
+        <div class="container">
+            <span class="section-label">The Problem</span>
+            <h2>Your data is the product.</h2>
+            <p style="color: var(--text-muted); max-width: 600px;">Every "free" messaging app harvests your conversations, photos, and location. Your "deleted" messages live forever on corporate servers.</p>
+            
+            <div class="problem-grid">
+                <div class="problem-card">
+                    <div class="stat">$600B+</div>
+                    <p>Annual revenue from personal data harvesting</p>
+                </div>
+                <div class="problem-card">
+                    <div class="stat">Forever</div>
+                    <p>How long your "deleted" messages actually persist</p>
+                </div>
+                <div class="problem-card">
+                    <div class="stat">0%</div>
+                    <p>Control you have over corporate data policies</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="solution">
+        <div class="container">
+            <span class="section-label">The Solution</span>
+            <h2>Ephemeral by architecture.</h2>
+            <p style="color: var(--text-muted); max-width: 600px;">We didn't write a privacy policy. We wrote code that makes storing your data impossible.</p>
+            
+            <div class="solution-grid">
+                <div class="solution-card">
+                    <div class="icon">🔒</div>
+                    <h3>Zero Persistence</h3>
+                    <p>Data exists only in browser memory. Server restart = complete wipe. No database. No logs. Nothing to subpoena.</p>
+                </div>
+                <div class="solution-card purple">
+                    <div class="icon">🏠</div>
+                    <h3>Self-Hostable</h3>
+                    <p>Run your own server on a Raspberry Pi. You own the hardware. You own the network. Complete control.</p>
+                </div>
+                <div class="solution-card blue">
+                    <div class="icon">⚡</div>
+                    <h3>Full Featured</h3>
+                    <p>Collaborative canvas, WebRTC voice, custom rooms, media sharing, remote cameras, screen share. Everything ephemeral.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="how-it-works" id="how-it-works">
+        <div class="container">
+            <h2>How Your Data Stays Private</h2>
+            
+            <div class="flow">
+                <div class="flow-step">
+                    <div class="icon">📤</div>
+                    <div class="label">Upload</div>
+                    <div class="desc">Select photo/video</div>
+                </div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-step">
+                    <div class="icon">🔄</div>
+                    <div class="label">Convert</div>
+                    <div class="desc">Base64 encoding</div>
+                </div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-step">
+                    <div class="icon">📡</div>
+                    <div class="label">Broadcast</div>
+                    <div class="desc">WebSocket relay</div>
+                </div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-step">
+                    <div class="icon">🧠</div>
+                    <div class="label">Memory Only</div>
+                    <div class="desc">Browser RAM</div>
+                </div>
+            </div>
+
+            <div class="guarantees">
+                <div class="guarantee">
+                    <h4>✓ No Server Storage</h4>
+                    <p>Server only relays data. Nothing touches disk.</p>
+                </div>
+                <div class="guarantee">
+                    <h4>✓ Browser Close = Gone</h4>
+                    <p>All browsers close, data ceases to exist anywhere.</p>
+                </div>
+                <div class="guarantee">
+                    <h4>✓ Impossible to Subpoena</h4>
+                    <p>Can't hand over data that doesn't exist.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="pricing" id="pricing">
+        <div class="container">
+            <h2>Own Your Communication</h2>
+            <p class="subtitle">Pre-configured Raspberry Pi kits. Plug in and go.</p>
+            
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <div class="tier">Starter</div>
+                    <div class="price">$100</div>
+                    <div class="hardware">Raspberry Pi Zero 2W Kit</div>
+                    <ul>
+                        <li>StuffedAnimalWar</li>
+                        <li>AnalogArchiveJS music streaming</li>
+                        <li>Low power (~1W), silent</li>
+                        <li>Pre-configured, ready to run</li>
+                        <li>Setup guide included</li>
+                    </ul>
+                    <a href="mailto:jaemzware@hotmail.com?subject=Starter Kit Inquiry" class="btn btn-secondary">Contact for Purchase</a>
+                </div>
+                <div class="pricing-card featured">
+                    <div class="tier">With Camera</div>
+                    <div class="price">$200</div>
+                    <div class="hardware">Raspberry Pi 5 Kit + Camera</div>
+                    <ul>
+                        <li>StuffedAnimalWar</li>
+                        <li>AnalogArchiveJS music streaming</li>
+                        <li>Camera module included</li>
+                        <li>Host your own camera feed</li>
+                        <li>Pre-configured, ready to run</li>
+                    </ul>
+                    <a href="mailto:jaemzware@hotmail.com?subject=Camera Kit Inquiry" class="btn btn-primary">Contact for Purchase</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="try-it">
+        <div class="container">
+            <h2>Try It Right Now</h2>
+            <p class="subtitle">No signup. No email. Just pick a room and start.</p>
+            
+            <div class="rooms-preview">
+                ${roomsHtml}
+            </div>
+            
+            <a href="/rooms" class="all-rooms">View all rooms →</a>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="footer-links">
+                <a href="https://github.com/jaemzware" target="_blank">GitHub</a>
+                <a href="https://linkedin.com/in/jaemzware" target="_blank">LinkedIn</a>
+                <a href="mailto:jaemzware@hotmail.com">Contact</a>
+            </div>
+            <div class="footer-copy">
+                © ${new Date().getFullYear()} Jaemzware LLC — Privacy by design, not policy.
+            </div>
+        </div>
+    </footer>
+</body>
+</html>`;
+
+    res.send(html);
+});
+
+//SERVE ROOM LIST AT /rooms
+app.get('/rooms', function(req, res){
     // Generate dynamic HTML with links from stuffedAnimalWarEndpoints as buttons
     const linksHtml = stuffedAnimalWarEndpoints.map(endpoint =>
-        `            <a class="room-button" href="${endpoint}">${endpoint}</a>`
+        `            <a class="room-button" href="/${endpoint}">${endpoint}</a>`
     ).join('\n');
 
     const html = `<!--STUFFED ANIMAL WAR - jaemzware.org - 20150611 -->
@@ -424,6 +1173,7 @@ app.get('/', function(req, res){
     <head>
         <title>Stuffed Animal War Rooms</title>
         <link rel="Stylesheet" href="stylebase.css" />
+        <link rel="icon" type="image/x-icon" href="/favicon.ico">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style>
             body {
@@ -452,6 +1202,18 @@ app.get('/', function(req, res){
                 margin: 10px 0 0 0;
                 font-size: 1.2em;
                 color: #aaa;
+            }
+
+            .back-link {
+                display: inline-block;
+                margin-top: 15px;
+                color: #00d4aa;
+                text-decoration: none;
+                font-size: 0.95em;
+            }
+
+            .back-link:hover {
+                text-decoration: underline;
             }
 
             .room-grid {
@@ -531,6 +1293,7 @@ app.get('/', function(req, res){
         <div class="header">
             <h1>Stuffed Animal War Rooms</h1>
             <p>Choose a room to enter</p>
+            <a href="/" class="back-link">← Back to home</a>
         </div>
         <div class="room-grid">
 ${linksHtml}
