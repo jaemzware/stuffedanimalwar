@@ -1131,7 +1131,8 @@ app.get('/', function(req, res){
         <div class="container">
             <h2>Try It Right Now</h2>
             <p class="subtitle">No signup. No email. Just pick a room and start.</p>
-            
+            <p class="password-hint">Default password is the room name backwards, all lowercase. Change it anytime at <a href="/crud">/crud</a>.</p>
+
             <div class="rooms-preview">
                 ${roomsHtml}
             </div>
