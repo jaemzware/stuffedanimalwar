@@ -104,18 +104,30 @@ document.addEventListener('DOMContentLoaded', function() {
 
     console.log('Found', collapsibleHeaders.length, 'collapsible sections');
 
-    // Collapse all sections by default on page load
+    // Collapse all sections by default on page load, except Audio Player and Chat
+    const expandedByDefault = ['audio-content', 'chat-content'];
     const allSectionsOnLoad = document.querySelectorAll('.section-content');
     allSectionsOnLoad.forEach(section => {
-        section.style.display = 'none';
-    });
-    collapsibleHeaders.forEach(header => {
-        const indicator = header.querySelector('.collapse-indicator');
-        if (indicator) {
-            indicator.textContent = '▶';
+        if (expandedByDefault.includes(section.id)) {
+            section.style.display = '';
+        } else {
+            section.style.display = 'none';
         }
     });
-    console.log('All sections collapsed by default');
+    collapsibleHeaders.forEach(header => {
+        const targetId = header.getAttribute('data-target');
+        const indicator = header.querySelector('.collapse-indicator');
+        if (indicator) {
+            indicator.textContent = expandedByDefault.includes(targetId) ? '▼' : '▶';
+        }
+    });
+    console.log('All sections collapsed by default except Audio Player and Chat');
+
+    // Focus on the Alias field in the Chat section
+    const aliasField = document.getElementById('chatClientUser');
+    if (aliasField) {
+        aliasField.focus();
+    }
 
     // Collapse All button functionality
     const collapseAllButton = document.getElementById('collapseAllButton');
