@@ -397,7 +397,7 @@ const stuffedAnimalWarPageCounters = stuffedAnimalWarEndpoints.reduce((acc, page
 const activeBroadcasters = new Map();
 
 //add stuffedAnimalWarEndpoints jim000 through jim999
-for (let i = 1; i <= 999; i++) {
+for (let i = 1; i <= 1999; i++) {
     const paddedNumber = String(i).padStart(3, '0');
     const jimEndpoint = `jim${paddedNumber}`;
     stuffedAnimalWarEndpoints.push(jimEndpoint);
