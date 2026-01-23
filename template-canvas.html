@@ -29,6 +29,11 @@
         if (input === roomPassword) {
             sessionStorage.setItem(storageKey, 'true');
             document.getElementById('passwordModal').style.display = 'none';
+            // Focus on the Alias field after successful password entry
+            const aliasField = document.getElementById('chatClientUser');
+            if (aliasField) {
+                aliasField.focus();
+            }
         } else {
             document.getElementById('passwordError').style.display = 'block';
             document.getElementById('passwordInput').value = '';

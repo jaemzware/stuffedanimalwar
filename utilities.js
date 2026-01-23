@@ -123,10 +123,14 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     console.log('All sections collapsed by default except Audio Player and Chat');
 
-    // Focus on the Alias field in the Chat section
-    const aliasField = document.getElementById('chatClientUser');
-    if (aliasField) {
-        aliasField.focus();
+    // Focus on the Alias field in the Chat section (only if password modal is not showing)
+    const passwordModal = document.getElementById('passwordModal');
+    const isPasswordModalVisible = passwordModal && passwordModal.style.display === 'flex';
+    if (!isPasswordModalVisible) {
+        const aliasField = document.getElementById('chatClientUser');
+        if (aliasField) {
+            aliasField.focus();
+        }
     }
 
     // Collapse All button functionality
