@@ -38,6 +38,7 @@
     // Check if already authenticated or no password required
     if (roomPassword && sessionStorage.getItem(storageKey) !== 'true') {
         document.getElementById('passwordModal').style.display = 'flex';
+        document.getElementById('passwordInput').focus();
     }
 </script>
 <!--define media objects for animals (images), songs, videos, and auto-responses-->

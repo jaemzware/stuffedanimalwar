@@ -572,6 +572,7 @@
             // Check if already authenticated or no password required
             if (roomPassword && sessionStorage.getItem(storageKey) !== 'true') {
                 document.getElementById('passwordModal').style.display = 'flex';
+                document.getElementById('passwordInput').focus();
             }
         </script>
         <!-- Navigation Links -->
