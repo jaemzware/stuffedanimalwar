@@ -1073,13 +1073,31 @@
                         myCameraName = autoName;
                         console.log('🤖 Auto-start: Camera name set to:', autoName);
                     }
-                    // Wait for socket connection and camera enumeration, then auto-enable
-                    const autoStartDelay = parseInt(urlParams.get('delay')) || 3000;
-                    console.log('🤖 Auto-start: Will enable camera in', autoStartDelay, 'ms');
-                    setTimeout(async () => {
-                        console.log('🤖 Auto-start: Enabling camera now...');
-                        await toggleCamera();
-                    }, autoStartDelay);
+
+                    // Wait for socket to connect, then enable camera
+                    const autoStartDelay = parseInt(urlParams.get('delay')) || 5000;
+                    console.log('🤖 Auto-start: Waiting for socket connection...');
+
+                    const tryAutoStart = async () => {
+                        if (socket.connected) {
+                            console.log('🤖 Auto-start: Socket connected, waiting', autoStartDelay, 'ms before enabling camera...');
+                            setTimeout(async () => {
+                                console.log('🤖 Auto-start: Enabling camera now...');
+                                try {
+                                    await toggleCamera();
+                                    console.log('🤖 Auto-start: Camera enabled successfully!');
+                                } catch (err) {
+                                    console.error('🤖 Auto-start: Failed to enable camera:', err);
+                                }
+                            }, autoStartDelay);
+                        } else {
+                            console.log('🤖 Auto-start: Socket not connected yet, retrying in 1s...');
+                            setTimeout(tryAutoStart, 1000);
+                        }
+                    };
+
+                    // Start trying after a brief initial delay
+                    setTimeout(tryAutoStart, 1000);
                 }
 
                 // Prevent video fullscreen on mobile - global handler
