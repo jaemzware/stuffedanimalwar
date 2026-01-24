@@ -38,7 +38,7 @@ const puppeteer = useSystemChromium
 // Configuration
 const port = process.argv[2] || process.env.PORT || 55556;
 const label = process.argv[3] || process.env.CAMERA_LABEL || 'Pi Camera';
-const url = process.env.CAMERA_URL || `http://localhost:${port}/camera-broadcaster.html`;
+const url = process.env.CAMERA_URL || `https://localhost:${port}/camera-broadcaster.html`;
 const startDelay = parseInt(process.env.CAMERA_DELAY) || 2000;
 
 async function main() {
@@ -58,6 +58,7 @@ async function main() {
 
         const launchOptions = {
             headless: false,  // Headed mode - you can watch it
+            ignoreHTTPSErrors: true,  // Accept self-signed certificates
             args: [
                 '--use-fake-ui-for-media-stream',  // Auto-accept camera permission
                 '--autoplay-policy=no-user-gesture-required',
@@ -66,7 +67,8 @@ async function main() {
                 '--disable-dev-shm-usage',  // Helps with memory on Pi
                 '--disable-accelerated-2d-canvas',
                 '--disable-gpu',
-                '--start-maximized'
+                '--start-maximized',
+                '--ignore-certificate-errors'  // For self-signed certs
             ],
         };
 
