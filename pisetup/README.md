@@ -21,6 +21,7 @@ The Pi automatically falls back to AP mode if it can't connect to your saved WiF
 
 - **StuffedAnimalWar** - Chat and media sharing platform
 - **AnalogArchive** - Audio streaming service (optional)
+- **Camera Autostart** - Automatic camera broadcasting to a room (optional)
 
 ## Installation
 
@@ -247,9 +248,106 @@ sudo journalctl -u stuffedanimalwar -f
 # AnalogArchive logs
 sudo journalctl -u analogarchive -f
 
+# Camera autostart logs
+sudo journalctl -u camera-autostart -f
+
 # Nginx logs
 sudo tail -f /var/log/nginx/error.log
 ```
+
+## Camera Autostart (Optional)
+
+The camera autostart service uses Puppeteer to automatically open a browser, join a room's camera page, and start broadcasting. This allows a Pi with an attached camera to act as a dedicated camera feed without manual intervention.
+
+### How It Works
+
+1. On boot, the service waits for StuffedAnimalWar to start
+2. Puppeteer launches Chromium with camera permissions auto-granted
+3. Navigates to the specified room's camera page (e.g., `/kitchencamera`)
+4. Automatically enables the camera and sets the display name
+5. The camera appears as a peer to anyone viewing that room
+
+### Configuration
+
+Edit `/home/jaemzware/camera-autostart.conf`:
+
+```bash
+# Domain and port (use localhost for same-Pi, or hostname.local for network)
+CAMERA_DOMAIN=localhost:55556
+
+# Room name to join (creates URL: /<room>camera)
+CAMERA_ROOM=frontdoor
+
+# Display name shown to other users
+CAMERA_NAME=Front Door Cam
+
+# Optional: delay before enabling camera (milliseconds)
+# CAMERA_DELAY=3000
+```
+
+**Examples:**
+
+| CAMERA_DOMAIN | CAMERA_ROOM | Result URL |
+|---------------|-------------|------------|
+| `localhost:55556` | `frontdoor` | `https://localhost:55556/frontdoorcamera` |
+| `marginalway.local:55556` | `kitchen` | `https://marginalway.local:55556/kitchencamera` |
+| `stuffedanimalwar.com` | `lobby` | `https://stuffedanimalwar.com/lobbycamera` |
+
+### Enabling the Service
+
+The camera autostart service is installed but **not enabled by default**. After configuring:
+
+```bash
+# Edit the configuration
+nano /home/jaemzware/camera-autostart.conf
+
+# Enable the service to start on boot
+sudo systemctl enable camera-autostart.service
+
+# Start it now (or reboot)
+sudo systemctl start camera-autostart.service
+
+# Check status
+sudo systemctl status camera-autostart.service
+```
+
+### Disabling the Service
+
+```bash
+sudo systemctl disable camera-autostart.service
+sudo systemctl stop camera-autostart.service
+```
+
+### Manual Testing
+
+You can test the script manually before enabling the service:
+
+```bash
+cd /home/jaemzware/stuffedanimalwar
+node camera-autostart.js localhost:55556 testroom "Test Camera"
+```
+
+### Requirements
+
+- Puppeteer-core (installed via `npm install`)
+- System Chromium (pre-installed on Raspberry Pi OS)
+- A display (the Pi must boot to desktop, not CLI)
+- A USB camera or Pi Camera module
+
+### Troubleshooting Camera Autostart
+
+**Browser doesn't open:**
+- Ensure Pi boots to desktop (not CLI): `sudo raspi-config` → System Options → Boot → Desktop
+- Check DISPLAY is set: `echo $DISPLAY` (should be `:0`)
+
+**Camera not detected:**
+- Test camera manually: `libcamera-hello` or `vcgencmd get_camera`
+- Check USB camera: `lsusb`
+
+**Service fails to start:**
+- Check logs: `sudo journalctl -u camera-autostart -n 50`
+- Verify config file exists: `cat /home/jaemzware/camera-autostart.conf`
+- Test manually first (see above)
 
 ## File Structure
 
@@ -265,14 +363,18 @@ sudo tail -f /var/log/nginx/error.log
 │   │   ├── setup-endpoint.js             # WiFi setup web interface
 │   │   ├── stuffedanimalwar.service      # App service file
 │   │   ├── analogarchive.service         # AnalogArchive service file
+│   │   ├── camera-autostart.service      # Camera autostart service file
+│   │   ├── camera-autostart.conf         # Default camera config (copied to ~/)
 │   │   ├── nginx-stuffedanimalwar.conf   # Nginx reverse proxy (stuffedanimalwar hostname)
 │   │   ├── nginx-marginalway.conf        # Nginx reverse proxy (marginalway hostname)
 │   │   └── README.md                     # This file
 │   ├── sslcert/                          # Generated SSL certificates
 │   │   ├── cert.pem
 │   │   └── key.pem
+│   ├── camera-autostart.js               # Puppeteer script for camera automation
 │   ├── wifi-credentials.json             # Saved WiFi credentials (created via /setup)
 │   └── index.js                          # Main application
+├── camera-autostart.conf                 # Camera autostart configuration (edit this)
 └── analogarchive/                        # Optional: AnalogArchive audio streaming
     ├── music/                            # Music files directory
     └── index.js

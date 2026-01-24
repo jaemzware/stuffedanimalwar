@@ -128,6 +128,7 @@ fi
 echo "[5/12] Installing Node.js dependencies for StuffedAnimalWar..."
 cd "$SAW_DIR"
 sudo -u jaemzware npm install
+# Note: puppeteer-core is in optionalDependencies for camera-autostart feature
 
 echo "[6/12] Installing Node.js dependencies for AnalogArchive..."
 if [ -n "$AA_DIR" ] && [ -d "$AA_DIR" ]; then
@@ -270,6 +271,20 @@ EOF
     echo "  - Created custom AnalogArchive service for $AA_DIR"
 fi
 
+# Install camera autostart service (optional - requires puppeteer-core)
+echo "  - Installing camera autostart service..."
+cp "$SCRIPT_DIR/camera-autostart.service" /etc/systemd/system/
+
+# Create default camera config if it doesn't exist
+if [ ! -f /home/jaemzware/camera-autostart.conf ]; then
+    cp "$SCRIPT_DIR/camera-autostart.conf" /home/jaemzware/
+    chown jaemzware:jaemzware /home/jaemzware/camera-autostart.conf
+    chmod 644 /home/jaemzware/camera-autostart.conf
+    echo "  - Created camera-autostart.conf (edit to configure)"
+else
+    echo "  - camera-autostart.conf already exists, skipping"
+fi
+
 echo "[12/12] Setting hostname and enabling services..."
 hostnamectl set-hostname "$HOSTNAME"
 
@@ -281,6 +296,10 @@ systemctl enable stuffedanimalwar.service
 if [ -f "/etc/systemd/system/analogarchive.service" ]; then
     systemctl enable analogarchive.service
 fi
+
+# Note: camera-autostart.service is NOT enabled by default
+# User must edit /home/jaemzware/camera-autostart.conf and then run:
+#   sudo systemctl enable camera-autostart.service
 
 echo ""
 echo "=========================================="
@@ -300,6 +319,11 @@ echo "Network access via SMB:"
 echo "  - Server: \\\\$HOSTNAME.local\\jaemzware"
 echo "  - macOS: smb://$HOSTNAME.local/jaemzware"
 echo "  - Username: jaemzware"
+echo ""
+echo "Camera Autostart (optional):"
+echo "  1. Edit /home/jaemzware/camera-autostart.conf"
+echo "  2. Run: sudo systemctl enable camera-autostart.service"
+echo "  3. Reboot or: sudo systemctl start camera-autostart.service"
 echo ""
 echo "Reboot now? (y/n)"
 read -r response
