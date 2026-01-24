@@ -90,6 +90,9 @@ async function main() {
             ignoreHTTPSErrors: true,  // Accept self-signed certificates
             args: [
                 '--use-fake-ui-for-media-stream',  // Auto-accept camera permission
+                '--enable-usermedia-screen-capturing',
+                '--allow-http-screen-capture',
+                '--auto-accept-camera-and-microphone-capture',
                 '--autoplay-policy=no-user-gesture-required',
                 '--no-sandbox',  // Often needed on Pi
                 '--disable-setuid-sandbox',
@@ -97,7 +100,8 @@ async function main() {
                 '--disable-accelerated-2d-canvas',
                 '--disable-gpu',
                 '--start-maximized',
-                '--ignore-certificate-errors'  // For self-signed certs
+                '--ignore-certificate-errors',  // For self-signed certs
+                '--disable-features=WebRtcHideLocalIpsWithMdns'  // Help with WebRTC on local network
             ],
         };
 
@@ -107,6 +111,14 @@ async function main() {
         }
 
         browser = await puppeteer.launch(launchOptions);
+
+        // Grant camera and microphone permissions via browser context
+        const context = browser.defaultBrowserContext();
+        await context.overridePermissions(`https://${domain}`, [
+            'camera',
+            'microphone'
+        ]);
+        console.log('Granted camera/microphone permissions');
 
         const page = await browser.newPage();
 
