@@ -88,6 +88,7 @@ async function main() {
         const launchOptions = {
             headless: false,  // Headed mode - you can watch it
             ignoreHTTPSErrors: true,  // Accept self-signed certificates
+            dumpio: true,  // Pipe browser output to console for debugging
             args: [
                 '--use-fake-ui-for-media-stream',  // Auto-accept camera permission
                 '--enable-usermedia-screen-capturing',
@@ -106,7 +107,8 @@ async function main() {
                 '--disable-breakpad',  // Disable crash reporter
                 '--disable-crash-reporter',
                 '--password-store=basic',  // Don't use system keyring (avoids password prompt)
-                '--disable-background-networking'
+                '--disable-background-networking',
+                '--user-data-dir=/tmp/puppeteer-camera'  // Use separate profile
             ],
         };
 
