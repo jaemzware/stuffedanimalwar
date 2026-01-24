@@ -66,18 +66,30 @@ USER_DATA_DIR="/tmp/chromium-camera-autostart"
 mkdir -p "$USER_DATA_DIR/Default"
 
 # Create preferences file that grants camera/mic permissions for all sites
-cat > "$USER_DATA_DIR/Default/Preferences" << 'EOF'
+cat > "$USER_DATA_DIR/Default/Preferences" << EOF
 {
   "profile": {
     "content_settings": {
       "exceptions": {
         "media_stream_camera": {
+          "https://${DOMAIN},*": {
+            "last_modified": "13300000000000000",
+            "setting": 1
+          },
+          "https://[*.]${DOMAIN%%:*},*": {
+            "last_modified": "13300000000000000",
+            "setting": 1
+          },
           "*,*": {
             "last_modified": "13300000000000000",
             "setting": 1
           }
         },
         "media_stream_mic": {
+          "https://${DOMAIN},*": {
+            "last_modified": "13300000000000000",
+            "setting": 1
+          },
           "*,*": {
             "last_modified": "13300000000000000",
             "setting": 1
@@ -100,4 +112,6 @@ exec "$CHROMIUM" \
     --autoplay-policy=no-user-gesture-required \
     --start-maximized \
     --user-data-dir="$USER_DATA_DIR" \
+    --enable-features=WebRTCPipeWireCapturer \
+    --auto-accept-camera-and-microphone-capture \
     "$URL"
