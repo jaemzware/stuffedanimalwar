@@ -1081,13 +1081,15 @@
                     const tryAutoStart = async () => {
                         if (socket.connected) {
                             console.log('🤖 Auto-start: Socket connected, waiting', autoStartDelay, 'ms before enabling camera...');
-                            setTimeout(async () => {
-                                console.log('🤖 Auto-start: Enabling camera now...');
+                            setTimeout(() => {
+                                console.log('🤖 Auto-start: Clicking camera button now...');
                                 try {
-                                    await toggleCamera();
-                                    console.log('🤖 Auto-start: Camera enabled successfully!');
+                                    // Simulate a real click on the button (some browsers need user gesture)
+                                    const cameraBtn = document.getElementById('cameraToggleButton');
+                                    cameraBtn.click();
+                                    console.log('🤖 Auto-start: Button clicked!');
                                 } catch (err) {
-                                    console.error('🤖 Auto-start: Failed to enable camera:', err);
+                                    console.error('🤖 Auto-start: Failed to click button:', err);
                                 }
                             }, autoStartDelay);
                         } else {
