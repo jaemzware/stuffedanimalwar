@@ -88,27 +88,13 @@ async function main() {
         const launchOptions = {
             headless: false,  // Headed mode - you can watch it
             ignoreHTTPSErrors: true,  // Accept self-signed certificates
-            dumpio: true,  // Pipe browser output to console for debugging
             args: [
+                '--no-sandbox',
                 '--use-fake-ui-for-media-stream',  // Auto-accept camera permission
-                '--enable-usermedia-screen-capturing',
-                '--allow-http-screen-capture',
-                '--auto-accept-camera-and-microphone-capture',
                 '--autoplay-policy=no-user-gesture-required',
-                '--no-sandbox',  // Often needed on Pi
-                '--disable-setuid-sandbox',
                 '--disable-dev-shm-usage',  // Helps with memory on Pi
-                '--disable-accelerated-2d-canvas',
-                '--disable-gpu',
-                '--disable-software-rasterizer',
-                '--start-maximized',
-                '--ignore-certificate-errors',  // For self-signed certs
-                '--disable-features=WebRtcHideLocalIpsWithMdns',  // Help with WebRTC on local network
-                '--disable-breakpad',  // Disable crash reporter
-                '--disable-crash-reporter',
-                '--password-store=basic',  // Don't use system keyring (avoids password prompt)
-                '--disable-background-networking',
-                '--user-data-dir=/tmp/puppeteer-camera'  // Use separate profile
+                '--password-store=basic',  // Don't use system keyring
+                '--ignore-certificate-errors'  // For self-signed certs
             ],
         };
 
