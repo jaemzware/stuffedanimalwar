@@ -23,8 +23,8 @@ fi
 # Command line args override config file
 DOMAIN="${1:-$CAMERA_DOMAIN}"
 ROOM="${2:-$CAMERA_ROOM}"
-NAME="${3:-$CAMERA_NAME:-Pi Camera}"
-DELAY="${4:-$CAMERA_DELAY:-3000}"
+NAME="${3:-${CAMERA_NAME:-Pi Camera}}"
+DELAY="${4:-${CAMERA_DELAY:-5000}}"
 
 if [ -z "$DOMAIN" ] || [ -z "$ROOM" ]; then
     echo "Usage: $0 <domain> <room> [cameraName] [delay]"
