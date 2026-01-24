@@ -15,15 +15,13 @@ WorkingDirectory=/home/jaemzware/stuffedanimalwar
 ExecStartPre=/bin/sleep 10
 # Config is in /home/jaemzware/camera-autostart.conf
 EnvironmentFile=/home/jaemzware/camera-autostart.conf
-ExecStart=/usr/bin/node camera-autostart.js
+ExecStart=/home/jaemzware/stuffedanimalwar/camera-autostart.sh
 Restart=on-failure
 RestartSec=30
 StandardOutput=journal
 StandardError=journal
-# Puppeteer needs a display - use the default X display
+# Chromium needs a display
 Environment="DISPLAY=:0"
-# Use system Chromium instead of downloading
-Environment="USE_SYSTEM_CHROMIUM=true"
 
 [Install]
 WantedBy=graphical.target

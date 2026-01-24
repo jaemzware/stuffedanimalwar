@@ -324,12 +324,16 @@ You can test the script manually before enabling the service:
 
 ```bash
 cd /home/jaemzware/stuffedanimalwar
-node camera-autostart.js localhost:55556 testroom "Test Camera"
+./camera-autostart.sh localhost:55556 testroom "Test Camera"
+```
+
+Or test the auto-start URL directly in any browser:
+```
+https://localhost:55556/testroomcamera?autostart=true&name=Test
 ```
 
 ### Requirements
 
-- Puppeteer-core (installed via `npm install`)
 - System Chromium (pre-installed on Raspberry Pi OS)
 - A display (the Pi must boot to desktop, not CLI)
 - A USB camera or Pi Camera module
@@ -371,7 +375,7 @@ node camera-autostart.js localhost:55556 testroom "Test Camera"
 │   ├── sslcert/                          # Generated SSL certificates
 │   │   ├── cert.pem
 │   │   └── key.pem
-│   ├── camera-autostart.js               # Puppeteer script for camera automation
+│   ├── camera-autostart.sh               # Shell script to launch Chromium with camera
 │   ├── wifi-credentials.json             # Saved WiFi credentials (created via /setup)
 │   └── index.js                          # Main application
 ├── camera-autostart.conf                 # Camera autostart configuration (edit this)

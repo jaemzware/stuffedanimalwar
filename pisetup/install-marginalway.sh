@@ -271,8 +271,9 @@ EOF
     echo "  - Created custom AnalogArchive service for $AA_DIR"
 fi
 
-# Install camera autostart service (optional - requires puppeteer-core)
+# Install camera autostart service
 echo "  - Installing camera autostart service..."
+chmod +x "$SAW_DIR/camera-autostart.sh"
 cp "$SCRIPT_DIR/camera-autostart.service" /etc/systemd/system/
 
 # Create default camera config if it doesn't exist
