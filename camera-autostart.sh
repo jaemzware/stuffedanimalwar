@@ -61,13 +61,43 @@ fi
 echo "Launching: $CHROMIUM"
 echo ""
 
+# Create a user data directory with camera permissions pre-granted
+USER_DATA_DIR="/tmp/chromium-camera-autostart"
+mkdir -p "$USER_DATA_DIR/Default"
+
+# Create preferences file that grants camera/mic permissions for all sites
+cat > "$USER_DATA_DIR/Default/Preferences" << 'EOF'
+{
+  "profile": {
+    "content_settings": {
+      "exceptions": {
+        "media_stream_camera": {
+          "*,*": {
+            "last_modified": "13300000000000000",
+            "setting": 1
+          }
+        },
+        "media_stream_mic": {
+          "*,*": {
+            "last_modified": "13300000000000000",
+            "setting": 1
+          }
+        }
+      }
+    }
+  }
+}
+EOF
+
+echo "Created Chromium profile with camera permissions at: $USER_DATA_DIR"
+
 # Launch Chromium with camera-friendly flags
 exec "$CHROMIUM" \
     --no-sandbox \
     --disable-dev-shm-usage \
     --password-store=basic \
     --ignore-certificate-errors \
-    --use-fake-ui-for-media-stream \
     --autoplay-policy=no-user-gesture-required \
     --start-maximized \
+    --user-data-dir="$USER_DATA_DIR" \
     "$URL"
