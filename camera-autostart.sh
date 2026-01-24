@@ -113,6 +113,4 @@ exec "$CHROMIUM" \
     --start-maximized \
     --user-data-dir="$USER_DATA_DIR" \
     --enable-features=WebRTCPipeWireCapturer \
-    --auto-accept-camera-and-microphone-capture \
-    --use-fake-ui-for-media-stream \
     "$URL"
