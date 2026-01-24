@@ -67,7 +67,8 @@ if (!domain || !room) {
     process.exit(1);
 }
 
-const url = `https://${domain}/${room}camera`;
+// Build URL with autostart query parameters
+const url = `https://${domain}/${room}camera?autostart=true&name=${encodeURIComponent(cameraName)}&delay=${startDelay}`;
 
 async function main() {
     console.log('=== Camera Auto-Start ===');
@@ -137,30 +138,10 @@ async function main() {
         console.log('Waiting for page to load...');
         await page.waitForSelector('#cameraToggleButton', { timeout: 30000 });
 
-        // Wait for socket connection (status updates or connect button becomes available)
-        console.log('Waiting for socket connection...');
-        await new Promise(resolve => setTimeout(resolve, 2000));
-
-        // Set the camera name
-        console.log(`Setting camera name to: ${cameraName}`);
-        await page.evaluate((name) => {
-            const input = document.getElementById('cameraNameInput');
-            if (input) {
-                input.value = name;
-                input.dispatchEvent(new Event('input', { bubbles: true }));
-            }
-        }, cameraName);
-
-        // Wait before enabling camera
-        console.log(`Waiting ${startDelay}ms before enabling camera...`);
-        await new Promise(resolve => setTimeout(resolve, startDelay));
-
-        // Click the camera toggle button to enable camera
-        console.log('Enabling camera...');
-        await page.click('#cameraToggleButton');
-
-        // Wait for camera to initialize
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        // The page will auto-start camera via query parameters
+        // Wait for camera to initialize (startDelay + extra buffer)
+        console.log(`Page will auto-enable camera in ${startDelay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, startDelay + 3000));
 
         // Verify camera is enabled (button should have 'active' class)
         const cameraEnabled = await page.evaluate(() => {

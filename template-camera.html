@@ -1063,6 +1063,25 @@
                 populateCameraDevices();
                 initializeSocketHandlers();
 
+                // Auto-start camera if ?autostart=true query parameter is present
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('autostart') === 'true') {
+                    const autoName = urlParams.get('name');
+                    if (autoName) {
+                        const nameInput = document.getElementById('cameraNameInput');
+                        nameInput.value = autoName;
+                        myCameraName = autoName;
+                        console.log('🤖 Auto-start: Camera name set to:', autoName);
+                    }
+                    // Wait for socket connection and camera enumeration, then auto-enable
+                    const autoStartDelay = parseInt(urlParams.get('delay')) || 3000;
+                    console.log('🤖 Auto-start: Will enable camera in', autoStartDelay, 'ms');
+                    setTimeout(async () => {
+                        console.log('🤖 Auto-start: Enabling camera now...');
+                        await toggleCamera();
+                    }, autoStartDelay);
+                }
+
                 // Prevent video fullscreen on mobile - global handler
                 document.addEventListener('touchstart', (e) => {
                     if (e.target.tagName === 'VIDEO') {
