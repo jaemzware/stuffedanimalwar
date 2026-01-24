@@ -99,9 +99,14 @@ async function main() {
                 '--disable-dev-shm-usage',  // Helps with memory on Pi
                 '--disable-accelerated-2d-canvas',
                 '--disable-gpu',
+                '--disable-software-rasterizer',
                 '--start-maximized',
                 '--ignore-certificate-errors',  // For self-signed certs
-                '--disable-features=WebRtcHideLocalIpsWithMdns'  // Help with WebRTC on local network
+                '--disable-features=WebRtcHideLocalIpsWithMdns',  // Help with WebRTC on local network
+                '--disable-breakpad',  // Disable crash reporter
+                '--disable-crash-reporter',
+                '--password-store=basic',  // Don't use system keyring (avoids password prompt)
+                '--disable-background-networking'
             ],
         };
 
