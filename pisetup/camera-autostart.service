@@ -13,7 +13,10 @@ User=jaemzware
 WorkingDirectory=/home/jaemzware/stuffedanimalwar
 # Give the servers and X session time to fully initialize
 ExecStartPre=/bin/sleep 10
-ExecStart=/usr/bin/node camera-autostart.js 55556 "Pi Camera"
+# Format: node camera-autostart.js <domain> <room> [cameraName]
+# This joins https://<domain>/<room>camera
+# Change these values for your setup:
+ExecStart=/usr/bin/node camera-autostart.js localhost:55556 frontdoor "Pi Camera"
 Restart=on-failure
 RestartSec=30
 StandardOutput=journal

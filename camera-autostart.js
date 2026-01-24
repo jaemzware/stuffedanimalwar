@@ -2,21 +2,22 @@
 /**
  * camera-autostart.js
  *
- * Puppeteer script to automatically open the camera broadcaster page
- * and start broadcasting without manual intervention.
+ * Puppeteer script to automatically join a room's camera page
+ * and start sharing camera as a peer.
  *
  * Usage:
- *   node camera-autostart.js [port] [label]
+ *   node camera-autostart.js <domain> <room> [cameraName]
  *
  * Examples:
- *   node camera-autostart.js                    # Uses localhost:55556, default label
- *   node camera-autostart.js 55556              # Specify port
- *   node camera-autostart.js 55556 "Pi Camera"  # Specify port and label
+ *   node camera-autostart.js localhost:55556 jim999 "Pi Camera"    -> https://localhost:55556/jim999camera
+ *   node camera-autostart.js stuffedanimalwar.local frontdoor      -> https://stuffedanimalwar.local/frontdoorcamera
+ *   node camera-autostart.js stuffedanimalwar.com kitchen "Kitchen"-> https://stuffedanimalwar.com/kitchencamera
  *
  * Environment variables:
- *   CAMERA_URL    - Full URL to camera-broadcaster.html (overrides port)
- *   CAMERA_LABEL  - Label for the camera broadcast
- *   CAMERA_DELAY  - Delay in ms before clicking start (default: 2000)
+ *   CAMERA_DOMAIN - Domain (e.g., stuffedanimalwar.local:55556)
+ *   CAMERA_ROOM   - Room name (e.g., jim999)
+ *   CAMERA_NAME   - Display name for the camera
+ *   CAMERA_DELAY  - Delay in ms before enabling camera (default: 3000)
  *   USE_SYSTEM_CHROMIUM - Set to "true" to use system Chromium (for Pi)
  */
 
@@ -36,15 +37,43 @@ const puppeteer = useSystemChromium
     : require('puppeteer');
 
 // Configuration
-const port = process.argv[2] || process.env.PORT || 55556;
-const label = process.argv[3] || process.env.CAMERA_LABEL || 'Pi Camera';
-const url = process.env.CAMERA_URL || `https://localhost:${port}/camera-broadcaster.html`;
-const startDelay = parseInt(process.env.CAMERA_DELAY) || 2000;
+const domain = process.argv[2] || process.env.CAMERA_DOMAIN;
+const room = process.argv[3] || process.env.CAMERA_ROOM;
+const cameraName = process.argv[4] || process.env.CAMERA_NAME || 'Pi Camera';
+const startDelay = parseInt(process.env.CAMERA_DELAY) || 3000;
+
+function printUsage() {
+    console.log(`
+Usage: node camera-autostart.js <domain> <room> [cameraName]
+
+Arguments:
+  domain      Server domain with optional port (e.g., localhost:55556, stuffedanimalwar.local)
+  room        Room name to join (e.g., jim999, frontdoor)
+  cameraName  Display name for camera (default: "Pi Camera")
+
+Examples:
+  node camera-autostart.js localhost:55556 jim999                    -> /jim999camera
+  node camera-autostart.js localhost:55556 jim999 "Pi Camera"        -> /jim999camera
+  node camera-autostart.js stuffedanimalwar.local kitchen "Kitchen"  -> /kitchencamera
+
+Environment variables:
+  CAMERA_DOMAIN, CAMERA_ROOM, CAMERA_NAME, CAMERA_DELAY
+`);
+}
+
+if (!domain || !room) {
+    console.error('Error: domain and room are required');
+    printUsage();
+    process.exit(1);
+}
+
+const url = `https://${domain}/${room}camera`;
 
 async function main() {
     console.log('=== Camera Auto-Start ===');
     console.log(`URL: ${url}`);
-    console.log(`Label: ${label}`);
+    console.log(`Room: ${room}`);
+    console.log(`Camera Name: ${cameraName}`);
     console.log(`Start delay: ${startDelay}ms`);
     if (useSystemChromium) {
         console.log(`Using system Chromium: ${systemChromium}`);
@@ -86,60 +115,65 @@ async function main() {
 
         // Listen for console messages from the page
         page.on('console', msg => {
-            console.log(`[Browser] ${msg.text()}`);
+            const text = msg.text();
+            // Filter to show relevant camera/connection messages
+            if (text.includes('Camera') || text.includes('camera') ||
+                text.includes('connect') || text.includes('peer') ||
+                text.includes('WebRTC') || text.includes('error') ||
+                text.includes('Error')) {
+                console.log(`[Browser] ${text}`);
+            }
         });
 
         console.log(`Navigating to ${url}...`);
-        await page.goto(url, { waitUntil: 'networkidle2' });
+        await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
 
-        // Wait for the status to show "Connected"
-        console.log('Waiting for server connection...');
-        await page.waitForFunction(
-            () => document.getElementById('status').textContent.includes('Connected'),
-            { timeout: 30000 }
-        );
-        console.log('Connected to server!');
+        // Wait for the page to fully load
+        console.log('Waiting for page to load...');
+        await page.waitForSelector('#cameraToggleButton', { timeout: 30000 });
 
-        // Wait for camera to be enumerated (the select should have more than 1 option)
-        console.log('Waiting for camera enumeration...');
-        await page.waitForFunction(
-            () => document.getElementById('cameraSelect').options.length > 1,
-            { timeout: 30000 }
-        );
+        // Wait for socket connection (status updates or connect button becomes available)
+        console.log('Waiting for socket connection...');
+        await new Promise(resolve => setTimeout(resolve, 2000));
 
-        // Get camera info
-        const cameraInfo = await page.evaluate(() => {
-            const select = document.getElementById('cameraSelect');
-            return {
-                count: select.options.length - 1,  // Minus the "Select a camera..." option
-                selected: select.options[select.selectedIndex].textContent
-            };
-        });
-        console.log(`Found ${cameraInfo.count} camera(s). Selected: ${cameraInfo.selected}`);
+        // Set the camera name
+        console.log(`Setting camera name to: ${cameraName}`);
+        await page.evaluate((name) => {
+            const input = document.getElementById('cameraNameInput');
+            if (input) {
+                input.value = name;
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+        }, cameraName);
 
-        // Set the label
-        console.log(`Setting label to: ${label}`);
-        await page.evaluate((newLabel) => {
-            document.getElementById('labelInput').value = newLabel;
-        }, label);
-
-        // Wait a moment for the preview to stabilize
-        console.log(`Waiting ${startDelay}ms before starting broadcast...`);
+        // Wait before enabling camera
+        console.log(`Waiting ${startDelay}ms before enabling camera...`);
         await new Promise(resolve => setTimeout(resolve, startDelay));
 
-        // Click the start button
-        console.log('Clicking "Start Broadcasting"...');
-        await page.click('#startBtn');
+        // Click the camera toggle button to enable camera
+        console.log('Enabling camera...');
+        await page.click('#cameraToggleButton');
 
-        // Verify broadcasting started
-        await page.waitForFunction(
-            () => document.getElementById('status').textContent.includes('Broadcasting'),
-            { timeout: 10000 }
-        );
-        console.log('');
-        console.log('=== Broadcasting Started! ===');
-        console.log('The browser will stay open. Press Ctrl+C to stop.');
-        console.log('');
+        // Wait for camera to initialize
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        // Verify camera is enabled (button should have 'active' class)
+        const cameraEnabled = await page.evaluate(() => {
+            const btn = document.getElementById('cameraToggleButton');
+            return btn && btn.classList.contains('active');
+        });
+
+        if (cameraEnabled) {
+            console.log('');
+            console.log('=== Camera Enabled! ===');
+            console.log(`Broadcasting in room: ${room}`);
+            console.log(`Camera name: ${cameraName}`);
+            console.log('');
+            console.log('The browser will stay open. Press Ctrl+C to stop.');
+            console.log('');
+        } else {
+            console.log('Warning: Camera may not have enabled correctly. Check the browser window.');
+        }
 
         // Keep the script running - the browser stays open
         await new Promise(() => {});  // Wait forever
