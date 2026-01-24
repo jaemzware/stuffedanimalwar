@@ -61,47 +61,26 @@ fi
 echo "Launching: $CHROMIUM"
 echo ""
 
-# Create a user data directory with camera permissions pre-granted
+# Create a user data directory
 USER_DATA_DIR="/tmp/chromium-camera-autostart"
 mkdir -p "$USER_DATA_DIR/Default"
 
-# Create preferences file that grants camera/mic permissions for all sites
-cat > "$USER_DATA_DIR/Default/Preferences" << EOF
+# Create Chrome managed policies directory and policy file
+# This is the most reliable way to grant camera/mic permissions
+POLICY_DIR="/etc/chromium/policies/managed"
+sudo mkdir -p "$POLICY_DIR"
+
+# Create policy that allows camera/mic for all HTTPS sites
+sudo tee "$POLICY_DIR/camera-autostart.json" > /dev/null << 'EOF'
 {
-  "profile": {
-    "content_settings": {
-      "exceptions": {
-        "media_stream_camera": {
-          "https://${DOMAIN},*": {
-            "last_modified": "13300000000000000",
-            "setting": 1
-          },
-          "https://[*.]${DOMAIN%%:*},*": {
-            "last_modified": "13300000000000000",
-            "setting": 1
-          },
-          "*,*": {
-            "last_modified": "13300000000000000",
-            "setting": 1
-          }
-        },
-        "media_stream_mic": {
-          "https://${DOMAIN},*": {
-            "last_modified": "13300000000000000",
-            "setting": 1
-          },
-          "*,*": {
-            "last_modified": "13300000000000000",
-            "setting": 1
-          }
-        }
-      }
-    }
-  }
+  "VideoCaptureAllowed": true,
+  "AudioCaptureAllowed": true,
+  "VideoCaptureAllowedUrls": ["https://*"],
+  "AudioCaptureAllowedUrls": ["https://*"]
 }
 EOF
 
-echo "Created Chromium profile with camera permissions at: $USER_DATA_DIR"
+echo "Created Chromium policy for camera permissions at: $POLICY_DIR"
 
 # Launch Chromium with camera-friendly flags
 exec "$CHROMIUM" \
