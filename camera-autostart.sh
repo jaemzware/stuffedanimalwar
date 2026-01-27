@@ -84,7 +84,6 @@ echo "Created Chromium policy for camera permissions at: $POLICY_DIR"
 
 # Launch Chromium with camera-friendly flags
 exec "$CHROMIUM" \
-    --no-sandbox \
     --disable-dev-shm-usage \
     --password-store=basic \
     --ignore-certificate-errors \
