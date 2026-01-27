@@ -1,0 +1,27 @@
+[Unit]
+Description=Camera Autostart for StuffedAnimalWar
+# Wait for graphical session and both application servers
+After=graphical-session.target
+After=stuffedanimalwar.service
+After=analogarchive.service
+Requires=stuffedanimalwar.service
+Wants=analogarchive.service
+
+[Service]
+Type=simple
+User=jaemzware
+WorkingDirectory=/home/jaemzware/stuffedanimalwar
+# Give the servers and X session time to fully initialize
+ExecStartPre=/bin/sleep 10
+# Config is in /home/jaemzware/camera-autostart.conf
+EnvironmentFile=/home/jaemzware/camera-autostart.conf
+ExecStart=/home/jaemzware/stuffedanimalwar/camera-autostart.sh
+Restart=on-failure
+RestartSec=30
+StandardOutput=journal
+StandardError=journal
+# Chromium needs a display
+Environment="DISPLAY=:0"
+
+[Install]
+WantedBy=graphical.target

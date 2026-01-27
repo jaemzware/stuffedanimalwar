@@ -1,0 +1,187 @@
+#!/usr/bin/env node
+/**
+ * camera-autostart.js
+ *
+ * Puppeteer script to automatically join a room's camera page
+ * and start sharing camera as a peer.
+ *
+ * Usage:
+ *   node camera-autostart.js <domain> <room> [cameraName]
+ *
+ * Examples:
+ *   node camera-autostart.js localhost:55556 jim999 "Pi Camera"    -> https://localhost:55556/jim999camera
+ *   node camera-autostart.js stuffedanimalwar.local frontdoor      -> https://stuffedanimalwar.local/frontdoorcamera
+ *   node camera-autostart.js stuffedanimalwar.com kitchen "Kitchen"-> https://stuffedanimalwar.com/kitchencamera
+ *
+ * Environment variables:
+ *   CAMERA_DOMAIN - Domain (e.g., stuffedanimalwar.local:55556)
+ *   CAMERA_ROOM   - Room name (e.g., jim999)
+ *   CAMERA_NAME   - Display name for the camera
+ *   CAMERA_DELAY  - Delay in ms before enabling camera (default: 3000)
+ *   USE_SYSTEM_CHROMIUM - Set to "true" to use system Chromium (for Pi)
+ */
+
+const fs = require('fs');
+
+// Detect if we're on a Pi by checking for system Chromium
+const systemChromiumPaths = [
+    '/usr/bin/chromium-browser',  // Raspberry Pi OS
+    '/usr/bin/chromium',          // Some Linux distros
+];
+const systemChromium = systemChromiumPaths.find(p => fs.existsSync(p));
+const useSystemChromium = process.env.USE_SYSTEM_CHROMIUM === 'true' || !!systemChromium;
+
+// Use puppeteer-core if system Chromium, otherwise regular puppeteer
+const puppeteer = useSystemChromium
+    ? require('puppeteer-core')
+    : require('puppeteer');
+
+// Configuration
+const domain = process.argv[2] || process.env.CAMERA_DOMAIN;
+const room = process.argv[3] || process.env.CAMERA_ROOM;
+const cameraName = process.argv[4] || process.env.CAMERA_NAME || 'Pi Camera';
+const startDelay = parseInt(process.env.CAMERA_DELAY) || 3000;
+
+function printUsage() {
+    console.log(`
+Usage: node camera-autostart.js <domain> <room> [cameraName]
+
+Arguments:
+  domain      Server domain with optional port (e.g., localhost:55556, stuffedanimalwar.local)
+  room        Room name to join (e.g., jim999, frontdoor)
+  cameraName  Display name for camera (default: "Pi Camera")
+
+Examples:
+  node camera-autostart.js localhost:55556 jim999                    -> /jim999camera
+  node camera-autostart.js localhost:55556 jim999 "Pi Camera"        -> /jim999camera
+  node camera-autostart.js stuffedanimalwar.local kitchen "Kitchen"  -> /kitchencamera
+
+Environment variables:
+  CAMERA_DOMAIN, CAMERA_ROOM, CAMERA_NAME, CAMERA_DELAY
+`);
+}
+
+if (!domain || !room) {
+    console.error('Error: domain and room are required');
+    printUsage();
+    process.exit(1);
+}
+
+// Build URL with autostart query parameters
+const url = `https://${domain}/${room}camera?autostart=true&name=${encodeURIComponent(cameraName)}&delay=${startDelay}`;
+
+async function main() {
+    console.log('=== Camera Auto-Start ===');
+    console.log(`URL: ${url}`);
+    console.log(`Room: ${room}`);
+    console.log(`Camera Name: ${cameraName}`);
+    console.log(`Start delay: ${startDelay}ms`);
+    if (useSystemChromium) {
+        console.log(`Using system Chromium: ${systemChromium}`);
+    }
+    console.log('');
+
+    let browser;
+
+    try {
+        console.log('Launching browser...');
+
+        const launchOptions = {
+            headless: false,  // Headed mode - you can watch it
+            ignoreHTTPSErrors: true,  // Accept self-signed certificates
+            args: [
+                '--no-sandbox',
+                '--use-fake-ui-for-media-stream',  // Auto-accept camera permission
+                '--autoplay-policy=no-user-gesture-required',
+                '--disable-dev-shm-usage',  // Helps with memory on Pi
+                '--password-store=basic',  // Don't use system keyring
+                '--ignore-certificate-errors'  // For self-signed certs
+            ],
+        };
+
+        // Use system Chromium on Pi
+        if (useSystemChromium && systemChromium) {
+            launchOptions.executablePath = systemChromium;
+        }
+
+        browser = await puppeteer.launch(launchOptions);
+
+        // Grant camera and microphone permissions via browser context
+        const context = browser.defaultBrowserContext();
+        await context.overridePermissions(`https://${domain}`, [
+            'camera',
+            'microphone'
+        ]);
+        console.log('Granted camera/microphone permissions');
+
+        const page = await browser.newPage();
+
+        // Set viewport
+        await page.setViewport({ width: 1024, height: 768 });
+
+        // Listen for console messages from the page
+        page.on('console', msg => {
+            const text = msg.text();
+            // Filter to show relevant camera/connection messages
+            if (text.includes('Camera') || text.includes('camera') ||
+                text.includes('connect') || text.includes('peer') ||
+                text.includes('WebRTC') || text.includes('error') ||
+                text.includes('Error')) {
+                console.log(`[Browser] ${text}`);
+            }
+        });
+
+        console.log(`Navigating to ${url}...`);
+        await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+
+        // Wait for the page to fully load
+        console.log('Waiting for page to load...');
+        await page.waitForSelector('#cameraToggleButton', { timeout: 30000 });
+
+        // The page will auto-start camera via query parameters
+        // Wait for camera to initialize (startDelay + extra buffer)
+        console.log(`Page will auto-enable camera in ${startDelay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, startDelay + 3000));
+
+        // Verify camera is enabled (button should have 'active' class)
+        const cameraEnabled = await page.evaluate(() => {
+            const btn = document.getElementById('cameraToggleButton');
+            return btn && btn.classList.contains('active');
+        });
+
+        if (cameraEnabled) {
+            console.log('');
+            console.log('=== Camera Enabled! ===');
+            console.log(`Broadcasting in room: ${room}`);
+            console.log(`Camera name: ${cameraName}`);
+            console.log('');
+            console.log('The browser will stay open. Press Ctrl+C to stop.');
+            console.log('');
+        } else {
+            console.log('Warning: Camera may not have enabled correctly. Check the browser window.');
+        }
+
+        // Keep the script running - the browser stays open
+        await new Promise(() => {});  // Wait forever
+
+    } catch (error) {
+        console.error('Error:', error.message);
+        if (browser) {
+            await browser.close();
+        }
+        process.exit(1);
+    }
+}
+
+// Handle graceful shutdown
+process.on('SIGINT', async () => {
+    console.log('\nShutting down...');
+    process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+    console.log('\nShutting down...');
+    process.exit(0);
+});
+
+main();

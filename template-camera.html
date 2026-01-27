@@ -1063,6 +1063,45 @@
                 populateCameraDevices();
                 initializeSocketHandlers();
 
+                // Auto-start camera if ?autostart=true query parameter is present
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('autostart') === 'true') {
+                    const autoName = urlParams.get('name');
+                    if (autoName) {
+                        const nameInput = document.getElementById('cameraNameInput');
+                        nameInput.value = autoName;
+                        myCameraName = autoName;
+                        console.log('🤖 Auto-start: Camera name set to:', autoName);
+                    }
+
+                    // Wait for socket to connect, then enable camera
+                    const autoStartDelay = parseInt(urlParams.get('delay')) || 5000;
+                    console.log('🤖 Auto-start: Waiting for socket connection...');
+
+                    const tryAutoStart = async () => {
+                        if (socket.connected) {
+                            console.log('🤖 Auto-start: Socket connected, waiting', autoStartDelay, 'ms before enabling camera...');
+                            setTimeout(() => {
+                                console.log('🤖 Auto-start: Clicking camera button now...');
+                                try {
+                                    // Simulate a real click on the button (some browsers need user gesture)
+                                    const cameraBtn = document.getElementById('cameraToggleButton');
+                                    cameraBtn.click();
+                                    console.log('🤖 Auto-start: Button clicked!');
+                                } catch (err) {
+                                    console.error('🤖 Auto-start: Failed to click button:', err);
+                                }
+                            }, autoStartDelay);
+                        } else {
+                            console.log('🤖 Auto-start: Socket not connected yet, retrying in 1s...');
+                            setTimeout(tryAutoStart, 1000);
+                        }
+                    };
+
+                    // Start trying after a brief initial delay
+                    setTimeout(tryAutoStart, 1000);
+                }
+
                 // Prevent video fullscreen on mobile - global handler
                 document.addEventListener('touchstart', (e) => {
                     if (e.target.tagName === 'VIDEO') {
