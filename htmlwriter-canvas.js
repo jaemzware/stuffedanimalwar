@@ -311,7 +311,7 @@ function writeAudioFromJson(mediaObject){
 
                 //paint the audio player
                 document.write("<div class='audio-player-wrapper'>");
-                    document.write("<audio id=\"jaemzwaredynamicaudioplayer\" controls=\"\" preload=\"metadata\">");
+                    document.write("<audio id=\"jaemzwaredynamicaudioplayer\" controls=\"\" preload=\"metadata\" tabindex=\"3\">");
                     let filepath = (mediaObject.songs[0].file.startsWith("http://") || mediaObject.songs[0].file.startsWith("https://")) ? mediaObject.songs[0].file : mediaObject.songspath+mediaObject.songs[0].file;
                     document.write("<source id=\"jaemzwaredynamicaudiosource\" src=\""+filepath+"\" type=\"audio/mpeg\">");
                     document.write("HTML5 Audio Tag support not available with your browser. For source type='audio/mpeg'");
@@ -320,7 +320,7 @@ function writeAudioFromJson(mediaObject){
 
                 //previous and next buttons with metadata display
                 document.write("<div class='audio-controls-container'>");
-                    document.write("<button type='button' id='enableaudiosync' class='action-button primary-button'>Enable Audio Sync</button>");
+                    document.write("<button type='button' id='enableaudiosync' class='action-button primary-button' tabindex='2'>Enable Audio Sync</button>");
                     document.write("<button type='button' id='nextaudiotrack' class='action-button secondary-button next-track-button'>Next Track</button>");
 
                     // Album art thumbnail (right after the next button)
@@ -495,7 +495,7 @@ function writeChatForm(responsesObject) {
         document.write("<div class='chat-controls'>");
             document.write("<div class='input-group'>");
                 document.write("<label for='chatClientUser' class='input-label'>Alias</label>");
-                document.write("<input id=\"chatClientUser\" class='modern-input' placeholder=\"Enter your alias\"/>");
+                document.write("<input id=\"chatClientUser\" class='modern-input' placeholder=\"Enter your alias\" tabindex=\"1\"/>");
             document.write("</div>");
 
             document.write("<div class='input-group'>");
