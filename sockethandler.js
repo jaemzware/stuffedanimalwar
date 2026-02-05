@@ -93,8 +93,9 @@ function initializeSocketHandlers(){
         var img = $("<img/>").attr({
             src: chatImageMsgObject.CHATCLIENTIMAGE,
             alt: chatServerUser + " " + chatImageMsgObject.CHATSERVERDATE,
-            class: "photosformthumbnail" // Optional: Add a class for styling the thumbnail
-        });
+            class: "photosformthumbnail", // Optional: Add a class for styling the thumbnail
+            draggable: "false"
+        }).on("contextmenu", function(e) { e.preventDefault(); });
 
         img.on("click", function () {
             // Canvas-only (RIP SVG background)
@@ -154,8 +155,10 @@ function initializeSocketHandlers(){
             preload: "metadata",
             muted: true,
             width: "120", // Set appropriate thumbnail size
-            height: "80"
-        });
+            height: "80",
+            controlsList: "nodownload",
+            draggable: "false"
+        }).on("contextmenu", function(e) { e.preventDefault(); });
 
         // Force the video to load its metadata and seek to the first frame
         video.on('loadedmetadata', function() {

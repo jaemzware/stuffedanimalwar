@@ -3,6 +3,16 @@
     <head>
         <title>{{ENDPOINT}} Canvas Room</title>
         <link rel="Stylesheet" href="/stylebase.css" />
+        <style>
+            canvas, img, video {
+                -webkit-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+                user-select: none;
+                -webkit-user-drag: none;
+                -webkit-touch-callout: none;
+            }
+        </style>
 <!--        FOR MOBILE-->
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
         <script type="text/javascript" src="/htmlwriter-canvas.js"></script>
@@ -158,6 +168,23 @@
         });
     }
     initializeSocketHandlers();
+
+    // Prevent right-click saving on canvas and chat images
+    document.addEventListener('DOMContentLoaded', function() {
+        var canvas = document.getElementById('stuffedanimalwarcanvas');
+        if (canvas) {
+            canvas.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+        }
+        // Also prevent on dynamically added chat images
+        var messagesDiv = document.getElementById('messagesdiv');
+        if (messagesDiv) {
+            messagesDiv.addEventListener('contextmenu', function(e) {
+                if (e.target.tagName === 'IMG' || e.target.tagName === 'VIDEO') {
+                    e.preventDefault();
+                }
+            });
+        }
+    });
 </script>
 <!--COLOR PICKER-->
 <script src="/modal-color-picker.js"></script>

@@ -399,15 +399,15 @@ function writeVideoFromJson(mediaObject){
                         //IF THE FULL URL WAS SPECIFIED, DONT USE THE VIDEOS PREPENDING PATH SPECIFIED
                         if(mediaObject.videos[0].poster.indexOf("http://")!==-1 ||
                             mediaObject.videos[0].poster.indexOf("https://")!==-1){
-                            document.write("<video id=\"jaemzwaredynamicvideoplayer\" poster=\""+mediaObject.videos[0].poster+"\" controls=\"controls\" preload=\"metadata\">");
+                            document.write("<video id=\"jaemzwaredynamicvideoplayer\" poster=\""+mediaObject.videos[0].poster+"\" controls=\"controls\" controlsList=\"nodownload\" preload=\"metadata\" oncontextmenu=\"return false;\">");
                         }
                         else{
-                            document.write("<video id=\"jaemzwaredynamicvideoplayer\" poster=\""+mediaObject.videospath+mediaObject.videos[0].poster+"\" controls=\"controls\" preload=\"metadata\">");
+                            document.write("<video id=\"jaemzwaredynamicvideoplayer\" poster=\""+mediaObject.videospath+mediaObject.videos[0].poster+"\" controls=\"controls\" controlsList=\"nodownload\" preload=\"metadata\" oncontextmenu=\"return false;\">");
                         }
                     }
                     else{
                         //let the utility.js load the first frame of the video by default
-                        document.write("<video id=\"jaemzwaredynamicvideoplayer\" controls=\"controls\" preload=\"metadata\" title=\"stuffedanimalwarTv\">");
+                        document.write("<video id=\"jaemzwaredynamicvideoplayer\" controls=\"controls\" controlsList=\"nodownload\" preload=\"metadata\" title=\"stuffedanimalwarTv\" oncontextmenu=\"return false;\">");
                     }
 
                     document.write("mp4 not supported in this browser");
@@ -468,7 +468,7 @@ function writePhotosFromJson(mediaObject){
                     thumbpath = "/thumb/" + mediaObject.photospath + encodeURIComponent(mediaObject.photos[i].file);
                 }
                 let filetitle=mediaObject.photos[i].title;
-                document.write("<div class=\"photo-item\"><img class=\"photo-thumbnail photosformthumbnail\" src=\""+thumbpath+"\" data-fullsize=\""+filepath+"\" alt=\""+filetitle+"\" loading=\"lazy\" /><span class=\"photo-title\">"+filetitle+"</span></div>");
+                document.write("<div class=\"photo-item\"><img class=\"photo-thumbnail photosformthumbnail\" src=\""+thumbpath+"\" data-fullsize=\""+filepath+"\" alt=\""+filetitle+"\" loading=\"lazy\" oncontextmenu=\"return false;\" draggable=\"false\" /><span class=\"photo-title\">"+filetitle+"</span></div>");
             }
             document.write("</div>");
         document.write("</div>");
