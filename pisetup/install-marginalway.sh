@@ -17,6 +17,10 @@ SAW_DIR="/home/jaemzware/stuffedanimalwar"
 # Hostname can be passed as first argument, defaults to "marginalway"
 HOSTNAME="${1:-marginalway}"
 
+# Optional WiFi credentials can be passed as 2nd and 3rd arguments
+WIFI_SSID="${2:-}"
+WIFI_PASSWORD="${3:-}"
+
 # Validate hostname (alphanumeric and hyphens only, no leading/trailing hyphens)
 if [[ ! "$HOSTNAME" =~ ^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?$ ]]; then
     echo "ERROR: Invalid hostname '$HOSTNAME'"
@@ -55,13 +59,15 @@ echo "StuffedAnimalWar Pi Setup"
 echo "Jaemzware LLC - marginalway edition"
 echo "=========================================="
 echo ""
-echo "Usage: sudo ./install-marginalway.sh [hostname]"
+echo "Usage: sudo ./install-marginalway.sh [hostname] [wifi_ssid] [wifi_password]"
 echo "  hostname defaults to 'marginalway' if not specified"
+echo "  wifi_ssid and wifi_password are optional"
+echo "  If provided, Pi will connect to this network on boot"
 echo ""
 
 # Check if running as root
 if [ "$EUID" -ne 0 ]; then
-    echo "Please run with sudo: sudo ./install-marginalway.sh [hostname]"
+    echo "Please run with sudo: sudo ./install-marginalway.sh [hostname] [wifi_ssid] [wifi_password]"
     exit 1
 fi
 
@@ -71,6 +77,11 @@ PI_MODEL=$(cat /proc/device-tree/model 2>/dev/null | tr -d '\0')
 echo "Detected: $PI_MODEL"
 echo "Type: $PI_TYPE"
 echo "Hostname: $HOSTNAME"
+if [ -n "$WIFI_SSID" ]; then
+    echo "WiFi: $WIFI_SSID"
+else
+    echo "WiFi: Not configured (will use AP mode)"
+fi
 echo ""
 
 echo "[1/12] Updating system packages..."
@@ -240,6 +251,21 @@ echo "[11/12] Installing WiFi Manager and application services..."
 cp "$SCRIPT_DIR/wifi-manager.service" /etc/systemd/system/
 chmod +x "$SCRIPT_DIR/wifi-manager.sh"
 
+# Create WiFi credentials file if SSID and password were provided
+if [ -n "$WIFI_SSID" ] && [ -n "$WIFI_PASSWORD" ]; then
+    echo "  - Creating WiFi credentials for network: $WIFI_SSID"
+    cat > "$SAW_DIR/wifi-credentials.json" << EOF
+{
+  "ssid": "$WIFI_SSID",
+  "password": "$WIFI_PASSWORD"
+}
+EOF
+    chown jaemzware:jaemzware "$SAW_DIR/wifi-credentials.json"
+    chmod 600 "$SAW_DIR/wifi-credentials.json"
+else
+    echo "  - No WiFi credentials provided (will start in AP mode)"
+fi
+
 cp "$SCRIPT_DIR/stuffedanimalwar.service" /etc/systemd/system/
 
 # Install analogarchive service if it exists
@@ -311,7 +337,15 @@ echo "Pi Model: $PI_MODEL"
 echo "Configuration: $PI_TYPE"
 echo "Hostname: $HOSTNAME"
 echo ""
-echo "The Pi will start in AP mode on first boot."
+if [ -n "$WIFI_SSID" ] && [ -n "$WIFI_PASSWORD" ]; then
+    echo "WiFi configured for: $WIFI_SSID"
+    echo "  - Pi will connect to this network on boot"
+    echo "  - If connection fails, will fall back to AP mode"
+else
+    echo "The Pi will start in AP mode on first boot."
+fi
+echo ""
+echo "AP Mode (fallback or if no WiFi configured):"
 echo "  - WiFi Name: StuffedAnimalWAP"
 echo "  - Password: stuffedanimal"
 echo "  - Setup URL: https://$HOSTNAME.local/setup"

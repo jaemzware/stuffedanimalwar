@@ -15,6 +15,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SAW_DIR="/home/jaemzware/stuffedanimalwar"
 AA_DIR="/home/jaemzware/analogarchive"
 
+# Optional WiFi credentials can be passed as arguments
+WIFI_SSID="${1:-}"
+WIFI_PASSWORD="${2:-}"
+
 # Detect Pi model - no external dependencies
 detect_pi_model() {
     local model=$(cat /proc/device-tree/model 2>/dev/null | tr -d '\0')
@@ -37,10 +41,14 @@ echo "StuffedAnimalWar Pi Setup"
 echo "Jaemzware LLC"
 echo "=========================================="
 echo ""
+echo "Usage: sudo ./install.sh [wifi_ssid] [wifi_password]"
+echo "  wifi_ssid and wifi_password are optional"
+echo "  If provided, Pi will connect to this network on boot"
+echo ""
 
 # Check if running as root
 if [ "$EUID" -ne 0 ]; then
-    echo "Please run with sudo: sudo ./install.sh"
+    echo "Please run with sudo: sudo ./install.sh [wifi_ssid] [wifi_password]"
     exit 1
 fi
 
@@ -49,6 +57,11 @@ PI_TYPE=$(detect_pi_model)
 PI_MODEL=$(cat /proc/device-tree/model 2>/dev/null | tr -d '\0')
 echo "Detected: $PI_MODEL"
 echo "Type: $PI_TYPE"
+if [ -n "$WIFI_SSID" ]; then
+    echo "WiFi: $WIFI_SSID"
+else
+    echo "WiFi: Not configured (will use AP mode)"
+fi
 echo ""
 
 echo "[1/12] Updating system packages..."
@@ -221,6 +234,21 @@ echo "[11/12] Installing WiFi Manager and application services..."
 cp "$SCRIPT_DIR/wifi-manager.service" /etc/systemd/system/
 chmod +x "$SCRIPT_DIR/wifi-manager.sh"
 
+# Create WiFi credentials file if SSID and password were provided
+if [ -n "$WIFI_SSID" ] && [ -n "$WIFI_PASSWORD" ]; then
+    echo "  - Creating WiFi credentials for network: $WIFI_SSID"
+    cat > "$SAW_DIR/wifi-credentials.json" << EOF
+{
+  "ssid": "$WIFI_SSID",
+  "password": "$WIFI_PASSWORD"
+}
+EOF
+    chown jaemzware:jaemzware "$SAW_DIR/wifi-credentials.json"
+    chmod 600 "$SAW_DIR/wifi-credentials.json"
+else
+    echo "  - No WiFi credentials provided (will start in AP mode)"
+fi
+
 cp "$SCRIPT_DIR/stuffedanimalwar.service" /etc/systemd/system/
 
 # Install analogarchive service if it exists
@@ -249,7 +277,15 @@ echo ""
 echo "Pi Model: $PI_MODEL"
 echo "Configuration: $PI_TYPE"
 echo ""
-echo "The Pi will start in AP mode on first boot."
+if [ -n "$WIFI_SSID" ] && [ -n "$WIFI_PASSWORD" ]; then
+    echo "WiFi configured for: $WIFI_SSID"
+    echo "  - Pi will connect to this network on boot"
+    echo "  - If connection fails, will fall back to AP mode"
+else
+    echo "The Pi will start in AP mode on first boot."
+fi
+echo ""
+echo "AP Mode (fallback or if no WiFi configured):"
 echo "  - WiFi Name: StuffedAnimalWAP"
 echo "  - Password: stuffedanimal"
 echo "  - Setup URL: https://stuffedanimalwar.local/setup"
