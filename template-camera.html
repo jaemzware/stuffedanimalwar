@@ -1572,6 +1572,14 @@
 
                 broadcastCameraNames();
                 await populateCameraDevices();
+
+                // If there are multiple cameras available, show switch controls
+                var allDevices = await navigator.mediaDevices.enumerateDevices();
+                var allVideoCams = allDevices.filter(function(d) { return d.kind === 'videoinput'; });
+                if (allVideoCams.length > 1) {
+                    isSingleCameraMode = true;
+                    showSingleCameraControls(allVideoCams);
+                }
             }
 
             // Add all current camera tracks to all peer connections
