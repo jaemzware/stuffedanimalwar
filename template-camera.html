@@ -638,11 +638,17 @@
                                 <span id="cameraIcon">📹</span>
                                 <span id="cameraLabel">Camera</span>
                             </button>
+                            <button id="cameraSwitchButton" class="btn btn-camera" style="display: none; flex: 0 0 auto; width: auto; padding: 8px;">
+                                <span>🔄</span>
+                            </button>
                         </div>
                         <label class="checkbox-label" style="margin-top: 6px;">
                             <input type="checkbox" id="acceptCameraCheckbox" checked>
                             <span>Show Remote Cameras</span>
                         </label>
+                        <select id="cameraSelector" style="display: none; margin-top: 6px;">
+                            <option value="">Select Camera...</option>
+                        </select>
                     </div>
 
                     <!-- Audio Controls -->
@@ -968,6 +974,8 @@
             // Camera and mic state
             let localCameraStreams = new Map(); // deviceId -> { stream: MediaStream, name: string }
             let localCameraNames = new Map(); // streamId -> custom name string (for signaling)
+            let isSingleCameraMode = false; // true if device can only use one camera at a time (e.g. iOS)
+            let selectedCameraDeviceId = null; // used in single-camera fallback mode
             let localMicStream = null;
             let isCameraEnabled = false;
             let isMicEnabled = false;
@@ -1031,6 +1039,8 @@
 
                 // Set up event listeners
                 document.getElementById('cameraToggleButton').addEventListener('click', toggleCamera);
+                document.getElementById('cameraSwitchButton').addEventListener('click', switchCamera);
+                document.getElementById('cameraSelector').addEventListener('change', handleCameraChange);
                 document.getElementById('micToggleButton').addEventListener('click', toggleMic);
                 acceptCameraCheckbox.addEventListener('change', handleAcceptCameraChange);
                 acceptMicCheckbox.addEventListener('change', handleAcceptMicChange);
@@ -1440,6 +1450,154 @@
                 return card;
             }
 
+            // Populate camera selector dropdown (used in single-camera fallback mode)
+            async function populateCameraDevices() {
+                try {
+                    const devices = await navigator.mediaDevices.enumerateDevices();
+                    const videoDevices = devices.filter(function(d) { return d.kind === 'videoinput'; });
+                    const cameraSelector = document.getElementById('cameraSelector');
+                    cameraSelector.innerHTML = '<option value="">Select Camera...</option>';
+
+                    videoDevices.forEach(function(device, index) {
+                        const option = document.createElement('option');
+                        option.value = device.deviceId;
+                        option.text = device.label || ('Camera ' + (index + 1));
+                        if (device.deviceId === selectedCameraDeviceId) {
+                            option.selected = true;
+                        }
+                        cameraSelector.appendChild(option);
+                    });
+                } catch (error) {
+                    console.error('Error enumerating cameras:', error);
+                }
+            }
+
+            // Switch camera in single-camera mode
+            async function switchCamera() {
+                if (!isCameraEnabled || !isSingleCameraMode) return;
+
+                try {
+                    const devices = await navigator.mediaDevices.enumerateDevices();
+                    const videoDevices = devices.filter(function(d) { return d.kind === 'videoinput'; });
+                    if (videoDevices.length < 2) return;
+
+                    const currentIndex = videoDevices.findIndex(function(d) { return d.deviceId === selectedCameraDeviceId; });
+                    const nextIndex = (currentIndex + 1) % videoDevices.length;
+                    const nextDevice = videoDevices[nextIndex];
+
+                    selectedCameraDeviceId = nextDevice.deviceId;
+
+                    // Update selector
+                    var sel = document.getElementById('cameraSelector');
+                    if (sel) sel.value = nextDevice.deviceId;
+
+                    // Stop current stream
+                    localCameraStreams.forEach(function(camInfo) {
+                        camInfo.stream.getTracks().forEach(function(t) { t.stop(); });
+                    });
+                    localCameraStreams.clear();
+                    localCameraNames.clear();
+
+                    // Open new camera
+                    await startSingleCamera(nextDevice.deviceId);
+                } catch (error) {
+                    console.error('Error switching camera:', error);
+                }
+            }
+
+            // Handle camera selector change in single-camera mode
+            async function handleCameraChange(event) {
+                var newDeviceId = event.target.value;
+                if (!newDeviceId) return;
+                selectedCameraDeviceId = newDeviceId;
+
+                if (isCameraEnabled && isSingleCameraMode) {
+                    // Stop current stream
+                    localCameraStreams.forEach(function(camInfo) {
+                        camInfo.stream.getTracks().forEach(function(t) { t.stop(); });
+                    });
+                    localCameraStreams.clear();
+                    localCameraNames.clear();
+                    await startSingleCamera(newDeviceId);
+                }
+            }
+
+            // Open a single camera (used in single-camera fallback mode)
+            async function startSingleCamera(deviceId) {
+                const localCameraSection = document.getElementById('localCameraSection');
+                const localCameraGrid = document.getElementById('localCameraGrid');
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+                localCameraGrid.innerHTML = '';
+                localCameraStreams.clear();
+                localCameraNames.clear();
+
+                const constraints = {
+                    video: {
+                        deviceId: deviceId ? { exact: deviceId } : undefined,
+                        width: { ideal: isMobile ? 640 : 1280 },
+                        height: { ideal: isMobile ? 480 : 720 },
+                        frameRate: { ideal: isMobile ? 15 : 30 }
+                    }
+                };
+                if (!deviceId) {
+                    constraints.video.facingMode = { ideal: 'user' };
+                }
+
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                const videoTrack = stream.getVideoTracks()[0];
+                const settings = videoTrack ? videoTrack.getSettings() : {};
+                const actualDeviceId = settings.deviceId || deviceId || 'default';
+                const deviceLabel = videoTrack ? videoTrack.label : 'Camera';
+                selectedCameraDeviceId = actualDeviceId;
+
+                localCameraStreams.set(actualDeviceId, { stream: stream, name: deviceLabel });
+
+                const card = createLocalCameraCard(actualDeviceId, deviceLabel, stream);
+                localCameraGrid.appendChild(card);
+
+                const video = card.querySelector('video');
+                await video.play();
+
+                localCameraSection.style.display = 'block';
+                document.getElementById('status').textContent = 'Camera active';
+                document.getElementById('status').className = 'status connected';
+
+                // Update selector
+                var sel = document.getElementById('cameraSelector');
+                if (sel) sel.value = actualDeviceId;
+
+                // Add track to existing peer connections
+                addCameraTracksToPeers();
+
+                broadcastCameraNames();
+                await populateCameraDevices();
+            }
+
+            // Add all current camera tracks to all peer connections
+            function addCameraTracksToPeers() {
+                Object.keys(peerConnections).forEach(function(peerId) {
+                    const pc = peerConnections[peerId];
+                    if (pc && (pc.connectionState === 'connected' || pc.connectionState === 'connecting')) {
+                        const senders = pc.getSenders();
+                        const videoSenders = senders.filter(function(s) { return s.track && s.track.kind === 'video'; });
+                        let senderIndex = 0;
+
+                        localCameraStreams.forEach(function(camInfo) {
+                            const videoTrack = camInfo.stream.getVideoTracks()[0];
+                            if (videoTrack) {
+                                if (senderIndex < videoSenders.length) {
+                                    videoSenders[senderIndex].replaceTrack(videoTrack);
+                                } else {
+                                    pc.addTrack(videoTrack, camInfo.stream);
+                                }
+                                senderIndex++;
+                            }
+                        });
+                    }
+                });
+            }
+
             async function startAllCameras() {
                 const localCameraSection = document.getElementById('localCameraSection');
                 const localCameraGrid = document.getElementById('localCameraGrid');
@@ -1467,13 +1625,23 @@
                 localCameraGrid.innerHTML = '';
                 localCameraStreams.clear();
                 localCameraNames.clear();
+                isSingleCameraMode = false;
 
-                let openedCount = 0;
+                // If only one camera, just open it directly
+                if (videoDevices.length === 1) {
+                    await startSingleCamera(videoDevices[0].deviceId);
+                    return;
+                }
+
+                // Multiple cameras detected - try to open all simultaneously
+                // On iOS/some devices, opening a second camera kills the first stream.
+                // We detect this by checking if the first stream's track is still live after opening the second.
+
+                let openedStreams = []; // { deviceId, deviceLabel, stream }
 
                 for (let i = 0; i < videoDevices.length; i++) {
                     const device = videoDevices[i];
                     const deviceLabel = device.label || ('Camera ' + (i + 1));
-                    console.log('Opening camera:', deviceLabel, 'deviceId:', device.deviceId);
 
                     try {
                         const constraints = {
@@ -1486,59 +1654,114 @@
                         };
 
                         const stream = await navigator.mediaDevices.getUserMedia(constraints);
-                        localCameraStreams.set(device.deviceId, { stream: stream, name: deviceLabel });
+                        openedStreams.push({ deviceId: device.deviceId, deviceLabel: deviceLabel, stream: stream });
 
-                        const card = createLocalCameraCard(device.deviceId, deviceLabel, stream);
-                        localCameraGrid.appendChild(card);
+                        // After opening the second camera, check if the first one is still alive
+                        if (openedStreams.length === 2) {
+                            const firstTrack = openedStreams[0].stream.getVideoTracks()[0];
+                            if (!firstTrack || firstTrack.readyState === 'ended') {
+                                // First camera was killed - this device only supports one camera at a time
+                                console.warn('Multi-camera not supported: first camera track ended when second was opened. Falling back to single-camera mode.');
 
-                        // Play the video
-                        const video = card.querySelector('video');
-                        await video.play();
-                        console.log('Camera opened:', deviceLabel, 'streamId:', stream.id);
-                        openedCount++;
+                                // Stop the second stream too
+                                openedStreams[1].stream.getTracks().forEach(function(t) { t.stop(); });
+                                openedStreams = [];
+
+                                // Fall back to single-camera mode
+                                isSingleCameraMode = true;
+                                showSingleCameraControls(videoDevices);
+                                await startSingleCamera(selectedCameraDeviceId || videoDevices[0].deviceId);
+                                return;
+                            }
+                        }
                     } catch (err) {
                         console.warn('Could not open camera:', deviceLabel, err.message);
+
+                        // If the second+ camera fails and we had a working first one,
+                        // check if the first one is still alive
+                        if (openedStreams.length >= 1) {
+                            const firstTrack = openedStreams[0].stream.getVideoTracks()[0];
+                            if (!firstTrack || firstTrack.readyState === 'ended') {
+                                console.warn('First camera died after attempting second. Falling back to single-camera mode.');
+                                openedStreams.forEach(function(s) { s.stream.getTracks().forEach(function(t) { t.stop(); }); });
+                                openedStreams = [];
+                                isSingleCameraMode = true;
+                                showSingleCameraControls(videoDevices);
+                                await startSingleCamera(selectedCameraDeviceId || videoDevices[0].deviceId);
+                                return;
+                            }
+                        }
                     }
                 }
 
-                if (openedCount === 0) {
+                if (openedStreams.length === 0) {
                     const msg = 'Could not open any cameras';
                     document.getElementById('status').textContent = msg;
                     document.getElementById('status').className = 'status disconnected';
                     throw new Error(msg);
                 }
 
+                // If we only managed to open one camera out of multiple, use single-camera mode
+                if (openedStreams.length === 1 && videoDevices.length > 1) {
+                    isSingleCameraMode = true;
+                    showSingleCameraControls(videoDevices);
+                }
+
+                // All cameras opened successfully (or just one in single mode) - set up UI
+                for (let i = 0; i < openedStreams.length; i++) {
+                    var s = openedStreams[i];
+                    localCameraStreams.set(s.deviceId, { stream: s.stream, name: s.deviceLabel });
+
+                    var card = createLocalCameraCard(s.deviceId, s.deviceLabel, s.stream);
+                    localCameraGrid.appendChild(card);
+
+                    var video = card.querySelector('video');
+                    await video.play();
+                    console.log('Camera opened:', s.deviceLabel, 'streamId:', s.stream.id);
+                }
+
+                selectedCameraDeviceId = openedStreams[0].deviceId;
+
                 localCameraSection.style.display = 'block';
-                document.getElementById('status').textContent = openedCount + ' camera(s) active';
+                document.getElementById('status').textContent = openedStreams.length + ' camera(s) active';
                 document.getElementById('status').className = 'status connected';
 
-                // Add all camera tracks to existing peer connections
-                Object.keys(peerConnections).forEach(function(peerId) {
-                    const pc = peerConnections[peerId];
-                    if (pc && (pc.connectionState === 'connected' || pc.connectionState === 'connecting')) {
-                        const senders = pc.getSenders();
-                        const videoSenders = senders.filter(function(s) { return s.track && s.track.kind === 'video'; });
-                        let senderIndex = 0;
-
-                        localCameraStreams.forEach(function(camInfo) {
-                            const videoTrack = camInfo.stream.getVideoTracks()[0];
-                            if (videoTrack) {
-                                if (senderIndex < videoSenders.length) {
-                                    videoSenders[senderIndex].replaceTrack(videoTrack);
-                                    console.log('Replaced video track for peer:', peerId);
-                                } else {
-                                    pc.addTrack(videoTrack, camInfo.stream);
-                                    console.log('Added new video track for peer:', peerId);
-                                }
-                                senderIndex++;
-                            }
-                        });
-                        // onnegotiationneeded will fire automatically if tracks were added
-                    }
-                });
+                // Add camera tracks to existing peer connections
+                addCameraTracksToPeers();
 
                 // Broadcast camera names to peers
                 broadcastCameraNames();
+            }
+
+            // Show the switch button and selector dropdown for single-camera fallback
+            function showSingleCameraControls(videoDevices) {
+                var switchBtn = document.getElementById('cameraSwitchButton');
+                var selector = document.getElementById('cameraSelector');
+
+                if (switchBtn && videoDevices.length > 1) {
+                    switchBtn.style.display = '';
+                    switchBtn.disabled = false;
+                    switchBtn.style.background = '#007bff';
+                }
+
+                if (selector) {
+                    selector.style.display = '';
+                    selector.innerHTML = '<option value="">Select Camera...</option>';
+                    videoDevices.forEach(function(device, index) {
+                        var option = document.createElement('option');
+                        option.value = device.deviceId;
+                        option.text = device.label || ('Camera ' + (index + 1));
+                        selector.appendChild(option);
+                    });
+                }
+            }
+
+            // Hide the switch button and selector
+            function hideSingleCameraControls() {
+                var switchBtn = document.getElementById('cameraSwitchButton');
+                var selector = document.getElementById('cameraSelector');
+                if (switchBtn) { switchBtn.style.display = 'none'; }
+                if (selector) { selector.style.display = 'none'; }
             }
 
             function handleAcceptCameraChange(event) {
@@ -1642,7 +1865,6 @@
                     // Stop all camera streams
                     localCameraStreams.forEach(function(camInfo, deviceId) {
                         camInfo.stream.getTracks().forEach(function(track) {
-                            console.log('Stopping track:', track.label);
                             track.stop();
                         });
                     });
@@ -1657,11 +1879,11 @@
                     label.textContent = 'Camera';
 
                     isCameraEnabled = false;
+                    isSingleCameraMode = false;
+                    hideSingleCameraControls();
 
                     document.getElementById('status').textContent = 'Camera disabled';
                     document.getElementById('status').className = 'status disconnected';
-
-                    console.log('All cameras disabled');
                 }
             }
 
