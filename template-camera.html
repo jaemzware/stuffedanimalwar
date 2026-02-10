@@ -260,12 +260,34 @@
                 }
             }
 
+            .local-camera-grid {
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
             .local-camera {
                 border: 3px solid #28a745;
             }
 
             .local-camera .camera-label {
                 background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            }
+
+            .local-camera .camera-name-input {
+                width: 100%;
+                padding: 4px 6px;
+                margin-top: 4px;
+                background: rgba(0, 0, 0, 0.4);
+                color: white;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-radius: 4px;
+                font-size: 11px;
+            }
+
+            .local-camera .camera-name-input:focus {
+                outline: none;
+                border-color: #28a745;
             }
 
             .empty-state {
@@ -616,17 +638,11 @@
                                 <span id="cameraIcon">📹</span>
                                 <span id="cameraLabel">Camera</span>
                             </button>
-                            <button id="cameraSwitchButton" class="btn btn-camera" disabled style="background: #666; flex: 0 0 auto; width: auto; padding: 8px;">
-                                <span>🔄</span>
-                            </button>
                         </div>
                         <label class="checkbox-label" style="margin-top: 6px;">
                             <input type="checkbox" id="acceptCameraCheckbox" checked>
                             <span>Show Remote Cameras</span>
                         </label>
-                        <select id="cameraSelector" style="margin-top: 6px;">
-                            <option value="">Select Camera...</option>
-                        </select>
                     </div>
 
                     <!-- Audio Controls -->
@@ -663,17 +679,10 @@
                     </div>
                 </div>
 
-                <!-- Local Camera Preview in Sidebar -->
+                <!-- Local Camera Previews in Sidebar -->
                 <div id="localCameraSection" style="display: none;">
-                    <div class="camera-card local-camera">
-                        <div class="camera-label">
-                            <span id="localCameraNameLabel">📹 You</span>
-                            <span class="badge">LOCAL</span>
-                        </div>
-                        <div class="local-actions">
-                            <button class="peer-action-btn" onclick="maximizeVideo('localCameraVideo', 'Your Camera')" title="Maximize">⛶</button>
-                        </div>
-                        <video id="localCameraVideo" autoplay playsinline webkit-playsinline muted disablePictureInPicture x5-playsinline x5-video-player-type="h5"></video>
+                    <div id="localCameraGrid" class="local-camera-grid">
+                        <!-- Camera cards inserted dynamically by startAllCameras() -->
                     </div>
                 </div>
             </div>
@@ -957,23 +966,13 @@
             });
 
             // Camera and mic state
-            let localCameraStream = null;
+            let localCameraStreams = new Map(); // deviceId -> { stream: MediaStream, name: string }
+            let localCameraNames = new Map(); // streamId -> custom name string (for signaling)
             let localMicStream = null;
             let isCameraEnabled = false;
             let isMicEnabled = false;
-            // Load saved camera preference from localStorage
-            let selectedCameraDeviceId = null;
-            try {
-                const savedDeviceId = localStorage.getItem('selectedCameraDeviceId');
-                if (savedDeviceId) {
-                    selectedCameraDeviceId = savedDeviceId;
-                    console.log('📷 Loaded saved camera preference from localStorage:', savedDeviceId);
-                }
-            } catch (error) {
-                console.warn('Could not load camera preference from localStorage:', error);
-            }
             let peerConnections = {};
-            let remoteCameraStreams = {};
+            let remoteCameraStreams = {}; // peerId -> { streamId -> MediaStream }
             let isRemoteAudioMuted = true; // Start muted (acceptMicCheckbox starts unchecked)
             let pendingIceCandidates = {}; // Queue for ICE candidates that arrive before remote description
             let myCameraName = ''; // User's custom camera name
@@ -1032,12 +1031,7 @@
 
                 // Set up event listeners
                 document.getElementById('cameraToggleButton').addEventListener('click', toggleCamera);
-                const cameraSwitchButton = document.getElementById('cameraSwitchButton');
-                if (cameraSwitchButton) {
-                    cameraSwitchButton.addEventListener('click', switchCamera);
-                }
                 document.getElementById('micToggleButton').addEventListener('click', toggleMic);
-                document.getElementById('cameraSelector').addEventListener('change', handleCameraChange);
                 acceptCameraCheckbox.addEventListener('change', handleAcceptCameraChange);
                 acceptMicCheckbox.addEventListener('change', handleAcceptMicChange);
                 document.getElementById('refreshPeersButton').addEventListener('click', refreshPeerConnections);
@@ -1047,20 +1041,15 @@
                     myCameraName = e.target.value.trim();
                     console.log('Camera name set to:', myCameraName || '(default)');
 
-                    // Update local camera label if camera is visible
-                    const localCameraNameLabel = document.getElementById('localCameraNameLabel');
-                    if (localCameraNameLabel) {
-                        localCameraNameLabel.textContent = myCameraName ? `📹 ${myCameraName}` : '📹 Your Camera';
-                    }
+                    // Update all local camera labels
+                    document.querySelectorAll('#localCameraGrid .local-camera-peer-name').forEach(span => {
+                        span.textContent = myCameraName || 'You';
+                    });
 
                     // Broadcast name change to all connected peers
-                    socket.emit(cameraNameUpdateSocketEvent, {
-                        cameraName: myCameraName
-                    });
-                    console.log('📤 Broadcast camera name update:', myCameraName || '(cleared)');
+                    broadcastCameraNames();
                 });
 
-                populateCameraDevices();
                 initializeSocketHandlers();
 
                 // Auto-start camera if ?autostart=true query parameter is present
@@ -1139,14 +1128,14 @@
                             }
                         });
 
-                        // Resume local video if it was paused
-                        const localVideo = document.getElementById('localCameraVideo');
-                        if (localVideo && localVideo.paused && localVideo.srcObject) {
-                            console.log('▶️ Resuming local video after backgrounding');
-                            localVideo.play().catch(err => {
-                                console.log('⚠️ Could not resume local video:', err);
-                            });
-                        }
+                        // Resume all local camera videos if paused
+                        document.querySelectorAll('#localCameraGrid video').forEach(function(localVideo) {
+                            if (localVideo.paused && localVideo.srcObject) {
+                                localVideo.play().catch(function(err) {
+                                    console.log('Could not resume local video:', err);
+                                });
+                            }
+                        });
 
                         // Resume all remote videos
                         document.querySelectorAll('video[id^="remoteVideoElement_"]').forEach(video => {
@@ -1185,7 +1174,8 @@
                     // This helps with peer discovery
                     console.log('💓 Heartbeat: announcing presence with name:', myCameraName || '(none)');
                     socket.emit(cameraNameUpdateSocketEvent, {
-                        cameraName: myCameraName || ''
+                        cameraName: myCameraName || '',
+                        cameraNames: getCameraNames()
                     });
                 }, 30000); // Every 30 seconds
             });
@@ -1221,20 +1211,15 @@
                         pc.close();
                     }
 
-                    // Remove video element and monitors
-                    const videoWrapper = document.getElementById('remoteVideo_' + peerId);
-                    if (videoWrapper) {
-                        const video = videoWrapper.querySelector('video');
+                    // Remove all video elements for this peer (may have multiple cameras)
+                    document.querySelectorAll('[data-peer-id="' + peerId + '"]').forEach(function(wrapper) {
+                        const video = wrapper.querySelector('video');
                         if (video) {
-                            if (video._renderMonitor) {
-                                clearInterval(video._renderMonitor);
-                            }
-                            if (video._diagInterval) {
-                                clearInterval(video._diagInterval);
-                            }
+                            if (video._renderMonitor) clearInterval(video._renderMonitor);
+                            if (video._diagInterval) clearInterval(video._diagInterval);
                         }
-                        videoWrapper.remove();
-                    }
+                        wrapper.remove();
+                    });
 
                     // Remove audio element
                     const audioElement = document.getElementById('remoteAudio_' + peerId);
@@ -1367,71 +1352,193 @@
             }
 
             // Camera functions
-            async function populateCameraDevices() {
-                try {
-                    const devices = await navigator.mediaDevices.enumerateDevices();
-                    const videoDevices = devices.filter(device => device.kind === 'videoinput');
-                    const cameraSelector = document.getElementById('cameraSelector');
 
-                    cameraSelector.innerHTML = '<option value="">Select Camera...</option>';
-
-                    videoDevices.forEach((device, index) => {
-                        const option = document.createElement('option');
-                        option.value = device.deviceId;
-                        option.text = device.label || `Camera ${index + 1}`;
-
-                        // Pre-select if this matches our selected device
-                        if (device.deviceId === selectedCameraDeviceId) {
-                            option.selected = true;
-                        }
-
-                        cameraSelector.appendChild(option);
-                    });
-
-                    console.log('Found', videoDevices.length, 'camera(s)', 'Selected:', selectedCameraDeviceId || 'none');
-                } catch (error) {
-                    console.error('Error enumerating cameras:', error);
-                }
+            // Get per-camera names as a plain object for signaling
+            function getCameraNames() {
+                const names = {};
+                localCameraNames.forEach(function(name, streamId) {
+                    names[streamId] = name;
+                });
+                return names;
             }
 
-            async function handleCameraChange(event) {
-                const newDeviceId = event.target.value;
-                console.log('Camera selection changed to:', newDeviceId);
+            // Broadcast per-camera names to all peers
+            function broadcastCameraNames() {
+                socket.emit(cameraNameUpdateSocketEvent, {
+                    cameraName: myCameraName,
+                    cameraNames: getCameraNames()
+                });
+            }
 
-                if (!newDeviceId) {
-                    console.log('Empty device ID selected');
-                    return;
-                }
+            // Create a local camera card for preview
+            function createLocalCameraCard(deviceId, deviceLabel, stream) {
+                const streamId = stream.id;
+                const card = document.createElement('div');
+                card.className = 'camera-card local-camera';
+                card.dataset.deviceId = deviceId;
+                card.dataset.streamId = streamId;
 
-                selectedCameraDeviceId = newDeviceId;
+                const label = document.createElement('div');
+                label.className = 'camera-label';
+                const peerName = myCameraName || 'You';
+                label.innerHTML = '<span class="local-camera-peer-name">' + peerName + '</span><span class="badge">LOCAL</span>';
 
-                // Save to localStorage for persistence
-                try {
-                    localStorage.setItem('selectedCameraDeviceId', newDeviceId);
-                    console.log('✅ Saved camera preference to localStorage:', newDeviceId);
-                } catch (error) {
-                    console.warn('Could not save camera preference:', error);
-                }
+                const actions = document.createElement('div');
+                actions.className = 'local-actions';
+                const maxBtn = document.createElement('button');
+                maxBtn.className = 'peer-action-btn';
+                maxBtn.innerHTML = '⛶';
+                maxBtn.title = 'Maximize';
+                maxBtn.onclick = function() { maximizeVideo('localCameraVideo_' + deviceId, deviceLabel); };
+                actions.appendChild(maxBtn);
 
-                // If camera is already enabled, switch to the new device
-                if (isCameraEnabled) {
-                    console.log('Camera already enabled, switching devices...');
-                    try {
-                        // Stop current stream
-                        if (localCameraStream) {
-                            localCameraStream.getTracks().forEach(track => track.stop());
+                const video = document.createElement('video');
+                video.id = 'localCameraVideo_' + deviceId;
+                video.autoplay = true;
+                video.playsinline = true;
+                video.muted = true;
+                video.setAttribute('webkit-playsinline', '');
+                video.setAttribute('disablePictureInPicture', '');
+                video.setAttribute('x5-playsinline', '');
+                video.setAttribute('x5-video-player-type', 'h5');
+                video.srcObject = stream;
+
+                // Prevent fullscreen on local video
+                video.controls = false;
+                video.addEventListener('webkitbeginfullscreen', function(e) { e.preventDefault(); e.stopPropagation(); }, true);
+                video.addEventListener('webkitendfullscreen', function(e) { e.preventDefault(); }, true);
+
+                // Auto-resume if paused
+                video.addEventListener('pause', function() {
+                    setTimeout(function() {
+                        if (video.paused && video.srcObject) {
+                            video.play().catch(function(err) { console.log('Could not resume local video:', err); });
                         }
+                    }, 100);
+                });
 
-                        // Start with new device
-                        await startCamera();
-                    } catch (error) {
-                        console.error('Error switching camera:', error);
-                        document.getElementById('status').textContent = 'Error switching camera: ' + error.message;
-                        document.getElementById('status').className = 'status disconnected';
-                    }
-                } else {
-                    console.log('Camera not yet enabled, device will be used when enabled');
+                // Per-camera name input
+                const nameInput = document.createElement('input');
+                nameInput.type = 'text';
+                nameInput.className = 'camera-name-input';
+                nameInput.placeholder = 'Name this camera...';
+                nameInput.value = deviceLabel || 'Camera';
+                nameInput.addEventListener('input', function() {
+                    const name = nameInput.value.trim();
+                    localCameraNames.set(streamId, name);
+                    broadcastCameraNames();
+                });
+
+                // Initialize the name
+                localCameraNames.set(streamId, deviceLabel || 'Camera');
+
+                card.appendChild(label);
+                card.appendChild(actions);
+                card.appendChild(video);
+                card.appendChild(nameInput);
+
+                return card;
+            }
+
+            async function startAllCameras() {
+                const localCameraSection = document.getElementById('localCameraSection');
+                const localCameraGrid = document.getElementById('localCameraGrid');
+
+                console.log('Starting all cameras...');
+
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+                // Enumerate all video devices
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const videoDevices = devices.filter(function(d) { return d.kind === 'videoinput'; });
+
+                if (videoDevices.length === 0) {
+                    const noCameraMsg = 'No camera detected on this device';
+                    console.error(noCameraMsg);
+                    document.getElementById('status').textContent = noCameraMsg;
+                    document.getElementById('status').className = 'status disconnected';
+                    alert(noCameraMsg + '\n\nThis device can still view remote cameras and use the microphone.');
+                    throw new Error(noCameraMsg);
                 }
+
+                console.log('Found', videoDevices.length, 'camera(s)');
+
+                // Clear previous state
+                localCameraGrid.innerHTML = '';
+                localCameraStreams.clear();
+                localCameraNames.clear();
+
+                let openedCount = 0;
+
+                for (let i = 0; i < videoDevices.length; i++) {
+                    const device = videoDevices[i];
+                    const deviceLabel = device.label || ('Camera ' + (i + 1));
+                    console.log('Opening camera:', deviceLabel, 'deviceId:', device.deviceId);
+
+                    try {
+                        const constraints = {
+                            video: {
+                                deviceId: { exact: device.deviceId },
+                                width: { ideal: isMobile ? 640 : 1280 },
+                                height: { ideal: isMobile ? 480 : 720 },
+                                frameRate: { ideal: isMobile ? 15 : 30 }
+                            }
+                        };
+
+                        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                        localCameraStreams.set(device.deviceId, { stream: stream, name: deviceLabel });
+
+                        const card = createLocalCameraCard(device.deviceId, deviceLabel, stream);
+                        localCameraGrid.appendChild(card);
+
+                        // Play the video
+                        const video = card.querySelector('video');
+                        await video.play();
+                        console.log('Camera opened:', deviceLabel, 'streamId:', stream.id);
+                        openedCount++;
+                    } catch (err) {
+                        console.warn('Could not open camera:', deviceLabel, err.message);
+                    }
+                }
+
+                if (openedCount === 0) {
+                    const msg = 'Could not open any cameras';
+                    document.getElementById('status').textContent = msg;
+                    document.getElementById('status').className = 'status disconnected';
+                    throw new Error(msg);
+                }
+
+                localCameraSection.style.display = 'block';
+                document.getElementById('status').textContent = openedCount + ' camera(s) active';
+                document.getElementById('status').className = 'status connected';
+
+                // Add all camera tracks to existing peer connections
+                Object.keys(peerConnections).forEach(function(peerId) {
+                    const pc = peerConnections[peerId];
+                    if (pc && (pc.connectionState === 'connected' || pc.connectionState === 'connecting')) {
+                        const senders = pc.getSenders();
+                        const videoSenders = senders.filter(function(s) { return s.track && s.track.kind === 'video'; });
+                        let senderIndex = 0;
+
+                        localCameraStreams.forEach(function(camInfo) {
+                            const videoTrack = camInfo.stream.getVideoTracks()[0];
+                            if (videoTrack) {
+                                if (senderIndex < videoSenders.length) {
+                                    videoSenders[senderIndex].replaceTrack(videoTrack);
+                                    console.log('Replaced video track for peer:', peerId);
+                                } else {
+                                    pc.addTrack(videoTrack, camInfo.stream);
+                                    console.log('Added new video track for peer:', peerId);
+                                }
+                                senderIndex++;
+                            }
+                        });
+                        // onnegotiationneeded will fire automatically if tracks were added
+                    }
+                });
+
+                // Broadcast camera names to peers
+                broadcastCameraNames();
             }
 
             function handleAcceptCameraChange(event) {
@@ -1461,11 +1568,14 @@
                     }
                 });
 
-                // Update all per-peer state and button icons (based on video elements, not audio)
-                const videoWrappers = document.querySelectorAll('[id^="remoteVideo_"]');
+                // Update all per-peer state and button icons
+                const videoWrappers = document.querySelectorAll('[data-peer-id]');
                 console.log(`🔊 Updating ${videoWrappers.length} peer button(s)`);
+                const seenPeers = new Set();
                 videoWrappers.forEach(wrapper => {
-                    const peerId = wrapper.id.replace('remoteVideo_', '');
+                    const peerId = wrapper.dataset.peerId;
+                    if (!peerId || seenPeers.has(peerId)) return;
+                    seenPeers.add(peerId);
                     peerAudioMuted[peerId] = isRemoteAudioMuted;
                     const audioBtn = document.getElementById('audioBtn_' + peerId);
                     // Only update icon/title for enabled buttons (peers with audio)
@@ -1508,356 +1618,50 @@
                 }
             }
 
-            async function startCamera() {
-                const localCameraSection = document.getElementById('localCameraSection');
-                const localCameraVideo = document.getElementById('localCameraVideo');
-                const cameraSelector = document.getElementById('cameraSelector');
-
-                console.log('Starting camera with device ID:', selectedCameraDeviceId);
-
-                // Detect if we're on mobile
-                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-                console.log('Device type:', isMobile ? 'Mobile' : 'Desktop');
-
-                // Build constraints - use 'ideal' to allow fallback if camera doesn't support
-                const constraints = {
-                    video: {
-                        // Use 'ideal' so browser can negotiate if camera doesn't support
-                        width: { ideal: isMobile ? 640 : 1280 },
-                        height: { ideal: isMobile ? 480 : 720 },
-                        frameRate: { ideal: isMobile ? 15 : 30 }
-                    }
-                };
-
-                // Use selected device if specified, otherwise let browser choose
-                if (selectedCameraDeviceId) {
-                    // Use 'ideal' instead of 'exact' to allow fallback
-                    constraints.video.deviceId = { ideal: selectedCameraDeviceId };
-                } else {
-                    constraints.video.facingMode = { ideal: 'user' };
-                }
-
-                console.log('getUserMedia constraints:', JSON.stringify(constraints));
-
-                // First check if any cameras exist on this device
-                let hasCamera = false;
-                try {
-                    const devices = await navigator.mediaDevices.enumerateDevices();
-                    hasCamera = devices.some(device => device.kind === 'videoinput');
-                    console.log('📷 Camera detection:', hasCamera ? 'Camera(s) found' : 'No cameras detected');
-                } catch (enumError) {
-                    console.warn('⚠️ Could not enumerate devices:', enumError.message);
-                }
-
-                if (!hasCamera) {
-                    const noCameraMsg = 'No camera detected on this device';
-                    console.error('❌', noCameraMsg);
-                    document.getElementById('status').textContent = noCameraMsg;
-                    document.getElementById('status').className = 'status disconnected';
-                    alert(noCameraMsg + '\n\nThis device can still view remote cameras and use the microphone.');
-                    throw new Error(noCameraMsg);
-                }
-
-                // Try with constraints first, fall back to basic video if it fails
-                let stream = null;
-                try {
-                    stream = await navigator.mediaDevices.getUserMedia(constraints);
-                } catch (constraintError) {
-                    console.warn('⚠️ Constraints failed, trying basic video:', constraintError.message);
-
-                    // Fallback: try with just the device ID if specified
-                    if (selectedCameraDeviceId) {
-                        try {
-                            stream = await navigator.mediaDevices.getUserMedia({
-                                video: { deviceId: { ideal: selectedCameraDeviceId } }
-                            });
-                        } catch (deviceError) {
-                            console.warn('⚠️ Device selection failed, trying any camera:', deviceError.message);
-                        }
-                    }
-
-                    // Last resort: just request any video
-                    if (!stream) {
-                        stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                    }
-                }
-
-                try {
-                    localCameraStream = stream;
-
-                    console.log('✅ Camera stream obtained:', localCameraStream.id);
-                    console.log('Video tracks:', localCameraStream.getVideoTracks().map(t => ({
-                        id: t.id,
-                        label: t.label,
-                        enabled: t.enabled,
-                        readyState: t.readyState,
-                        muted: t.muted
-                    })));
-
-                    // Set the stream to the video element
-                    localCameraVideo.srcObject = localCameraStream;
-                    console.log('📹 Set srcObject to video element');
-
-                    // Show the video container
-                    localCameraSection.style.display = 'block';
-                    console.log('👁️ Made video container visible');
-
-                    // Force the video to play
-                    console.log('▶️ Attempting to play video...');
-                    try {
-                        await localCameraVideo.play();
-                        console.log('✅ Video playing successfully');
-                        console.log('Video element state:', {
-                            paused: localCameraVideo.paused,
-                            muted: localCameraVideo.muted,
-                            readyState: localCameraVideo.readyState,
-                            videoWidth: localCameraVideo.videoWidth,
-                            videoHeight: localCameraVideo.videoHeight,
-                            srcObject: !!localCameraVideo.srcObject
-                        });
-
-                        // Prevent fullscreen on local video
-                        localCameraVideo.controls = false;
-                        localCameraVideo.addEventListener('webkitbeginfullscreen', (e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                        }, true);
-                        localCameraVideo.addEventListener('webkitendfullscreen', (e) => {
-                            e.preventDefault();
-                        }, true);
-
-                        // Auto-resume if local video pauses unexpectedly
-                        localCameraVideo.addEventListener('pause', () => {
-                            console.log('⏸️ Local video paused - attempting to resume');
-                            setTimeout(() => {
-                                if (localCameraVideo.paused && localCameraVideo.srcObject) {
-                                    localCameraVideo.play().catch(err => {
-                                        console.log('⚠️ Could not resume local video:', err);
-                                    });
-                                }
-                            }, 100);
-                        });
-                    } catch (playError) {
-                        console.error('❌ Video play error:', playError);
-                    }
-
-                    // Update dropdown to show actual device being used
-                    const videoTrack = localCameraStream.getVideoTracks()[0];
-                    if (videoTrack) {
-                        const settings = videoTrack.getSettings();
-                        console.log('Camera settings:', settings);
-                        if (settings.deviceId) {
-                            cameraSelector.value = settings.deviceId;
-                            selectedCameraDeviceId = settings.deviceId;
-                        }
-                    }
-
-                    // Listen for video metadata loaded
-                    localCameraVideo.addEventListener('loadedmetadata', function() {
-                        console.log('📊 Video metadata loaded:', {
-                            width: localCameraVideo.videoWidth,
-                            height: localCameraVideo.videoHeight
-                        });
-                    });
-
-                    // Listen for video data
-                    localCameraVideo.addEventListener('loadeddata', function() {
-                        console.log('📦 Video data loaded');
-                    });
-
-                    document.getElementById('status').textContent = 'Camera active';
-                    document.getElementById('status').className = 'status connected';
-
-                    // Add or replace video tracks in all peer connections
-                    Object.keys(peerConnections).forEach(async (peerId) => {
-                        const pc = peerConnections[peerId];
-                        if (pc && pc.connectionState === 'connected') {
-                            console.log('🔄 Updating camera track for peer:', peerId);
-
-                            // Find existing video sender
-                            const senders = pc.getSenders();
-                            const videoSender = senders.find(sender => sender.track && sender.track.kind === 'video');
-
-                            const newVideoTrack = localCameraStream.getVideoTracks()[0];
-
-                            if (videoSender) {
-                                // Replace existing video track
-                                try {
-                                    await videoSender.replaceTrack(newVideoTrack);
-                                    console.log('✅ Replaced video track for peer:', peerId);
-                                } catch (err) {
-                                    console.error('❌ Failed to replace track for peer:', peerId, err);
-                                }
-                            } else {
-                                // No existing video track, add new one
-                                pc.addTrack(newVideoTrack, localCameraStream);
-                                console.log('➕ Added new video track for peer:', peerId);
-
-                                // Renegotiate when adding new track
-                                try {
-                                    const offer = await pc.createOffer();
-                                    await pc.setLocalDescription(offer);
-                                    socket.emit(voiceOfferSocketEvent, {
-                                        offer: pc.localDescription,
-                                        to: peerId,
-                                        cameraName: myCameraName
-                                    });
-                                    console.log('📤 Sent renegotiation offer to peer:', peerId);
-                                } catch (err) {
-                                    console.error('❌ Renegotiation failed for peer:', peerId, err);
-                                }
-                            }
-                        }
-                    });
-
-                    // Refresh camera list with proper labels
-                    await populateCameraDevices();
-
-                } catch (error) {
-                    console.error('Camera access error:', error);
-                    console.error('Error name:', error.name);
-                    console.error('Error message:', error.message);
-
-                    let errorMsg = 'Camera error: ' + error.name;
-                    if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
-                        errorMsg = 'Camera not found - check if it\'s connected';
-                    } else if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
-                        errorMsg = 'Camera permission denied - check browser settings';
-                    } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
-                        errorMsg = 'Camera in use by another app';
-                    } else if (error.name === 'OverconstrainedError') {
-                        errorMsg = 'Camera doesn\'t support requested settings';
-                    }
-
-                    document.getElementById('status').textContent = errorMsg;
-                    document.getElementById('status').className = 'status disconnected';
-                    alert(errorMsg + '\n\nDetails: ' + error.message);
-                    throw error;
-                }
-            }
-
-            async function switchCamera() {
-                console.log('🔄 Switching camera...');
-
-                if (!isCameraEnabled) {
-                    console.log('⚠️ Camera not enabled, cannot switch');
-                    return;
-                }
-
-                try {
-                    // Get list of video devices
-                    const devices = await navigator.mediaDevices.enumerateDevices();
-                    const videoDevices = devices.filter(device => device.kind === 'videoinput');
-
-                    if (videoDevices.length < 2) {
-                        console.log('⚠️ Only one camera available, cannot switch');
-                        return;
-                    }
-
-                    // Find current camera index
-                    const currentDeviceId = selectedCameraDeviceId;
-                    const currentIndex = videoDevices.findIndex(device => device.deviceId === currentDeviceId);
-
-                    // Get next camera (wrap around to 0 if at end)
-                    const nextIndex = (currentIndex + 1) % videoDevices.length;
-                    const nextDevice = videoDevices[nextIndex];
-
-                    console.log('📹 Switching from camera', currentIndex, 'to camera', nextIndex);
-                    console.log('   From:', videoDevices[currentIndex]?.label || 'Unknown');
-                    console.log('   To:', nextDevice.label || 'Unknown');
-
-                    // Update selected device
-                    selectedCameraDeviceId = nextDevice.deviceId;
-
-                    // Save to localStorage
-                    try {
-                        localStorage.setItem('selectedCameraDeviceId', nextDevice.deviceId);
-                        console.log('✅ Saved camera preference to localStorage');
-                    } catch (error) {
-                        console.warn('Could not save camera preference:', error);
-                    }
-
-                    // Update dropdown
-                    const cameraSelector = document.getElementById('cameraSelector');
-                    if (cameraSelector) {
-                        cameraSelector.value = nextDevice.deviceId;
-                    }
-
-                    // Stop current stream
-                    if (localCameraStream) {
-                        localCameraStream.getTracks().forEach(track => {
-                            console.log('   Stopping track:', track.label);
-                            track.stop();
-                        });
-                    }
-
-                    // Start new camera
-                    await startCamera();
-
-                    console.log('✅ Camera switched successfully');
-                } catch (error) {
-                    console.error('❌ Error switching camera:', error);
-                    document.getElementById('status').textContent = 'Error switching camera: ' + error.message;
-                    document.getElementById('status').className = 'status disconnected';
-                }
-            }
-
             async function toggleCamera() {
                 const button = document.getElementById('cameraToggleButton');
-                const cameraSwitchButton = document.getElementById('cameraSwitchButton');
-                const icon = document.getElementById('cameraIcon');
                 const label = document.getElementById('cameraLabel');
                 const localCameraSection = document.getElementById('localCameraSection');
-                const localCameraVideo = document.getElementById('localCameraVideo');
 
                 if (!isCameraEnabled) {
-                    console.log('Enabling camera...');
+                    console.log('Enabling all cameras...');
                     try {
-                        await startCamera();
+                        await startAllCameras();
 
                         button.classList.add('active');
                         label.textContent = 'Camera On';
                         isCameraEnabled = true;
 
-                        // Enable camera switch button
-                        if (cameraSwitchButton) {
-                            cameraSwitchButton.disabled = false;
-                            cameraSwitchButton.style.background = '#007bff';
-                        }
-
-                        console.log('Camera enabled successfully');
+                        console.log('Cameras enabled successfully');
                     } catch (error) {
-                        console.error('Failed to enable camera:', error);
+                        console.error('Failed to enable cameras:', error);
                         isCameraEnabled = false;
                     }
                 } else {
-                    console.log('Disabling camera...');
-                    if (localCameraStream) {
-                        localCameraStream.getTracks().forEach(track => {
+                    console.log('Disabling all cameras...');
+                    // Stop all camera streams
+                    localCameraStreams.forEach(function(camInfo, deviceId) {
+                        camInfo.stream.getTracks().forEach(function(track) {
                             console.log('Stopping track:', track.label);
                             track.stop();
                         });
-                        localCameraStream = null;
-                    }
+                    });
+                    localCameraStreams.clear();
+                    localCameraNames.clear();
 
-                    localCameraVideo.srcObject = null;
+                    // Clear local camera grid
+                    document.getElementById('localCameraGrid').innerHTML = '';
                     localCameraSection.style.display = 'none';
 
                     button.classList.remove('active');
-                    label.textContent = 'Enable Camera';
+                    label.textContent = 'Camera';
 
                     isCameraEnabled = false;
-
-                    // Disable camera switch button
-                    if (cameraSwitchButton) {
-                        cameraSwitchButton.disabled = true;
-                        cameraSwitchButton.style.background = '#666';
-                    }
 
                     document.getElementById('status').textContent = 'Camera disabled';
                     document.getElementById('status').className = 'status disconnected';
 
-                    console.log('Camera disabled');
+                    console.log('All cameras disabled');
                 }
             }
 
@@ -1907,7 +1711,8 @@
                                         socket.emit(voiceOfferSocketEvent, {
                                             offer: pc.localDescription,
                                             to: peerId,
-                                            cameraName: myCameraName
+                                            cameraName: myCameraName,
+                                        cameraNames: getCameraNames()
                                         });
                                     });
                             }
@@ -2172,7 +1977,8 @@
                     socket.emit(voiceOfferSocketEvent, {
                         offer: pc.localDescription,
                         to: peerId,
-                        cameraName: myCameraName
+                        cameraName: myCameraName,
+                        cameraNames: getCameraNames()
                     });
 
                     console.log('✅ ICE restart offer sent to peer:', peerId);
@@ -2191,15 +1997,14 @@
                     return;
                 }
 
-                // Update UI to show refreshing
-                const videoWrapper = document.getElementById('remoteVideo_' + peerId);
-                if (videoWrapper) {
-                    const badge = videoWrapper.querySelector('.badge');
+                // Update UI to show refreshing for all cameras from this peer
+                document.querySelectorAll('[data-peer-id="' + peerId + '"]').forEach(function(wrapper) {
+                    const badge = wrapper.querySelector('.badge');
                     if (badge) {
                         badge.textContent = 'REFRESHING';
                         badge.style.background = '#17a2b8';
                     }
-                }
+                });
 
                 // First try ICE restart
                 try {
@@ -2220,9 +2025,10 @@
 
             // Immediate diagnostic update for a peer (called when button clicked)
             async function updatePeerDiagnosticsNow(peerId) {
-                const diagDiv = document.getElementById('diagnostics_' + peerId);
-                const videoWrapper = document.getElementById('remoteVideo_' + peerId);
-                const videoElement = videoWrapper ? videoWrapper.querySelector('video') : null;
+                // Find the first camera card for this peer to get diagnostics
+                const firstWrapper = document.querySelector('[data-peer-id="' + peerId + '"]');
+                const diagDiv = firstWrapper ? firstWrapper.querySelector('.peer-diagnostics') : null;
+                const videoElement = firstWrapper ? firstWrapper.querySelector('video') : null;
                 const pc = peerConnections[peerId];
 
                 if (!diagDiv) {
@@ -2317,7 +2123,9 @@
                 // Function to update diagnostics - wrapped in try/catch to never fail silently
                 async function updateDiagnostics() {
                     try {
-                        const diagDiv = document.getElementById('diagnostics_' + peerId);
+                        // Find diagnostic div relative to the video element's parent card
+                        const parentCard = videoElement ? videoElement.closest('.camera-card') : null;
+                        const diagDiv = parentCard ? parentCard.querySelector('.peer-diagnostics') : null;
 
                         if (!diagDiv) {
                             return false; // Element gone, stop interval
@@ -2471,9 +2279,10 @@
 
                     } catch (outerErr) {
                         // Catastrophic error - still try to show something
-                        const diagDiv = document.getElementById('diagnostics_' + peerId);
-                        if (diagDiv) {
-                            diagDiv.innerHTML = `<div><span class="error">Diagnostic error: ${outerErr.message}</span></div><div><span class="label">Updated:</span> <span class="value">${new Date().toLocaleTimeString()}</span></div>`;
+                        const errCard = videoElement ? videoElement.closest('.camera-card') : null;
+                        const errDiag = errCard ? errCard.querySelector('.peer-diagnostics') : null;
+                        if (errDiag) {
+                            errDiag.innerHTML = '<div><span class="error">Diagnostic error: ' + outerErr.message + '</span></div>';
                         }
                         console.error('Diagnostics error for peer', peerId, outerErr);
                         return true; // Keep trying
@@ -2508,26 +2317,21 @@
                     delete peerConnections[peerId];
                 }
 
-                // Clean up camera name
-                if (peerCameraNames[peerId]) {
-                    console.log('🧹 Removing camera name for peer:', peerId, 'was:', peerCameraNames[peerId]);
-                    delete peerCameraNames[peerId];
-                }
+                // Clean up camera names
+                delete peerCameraNames[peerId];
+                delete peerCameraNames[peerId + '_cameras'];
 
-                // Clean up video element and monitors
-                const videoWrapper = document.getElementById('remoteVideo_' + peerId);
-                if (videoWrapper) {
-                    const video = videoWrapper.querySelector('video');
+                // Clean up ALL video elements for this peer (may have multiple cameras)
+                const remoteCameraGrid = document.getElementById('remoteCameraGrid');
+                const wrappers = remoteCameraGrid.querySelectorAll('[data-peer-id="' + peerId + '"]');
+                wrappers.forEach(function(wrapper) {
+                    const video = wrapper.querySelector('video');
                     if (video) {
-                        if (video._renderMonitor) {
-                            clearInterval(video._renderMonitor);
-                        }
-                        if (video._diagInterval) {
-                            clearInterval(video._diagInterval);
-                        }
+                        if (video._renderMonitor) clearInterval(video._renderMonitor);
+                        if (video._diagInterval) clearInterval(video._diagInterval);
                     }
-                    videoWrapper.remove();
-                }
+                    wrapper.remove();
+                });
 
                 // Clean up audio element
                 const audioElement = document.getElementById('remoteAudio_' + peerId);
@@ -2538,7 +2342,7 @@
                 // Clean up data structures
                 delete remoteCameraStreams[peerId];
                 delete pendingIceCandidates[peerId];
-                delete peerCameraNames[peerId];
+                delete peerAudioMuted[peerId];
 
                 updatePeerCount();
                 updateEmptyState();
@@ -2560,9 +2364,12 @@
             function handleRosterResponse(data) {
                 console.log('📥 Received roster response from:', data.from, 'name:', data.cameraName || '(none)');
 
-                // Store camera name if provided
+                // Store camera names if provided
                 if (data.cameraName) {
                     peerCameraNames[data.from] = data.cameraName;
+                }
+                if (data.cameraNames) {
+                    peerCameraNames[data.from + '_cameras'] = data.cameraNames;
                 }
 
                 // If we don't have a peer connection yet, create one
@@ -2577,7 +2384,8 @@
                             socket.emit(voiceOfferSocketEvent, {
                                 offer: pc.localDescription,
                                 to: data.from,
-                                cameraName: myCameraName
+                                cameraName: myCameraName,
+                                        cameraNames: getCameraNames()
                             });
                             console.log('📤 Sent offer to roster responder:', data.from);
                         })
@@ -2599,7 +2407,8 @@
                     // Send a roster response so the requester knows we exist
                     socket.emit(endpoint + 'cameracamera' + 'rosterresponse', {
                         to: data.userId,
-                        cameraName: myCameraName || ''
+                        cameraName: myCameraName || '',
+                        cameraNames: getCameraNames()
                     });
 
                     // Directly create peer connection if we don't already have one
@@ -2619,7 +2428,8 @@
                                     socket.emit(voiceOfferSocketEvent, {
                                         offer: pc.localDescription,
                                         to: data.userId,
-                                        cameraName: myCameraName
+                                        cameraName: myCameraName,
+                                        cameraNames: getCameraNames()
                                     });
                                     console.log('📤 Sent offer to roster requester:', data.userId);
                                 })
@@ -2636,7 +2446,8 @@
                     // Also send our camera name if we have one
                     if (myCameraName) {
                         socket.emit(cameraNameUpdateSocketEvent, {
-                            cameraName: myCameraName
+                            cameraName: myCameraName,
+                            cameraNames: getCameraNames()
                         });
                     }
                 } else {
@@ -2667,7 +2478,8 @@
                                 socket.emit(voiceOfferSocketEvent, {
                                     offer: pc.localDescription,
                                     to: data.userId,
-                                    cameraName: myCameraName
+                                    cameraName: myCameraName,
+                                        cameraNames: getCameraNames()
                                 });
                                 console.log('📤 Sent offer to reconnecting peer:', data.userId);
                             })
@@ -2687,26 +2499,34 @@
 
                 // Ignore updates from ourselves
                 if (data.userId === socket.id) {
-                    console.log('⏭️ Ignoring our own camera name update');
                     return;
                 }
 
-                // Store the new name
+                // Store the peer name
                 if (data.cameraName) {
                     peerCameraNames[data.userId] = data.cameraName;
                 } else {
                     delete peerCameraNames[data.userId];
                 }
 
-                // Update the video label if it exists
-                const videoWrapper = document.getElementById('remoteVideo_' + data.userId);
-                if (videoWrapper) {
-                    const label = videoWrapper.querySelector('.camera-label span:first-child');
-                    if (label) {
-                        const displayName = peerCameraNames[data.userId] || `Peer ${data.userId.substring(0, 8)}`;
-                        label.textContent = `📹 ${displayName}`;
-                        console.log('✅ Updated video label for', data.userId, 'to:', displayName);
-                    }
+                // Store per-camera names if provided
+                if (data.cameraNames) {
+                    peerCameraNames[data.userId + '_cameras'] = data.cameraNames;
+                }
+
+                // Update all video labels for this peer
+                const wrappers = document.querySelectorAll('[data-peer-id="' + data.userId + '"]');
+                if (wrappers.length > 0) {
+                    wrappers.forEach(function(wrapper) {
+                        const labelSpan = wrapper.querySelector('.camera-display-name');
+                        if (labelSpan) {
+                            const streamId = wrapper.dataset.streamId;
+                            const camNames = data.cameraNames || {};
+                            const peerName = data.cameraName || 'Peer ' + data.userId.substring(0, 8);
+                            const displayName = camNames[streamId] || peerName;
+                            labelSpan.textContent = '📹 ' + displayName;
+                        }
+                    });
                 } else {
                     console.log('⚠️ No video element found for peer:', data.userId);
 
@@ -2728,7 +2548,8 @@
                                     socket.emit(voiceOfferSocketEvent, {
                                         offer: pc.localDescription,
                                         to: data.userId,
-                                        cameraName: myCameraName
+                                        cameraName: myCameraName,
+                                        cameraNames: getCameraNames()
                                     });
                                     console.log('📤 Sent offer to discovered peer:', data.userId);
                                 })
@@ -2756,16 +2577,17 @@
 
                 console.log('Creating peer connection for:', peerId);
 
-                // Add local camera tracks if enabled
-                if (localCameraStream) {
-                    localCameraStream.getTracks().forEach(track => {
-                        console.log('Adding camera track to peer:', peerId, 'kind:', track.kind);
-                        pc.addTrack(track, localCameraStream);
+                // Add all local camera tracks if enabled
+                if (localCameraStreams.size > 0) {
+                    localCameraStreams.forEach(function(camInfo, deviceId) {
+                        camInfo.stream.getTracks().forEach(function(track) {
+                            console.log('Adding camera track to peer:', peerId, 'device:', deviceId, 'kind:', track.kind);
+                            pc.addTrack(track, camInfo.stream);
+                        });
                     });
                 } else {
-                    // No local camera - add a recvonly transceiver so we can still receive video
-                    // This is needed for devices without cameras (like Mac Mini) to receive peer video
-                    console.log('No local camera - adding recvonly video transceiver for peer:', peerId);
+                    // No local cameras - add a recvonly transceiver so we can still receive video
+                    console.log('No local cameras - adding recvonly video transceiver for peer:', peerId);
                     pc.addTransceiver('video', { direction: 'recvonly' });
                 }
 
@@ -2797,108 +2619,111 @@
                             return;
                         }
 
+                        // Use stream ID to distinguish multiple cameras from same peer
+                        let remoteStream = event.streams[0];
+                        if (!remoteStream) {
+                            console.warn('No stream provided with track from peer:', peerId, '- creating synthetic stream');
+                            remoteStream = new MediaStream([event.track]);
+                        }
+                        const streamId = remoteStream.id;
+                        const elementId = 'remoteVideo_' + peerId + '_' + streamId;
+
                         const remoteCameraGrid = document.getElementById('remoteCameraGrid');
-                        let videoWrapper = document.getElementById('remoteVideo_' + peerId);
+                        let videoWrapper = document.getElementById(elementId);
                         let isNewVideoElement = false;
 
                         if (!videoWrapper) {
                             isNewVideoElement = true;
                             videoWrapper = document.createElement('div');
-                            videoWrapper.id = 'remoteVideo_' + peerId;
+                            videoWrapper.id = elementId;
                             videoWrapper.className = 'camera-card';
+                            videoWrapper.dataset.peerId = peerId;
+                            videoWrapper.dataset.streamId = streamId;
+
+                            // Determine display name - use per-camera name if available
+                            const peerName = peerCameraNames[peerId];
+                            let displayName;
+                            const peerCamNames = peerCameraNames[peerId + '_cameras'] || {};
+                            const existingCount = remoteCameraGrid.querySelectorAll('[data-peer-id="' + peerId + '"]').length;
+                            if (peerCamNames[streamId]) {
+                                displayName = peerCamNames[streamId];
+                            } else if (peerName) {
+                                displayName = existingCount > 0 ? peerName + ' (Camera ' + (existingCount + 1) + ')' : peerName;
+                            } else {
+                                displayName = existingCount > 0 ? 'Peer ' + peerId.substring(0, 8) + ' (Camera ' + (existingCount + 1) + ')' : 'Peer ' + peerId.substring(0, 8);
+                            }
 
                             const label = document.createElement('div');
                             label.className = 'camera-label';
-                            const displayName = peerCameraNames[peerId] || `Peer ${peerId.substring(0, 8)}`;
-                            label.innerHTML = `<span>📹 ${displayName}</span><span class="badge">LIVE</span>`;
+                            label.innerHTML = '<span class="camera-display-name">📹 ' + displayName + '</span><span class="badge">LIVE</span>';
 
-                            // Action buttons (refresh, diagnostics toggle)
+                            // Action buttons
                             const actions = document.createElement('div');
                             actions.className = 'peer-actions';
 
-                            // Refresh button for this peer
                             const refreshBtn = document.createElement('button');
                             refreshBtn.className = 'peer-action-btn';
                             refreshBtn.innerHTML = '🔄';
                             refreshBtn.title = 'Refresh this peer connection';
-                            refreshBtn.onclick = (e) => {
-                                e.stopPropagation();
-                                refreshSinglePeer(peerId);
-                            };
+                            refreshBtn.onclick = function(e) { e.stopPropagation(); refreshSinglePeer(peerId); };
 
-                            // Diagnostics toggle button
                             const diagBtn = document.createElement('button');
                             diagBtn.className = 'peer-action-btn';
                             diagBtn.innerHTML = '📊';
                             diagBtn.title = 'Toggle diagnostics';
-                            diagBtn.onclick = (e) => {
+                            diagBtn.onclick = function(e) {
                                 e.stopPropagation();
                                 const diag = videoWrapper.querySelector('.peer-diagnostics');
                                 if (diag) {
                                     const wasHidden = !diag.classList.contains('visible');
                                     diag.classList.toggle('visible');
                                     diagBtn.classList.toggle('active');
-                                    // Trigger immediate update when showing
                                     if (wasHidden && diag.classList.contains('visible')) {
-                                        // Call updatePeerDiagnosticsNow directly
                                         updatePeerDiagnosticsNow(peerId);
                                     }
                                 }
                             };
 
-                            // Maximize button
                             const maxBtn = document.createElement('button');
                             maxBtn.className = 'peer-action-btn';
                             maxBtn.innerHTML = '⛶';
                             maxBtn.title = 'Maximize video';
-                            maxBtn.onclick = (e) => {
-                                e.stopPropagation();
-                                maximizeVideo('remoteVideoElement_' + peerId, displayName);
-                            };
+                            maxBtn.onclick = function(e) { e.stopPropagation(); maximizeVideo('remoteVideoElement_' + peerId + '_' + streamId, displayName); };
 
-                            // Audio mute button for this peer (starts disabled until audio track received)
+                            // Audio mute button (only on first camera card for this peer)
                             const audioBtn = document.createElement('button');
                             audioBtn.className = 'peer-action-btn';
                             audioBtn.id = 'audioBtn_' + peerId;
                             audioBtn.innerHTML = '🔇';
                             audioBtn.title = 'No audio from this peer';
                             audioBtn.disabled = true;
-                            audioBtn.onclick = (e) => {
-                                e.stopPropagation();
-                                togglePeerAudio(peerId);
-                            };
+                            audioBtn.onclick = function(e) { e.stopPropagation(); togglePeerAudio(peerId); };
 
                             actions.appendChild(refreshBtn);
                             actions.appendChild(diagBtn);
                             actions.appendChild(maxBtn);
-                            actions.appendChild(audioBtn);
+                            if (existingCount === 0) {
+                                actions.appendChild(audioBtn);
+                            }
 
-                            // Diagnostics overlay
                             const diagnostics = document.createElement('div');
                             diagnostics.className = 'peer-diagnostics';
-                            diagnostics.id = 'diagnostics_' + peerId;
+                            diagnostics.id = 'diagnostics_' + peerId + '_' + streamId;
                             diagnostics.innerHTML = '<div><span class="label">Loading diagnostics...</span></div>';
 
                             const video = document.createElement('video');
-                            video.id = 'remoteVideoElement_' + peerId;
+                            video.id = 'remoteVideoElement_' + peerId + '_' + streamId;
                             video.autoplay = true;
                             video.playsinline = true;
-                            video.muted = true; // Mute to help autoplay on mobile
+                            video.muted = true;
                             video.setAttribute('webkit-playsinline', '');
                             video.setAttribute('disablePictureInPicture', '');
-                            video.setAttribute('x5-playsinline', ''); // Android WeChat
+                            video.setAttribute('x5-playsinline', '');
                             video.setAttribute('x5-video-player-type', 'h5');
                             video.setAttribute('x-webkit-airplay', 'allow');
-
-                            // Prevent default video controls and fullscreen
                             video.controls = false;
-                            video.addEventListener('webkitbeginfullscreen', (e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                            }, true);
-                            video.addEventListener('webkitendfullscreen', (e) => {
-                                e.preventDefault();
-                            }, true);
+                            video.addEventListener('webkitbeginfullscreen', function(e) { e.preventDefault(); e.stopPropagation(); }, true);
+                            video.addEventListener('webkitendfullscreen', function(e) { e.preventDefault(); }, true);
 
                             videoWrapper.appendChild(label);
                             videoWrapper.appendChild(actions);
@@ -2906,113 +2731,66 @@
                             videoWrapper.appendChild(diagnostics);
                             remoteCameraGrid.appendChild(videoWrapper);
 
-                            // Start diagnostic updates for this peer
                             startPeerDiagnostics(peerId, video);
 
-                            // Auto-resume if video pauses unexpectedly
-                            video.addEventListener('pause', () => {
-                                console.log('⏸️ Video paused unexpectedly for peer:', peerId, '- attempting to resume');
-                                setTimeout(() => {
+                            video.addEventListener('pause', function() {
+                                setTimeout(function() {
                                     if (video.paused && video.srcObject) {
-                                        safePlayVideo(video).catch(err => {
-                                            console.log('⚠️ Could not resume video for peer:', peerId, err);
+                                        safePlayVideo(video).catch(function(err) {
+                                            console.log('Could not resume video for peer:', peerId, err);
                                         });
                                     }
                                 }, 100);
                             });
 
-                            console.log('✅ Created video element for peer:', peerId);
+                            console.log('Created video element for peer:', peerId, 'stream:', streamId);
                         }
 
-                        // Get the video element (whether new or existing)
                         const video = videoWrapper.querySelector('video');
 
-                        // Update or set the stream (handles both new tracks and renegotiation)
-                        // Handle case where track arrives without an associated stream (common with aiortc)
-                        let remoteStream = event.streams[0];
-                        if (!remoteStream) {
-                            console.warn('⚠️ No stream provided with track from peer:', peerId, '- creating synthetic stream');
-                            remoteStream = new MediaStream([event.track]);
-                        }
-
                         if (video.srcObject !== remoteStream) {
-                            console.log('🔄 Updating video stream for peer:', peerId);
+                            console.log('Updating video stream for peer:', peerId, 'stream:', streamId);
 
-                            // Clean up old monitors if exists
-                            if (video._renderMonitor) {
-                                clearInterval(video._renderMonitor);
-                            }
-                            if (video._diagInterval) {
-                                clearInterval(video._diagInterval);
-                            }
+                            if (video._renderMonitor) clearInterval(video._renderMonitor);
+                            if (video._diagInterval) clearInterval(video._diagInterval);
 
                             video.srcObject = remoteStream;
-                            remoteCameraStreams[peerId] = remoteStream;
+                            if (!remoteCameraStreams[peerId]) remoteCameraStreams[peerId] = {};
+                            remoteCameraStreams[peerId][streamId] = remoteStream;
 
-                            // Force play safely without triggering fullscreen
-                            safePlayVideo(video).catch(err => {
-                                console.log('⚠️ Autoplay prevented for peer:', peerId, err);
+                            safePlayVideo(video).catch(function(err) {
+                                console.log('Autoplay prevented for peer:', peerId, err);
                             });
-                        } else {
-                            console.log('ℹ️ Same stream already assigned for peer:', peerId);
                         }
 
-                        // Only monitor video rendering if this is a new element
                         if (isNewVideoElement) {
                             monitorVideoRendering(video, peerId, videoWrapper);
                         }
 
-                        // Monitor video track state
                         event.track.onended = function() {
-                            console.warn('⚠️ Video track ended for peer:', peerId);
                             const badge = videoWrapper.querySelector('.badge');
-                            if (badge) {
-                                badge.textContent = 'OFFLINE';
-                                badge.style.background = '#dc3545';
-                            }
+                            if (badge) { badge.textContent = 'OFFLINE'; badge.style.background = '#dc3545'; }
                         };
 
                         event.track.onmute = function() {
-                            console.warn('🔇 Video track muted for peer:', peerId);
                             const badge = videoWrapper.querySelector('.badge');
-                            if (badge) {
-                                badge.textContent = 'MUTED';
-                                badge.style.background = '#ffc107';
-                            }
-
-                            // iOS Safari aggressively mutes video tracks - try to recover
-                            // by forcing a video play() which can help unmute
-                            const video = videoWrapper.querySelector('video');
-                            if (video && video.srcObject) {
-                                console.log('🔄 Attempting to recover muted track for peer:', peerId);
-                                safePlayVideo(video).catch(err => {
-                                    console.log('⚠️ Could not restart video:', err.message);
-                                });
-                            }
+                            if (badge) { badge.textContent = 'MUTED'; badge.style.background = '#ffc107'; }
+                            const v = videoWrapper.querySelector('video');
+                            if (v && v.srcObject) { safePlayVideo(v).catch(function() {}); }
                         };
 
                         event.track.onunmute = function() {
-                            console.log('🔊 Video track unmuted for peer:', peerId);
                             const badge = videoWrapper.querySelector('.badge');
-                            if (badge) {
-                                badge.textContent = 'LIVE';
-                                badge.style.background = '#28a745';
-                            }
+                            if (badge) { badge.textContent = 'LIVE'; badge.style.background = '#28a745'; }
                         };
 
-                        // Monitor stream state
-                        event.streams[0].onactive = function() {
-                            console.log('✅ Stream became active for peer:', peerId);
-                        };
-
-                        event.streams[0].oninactive = function() {
-                            console.warn('⚠️ Stream became inactive for peer:', peerId);
-                            const badge = videoWrapper.querySelector('.badge');
-                            if (badge) {
-                                badge.textContent = 'INACTIVE';
-                                badge.style.background = '#6c757d';
-                            }
-                        };
+                        if (event.streams[0]) {
+                            event.streams[0].onactive = function() { console.log('Stream became active for peer:', peerId); };
+                            event.streams[0].oninactive = function() {
+                                const badge = videoWrapper.querySelector('.badge');
+                                if (badge) { badge.textContent = 'INACTIVE'; badge.style.background = '#6c757d'; }
+                            };
+                        }
 
                         updateEmptyState();
                     } else if (event.track.kind === 'audio') {
@@ -3060,15 +2838,14 @@
 
                     if (pc.connectionState === 'disconnected') {
                         console.warn('⚠️ Peer disconnected:', peerId, '- will attempt recovery');
-                        // Mark connection as degraded but don't clean up yet
-                        const videoWrapper = document.getElementById('remoteVideo_' + peerId);
-                        if (videoWrapper) {
-                            const badge = videoWrapper.querySelector('.badge');
+                        // Mark all camera cards for this peer as reconnecting
+                        document.querySelectorAll('[data-peer-id="' + peerId + '"]').forEach(function(wrapper) {
+                            const badge = wrapper.querySelector('.badge');
                             if (badge) {
                                 badge.textContent = 'RECONNECTING';
                                 badge.style.background = '#ffc107';
                             }
-                        }
+                        });
 
                         // Initialize recovery counter if not exists
                         if (!pc._recoveryAttempts) {
@@ -3104,15 +2881,14 @@
                         updatePeerCount();
                         console.log('✅ Peer connected:', peerId);
 
-                        // Update badge to show connected
-                        const videoWrapper = document.getElementById('remoteVideo_' + peerId);
-                        if (videoWrapper) {
-                            const badge = videoWrapper.querySelector('.badge');
+                        // Update all camera cards for this peer
+                        document.querySelectorAll('[data-peer-id="' + peerId + '"]').forEach(function(wrapper) {
+                            const badge = wrapper.querySelector('.badge');
                             if (badge && badge.textContent === 'RECONNECTING') {
                                 badge.textContent = 'LIVE';
                                 badge.style.background = '#28a745';
                             }
-                        }
+                        });
 
                         // Monitor connection quality
                         if (!pc._qualityMonitor) {
@@ -3164,7 +2940,8 @@
                             socket.emit(voiceOfferSocketEvent, {
                                 offer: pc.localDescription,
                                 to: peerId,
-                                cameraName: myCameraName
+                                cameraName: myCameraName,
+                                        cameraNames: getCameraNames()
                             });
                             console.log('📤 Sent renegotiation offer to peer:', peerId);
                         } catch (err) {
@@ -3182,7 +2959,9 @@
                 // Store peer's camera name if provided
                 if (data.cameraName) {
                     peerCameraNames[data.from] = data.cameraName;
-                    console.log('📝 Stored camera name for', data.from, ':', data.cameraName);
+                }
+                if (data.cameraNames) {
+                    peerCameraNames[data.from + '_cameras'] = data.cameraNames;
                 }
 
                 const pc = createPeerConnection(data.from);
@@ -3200,7 +2979,8 @@
                     socket.emit(voiceAnswerSocketEvent, {
                         answer: pc.localDescription,
                         to: data.from,
-                        cameraName: myCameraName
+                        cameraName: myCameraName,
+                        cameraNames: getCameraNames()
                     });
                     console.log('📤 Sent answer to:', data.from);
                 } catch (error) {
@@ -3215,7 +2995,9 @@
                 // Store peer's camera name if provided
                 if (data.cameraName) {
                     peerCameraNames[data.from] = data.cameraName;
-                    console.log('📝 Stored camera name for', data.from, ':', data.cameraName);
+                }
+                if (data.cameraNames) {
+                    peerCameraNames[data.from + '_cameras'] = data.cameraNames;
                 }
 
                 const pc = peerConnections[data.from];
@@ -3289,20 +3071,15 @@
             function handlePeerDisconnect(data) {
                 console.log('Peer disconnected:', data.userId);
 
-                // Clean up video element and monitors
-                const videoWrapper = document.getElementById('remoteVideo_' + data.userId);
-                if (videoWrapper) {
-                    const video = videoWrapper.querySelector('video');
+                // Clean up all video elements for this peer (may have multiple cameras)
+                document.querySelectorAll('[data-peer-id="' + data.userId + '"]').forEach(function(wrapper) {
+                    const video = wrapper.querySelector('video');
                     if (video) {
-                        if (video._renderMonitor) {
-                            clearInterval(video._renderMonitor);
-                        }
-                        if (video._diagInterval) {
-                            clearInterval(video._diagInterval);
-                        }
+                        if (video._renderMonitor) clearInterval(video._renderMonitor);
+                        if (video._diagInterval) clearInterval(video._diagInterval);
                     }
-                    videoWrapper.remove();
-                }
+                    wrapper.remove();
+                });
 
                 // Clean up audio element
                 const audioElement = document.getElementById('remoteAudio_' + data.userId);
@@ -3321,15 +3098,12 @@
                     delete pendingIceCandidates[data.userId];
                 }
 
-                // Clean up peer camera name
-                if (peerCameraNames[data.userId]) {
-                    delete peerCameraNames[data.userId];
-                }
+                // Clean up peer camera names
+                delete peerCameraNames[data.userId];
+                delete peerCameraNames[data.userId + '_cameras'];
 
                 // Clean up per-peer audio mute state
-                if (peerAudioMuted[data.userId] !== undefined) {
-                    delete peerAudioMuted[data.userId];
-                }
+                delete peerAudioMuted[data.userId];
 
                 delete remoteCameraStreams[data.userId];
                 updatePeerCount();
@@ -3361,7 +3135,8 @@
                                 socket.emit(voiceOfferSocketEvent, {
                                     offer: pc.localDescription,
                                     to: data.userId,
-                                    cameraName: myCameraName
+                                    cameraName: myCameraName,
+                                        cameraNames: getCameraNames()
                                 });
                                 console.log('📤 Sent offer to new peer:', data.userId, 'with name:', myCameraName || '(default)');
                             })
