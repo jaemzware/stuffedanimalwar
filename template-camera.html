@@ -1606,9 +1606,40 @@
 
                 const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-                // Enumerate all video devices
+                // First, get permission by opening any camera. This is needed because
+                // enumerateDevices() won't reveal all cameras on iOS/some browsers until
+                // camera permission has been granted via getUserMedia().
+                let initialStream = null;
+                let initialDeviceId = null;
+                try {
+                    const initialDevices = await navigator.mediaDevices.enumerateDevices();
+                    const hasLabels = initialDevices.some(function(d) { return d.kind === 'videoinput' && d.label; });
+
+                    if (!hasLabels) {
+                        console.log('No camera labels yet - requesting permission first...');
+                        initialStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                        const track = initialStream.getVideoTracks()[0];
+                        if (track) {
+                            var settings = track.getSettings();
+                            initialDeviceId = settings.deviceId || null;
+                        }
+                    }
+                } catch (permErr) {
+                    console.error('Camera permission error:', permErr);
+                    document.getElementById('status').textContent = 'Camera permission denied';
+                    document.getElementById('status').className = 'status disconnected';
+                    throw permErr;
+                }
+
+                // Now enumerate with full device info
                 const devices = await navigator.mediaDevices.enumerateDevices();
                 const videoDevices = devices.filter(function(d) { return d.kind === 'videoinput'; });
+
+                // Stop the initial permission stream - we'll reopen specific devices
+                if (initialStream) {
+                    initialStream.getTracks().forEach(function(t) { t.stop(); });
+                    initialStream = null;
+                }
 
                 if (videoDevices.length === 0) {
                     const noCameraMsg = 'No camera detected on this device';
@@ -1619,7 +1650,7 @@
                     throw new Error(noCameraMsg);
                 }
 
-                console.log('Found', videoDevices.length, 'camera(s)');
+                console.log('Found', videoDevices.length, 'camera(s) after permission grant');
 
                 // Clear previous state
                 localCameraGrid.innerHTML = '';
@@ -1656,8 +1687,10 @@
                         const stream = await navigator.mediaDevices.getUserMedia(constraints);
                         openedStreams.push({ deviceId: device.deviceId, deviceLabel: deviceLabel, stream: stream });
 
-                        // After opening the second camera, check if the first one is still alive
+                        // After opening the second camera, check if the first one is still alive.
+                        // Small delay to let iOS finish killing the first track if it's going to.
                         if (openedStreams.length === 2) {
+                            await new Promise(function(r) { setTimeout(r, 200); });
                             const firstTrack = openedStreams[0].stream.getVideoTracks()[0];
                             if (!firstTrack || firstTrack.readyState === 'ended') {
                                 // First camera was killed - this device only supports one camera at a time
