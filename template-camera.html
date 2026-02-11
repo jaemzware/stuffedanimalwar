@@ -1588,42 +1588,38 @@
                     const pc = peerConnections[peerId];
                     if (!pc || pc.signalingState === 'closed') return;
 
-                    // Remove old video senders first (iOS Safari needs fresh
-                    // transceivers after a camera switch — replaceTrack alone
-                    // often leaves peers with a black frame).
                     const senders = pc.getSenders();
-                    senders.forEach(function(s) {
-                        if (s.track && s.track.kind === 'video') {
-                            try { pc.removeTrack(s); } catch(e) { /* already removed */ }
-                        }
-                    });
+                    const videoSenders = senders.filter(function(s) { return s.track && s.track.kind === 'video'; });
+                    var senderIndex = 0;
 
-                    // Add new camera tracks
                     localCameraStreams.forEach(function(camInfo) {
-                        const videoTrack = camInfo.stream.getVideoTracks()[0];
+                        var videoTrack = camInfo.stream.getVideoTracks()[0];
                         if (videoTrack) {
-                            pc.addTrack(videoTrack, camInfo.stream);
+                            if (senderIndex < videoSenders.length) {
+                                // Replace existing track (preserves SDP m-line order,
+                                // no renegotiation needed, no signaling glare).
+                                var sender = videoSenders[senderIndex];
+                                sender.replaceTrack(videoTrack).then(function() {
+                                    // Kick the encoder — Safari sometimes won't start
+                                    // encoding the new track until parameters are poked.
+                                    try {
+                                        var params = sender.getParameters();
+                                        if (!params.encodings || params.encodings.length === 0) {
+                                            params.encodings = [{}];
+                                        }
+                                        sender.setParameters(params);
+                                    } catch(e) {}
+                                }).catch(function(err) {
+                                    console.error('replaceTrack failed for peer:', peerId, err);
+                                });
+                            } else {
+                                // First time adding video — addTrack triggers
+                                // onnegotiationneeded which handles the offer.
+                                pc.addTrack(videoTrack, camInfo.stream);
+                            }
+                            senderIndex++;
                         }
                     });
-
-                    // Force renegotiation so peers pick up the new track.
-                    // addTrack fires onnegotiationneeded, but the handler
-                    // may be blocked by _isEstablished — so renegotiate here.
-                    if (pc.signalingState === 'stable') {
-                        pc.createOffer().then(function(offer) {
-                            return pc.setLocalDescription(offer);
-                        }).then(function() {
-                            socket.emit(voiceOfferSocketEvent, {
-                                offer: pc.localDescription,
-                                to: peerId,
-                                cameraName: myCameraName,
-                                cameraNames: getCameraNames()
-                            });
-                            console.log('Sent renegotiation offer after camera switch to peer:', peerId);
-                        }).catch(function(err) {
-                            console.error('Renegotiation after camera switch failed for peer:', peerId, err);
-                        });
-                    }
                 });
             }
 
@@ -3237,8 +3233,10 @@
                 // Monitor negotiation needed
                 pc.onnegotiationneeded = async function() {
                     console.log('🔄 Negotiation needed for peer:', peerId);
-                    // Only handle if we're stable and this is a renegotiation
-                    if (pc.signalingState === 'stable' && pc._isEstablished) {
+                    // Only handle if we're stable and this is a renegotiation.
+                    // Use connectionState as fallback for _isEstablished (iOS Safari
+                    // may not reliably fire onconnectionstatechange).
+                    if (pc.signalingState === 'stable' && (pc._isEstablished || pc.connectionState === 'connected')) {
                         try {
                             const offer = await pc.createOffer();
                             await pc.setLocalDescription(offer);
