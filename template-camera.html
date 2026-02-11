@@ -1586,43 +1586,43 @@
             function addCameraTracksToPeers() {
                 Object.keys(peerConnections).forEach(function(peerId) {
                     const pc = peerConnections[peerId];
-                    if (pc && (pc.connectionState === 'connected' || pc.connectionState === 'connecting')) {
-                        const senders = pc.getSenders();
-                        const videoSenders = senders.filter(function(s) { return s.track && s.track.kind === 'video'; });
-                        let senderIndex = 0;
-                        let didReplaceTrack = false;
+                    if (!pc || pc.signalingState === 'closed') return;
 
-                        localCameraStreams.forEach(function(camInfo) {
-                            const videoTrack = camInfo.stream.getVideoTracks()[0];
-                            if (videoTrack) {
-                                if (senderIndex < videoSenders.length) {
-                                    videoSenders[senderIndex].replaceTrack(videoTrack);
-                                    didReplaceTrack = true;
-                                } else {
-                                    pc.addTrack(videoTrack, camInfo.stream);
-                                }
-                                senderIndex++;
-                            }
-                        });
-
-                        // Force renegotiation after replaceTrack for iOS Safari compatibility.
-                        // replaceTrack() doesn't trigger onnegotiationneeded, but iOS Safari
-                        // often needs renegotiation to actually send the new track to peers.
-                        if (didReplaceTrack && pc.signalingState === 'stable' && pc._isEstablished) {
-                            pc.createOffer().then(function(offer) {
-                                return pc.setLocalDescription(offer);
-                            }).then(function() {
-                                socket.emit(voiceOfferSocketEvent, {
-                                    offer: pc.localDescription,
-                                    to: peerId,
-                                    cameraName: myCameraName,
-                                    cameraNames: getCameraNames()
-                                });
-                                console.log('Sent renegotiation offer after camera switch to peer:', peerId);
-                            }).catch(function(err) {
-                                console.error('Renegotiation after camera switch failed for peer:', peerId, err);
-                            });
+                    // Remove old video senders first (iOS Safari needs fresh
+                    // transceivers after a camera switch — replaceTrack alone
+                    // often leaves peers with a black frame).
+                    const senders = pc.getSenders();
+                    senders.forEach(function(s) {
+                        if (s.track && s.track.kind === 'video') {
+                            try { pc.removeTrack(s); } catch(e) { /* already removed */ }
                         }
+                    });
+
+                    // Add new camera tracks
+                    localCameraStreams.forEach(function(camInfo) {
+                        const videoTrack = camInfo.stream.getVideoTracks()[0];
+                        if (videoTrack) {
+                            pc.addTrack(videoTrack, camInfo.stream);
+                        }
+                    });
+
+                    // Force renegotiation so peers pick up the new track.
+                    // addTrack fires onnegotiationneeded, but the handler
+                    // may be blocked by _isEstablished — so renegotiate here.
+                    if (pc.signalingState === 'stable') {
+                        pc.createOffer().then(function(offer) {
+                            return pc.setLocalDescription(offer);
+                        }).then(function() {
+                            socket.emit(voiceOfferSocketEvent, {
+                                offer: pc.localDescription,
+                                to: peerId,
+                                cameraName: myCameraName,
+                                cameraNames: getCameraNames()
+                            });
+                            console.log('Sent renegotiation offer after camera switch to peer:', peerId);
+                        }).catch(function(err) {
+                            console.error('Renegotiation after camera switch failed for peer:', peerId, err);
+                        });
                     }
                 });
             }
@@ -2917,6 +2917,23 @@
                         const elementId = 'remoteVideo_' + peerId + '_' + streamId;
 
                         const remoteCameraGrid = document.getElementById('remoteCameraGrid');
+
+                        // Clean up old video elements for this peer whose tracks have ended
+                        // (happens when a peer switches cameras via removeTrack + addTrack)
+                        remoteCameraGrid.querySelectorAll('[data-peer-id="' + peerId + '"]').forEach(function(el) {
+                            if (el.id === elementId) return; // keep the one matching new stream
+                            var oldVideo = el.querySelector('video');
+                            if (oldVideo && oldVideo.srcObject) {
+                                var vt = oldVideo.srcObject.getVideoTracks();
+                                if (vt.length === 0 || vt.every(function(t) { return t.readyState === 'ended'; })) {
+                                    console.log('Cleaning up old video element:', el.id);
+                                    if (oldVideo._renderMonitor) clearInterval(oldVideo._renderMonitor);
+                                    if (oldVideo._diagInterval) clearInterval(oldVideo._diagInterval);
+                                    el.remove();
+                                }
+                            }
+                        });
+
                         let videoWrapper = document.getElementById(elementId);
                         let isNewVideoElement = false;
 
