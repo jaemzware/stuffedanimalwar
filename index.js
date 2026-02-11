@@ -1658,10 +1658,6 @@ io.on('connection', function(socket){
 
     console.log(`[SERVER] 🔌 New connection - Socket ID: ${socket.id}, Endpoint: ${endpoint || 'NONE'}, IP: ${chatClientAddress}`);
 
-    // Log ALL events from this socket for debugging
-    socket.onAny((eventName, ...args) => {
-        console.log(`[SERVER] 📨 Socket ${socket.id} emitted: ${eventName}`);
-    });
 
     stuffedAnimalWarPageCounters[endpoint]++;
     let connectMsgObject = {
@@ -1927,7 +1923,6 @@ io.on('connection', function(socket){
         const cameraEndpoint = endpoint + 'camera';
 
         socket.on(cameraEndpoint + 'camera' + 'voiceoffer', (offerMsgObject) => {
-            console.log('CAMERA OFFER:', cameraEndpoint, 'from:', socket.id, 'to:', offerMsgObject.to || 'broadcast', 'name:', offerMsgObject.cameraName || '(none)');
 
             const reorderedOfferMsgObject = {
                 offer: offerMsgObject.offer,
@@ -1944,7 +1939,6 @@ io.on('connection', function(socket){
         });
 
         socket.on(cameraEndpoint + 'camera' + 'voiceanswer', (answerMsgObject) => {
-            console.log('CAMERA ANSWER:', cameraEndpoint, 'from:', socket.id, 'to:', answerMsgObject.to, 'name:', answerMsgObject.cameraName || '(none)');
 
             const reorderedAnswerMsgObject = {
                 answer: answerMsgObject.answer,
@@ -1957,7 +1951,6 @@ io.on('connection', function(socket){
         });
 
         socket.on(cameraEndpoint + 'camera' + 'voiceicecandidate', (iceMsgObject) => {
-            console.log('CAMERA ICE:', cameraEndpoint, 'from:', socket.id, 'to:', iceMsgObject.to || 'broadcast');
 
             const reorderedIceMsgObject = {
                 candidate: iceMsgObject.candidate,
@@ -1973,7 +1966,6 @@ io.on('connection', function(socket){
         });
 
         socket.on(cameraEndpoint + 'camera' + 'nameupdate', (nameUpdateMsgObject) => {
-            console.log('CAMERA NAME UPDATE:', cameraEndpoint, 'from:', socket.id, 'name:', nameUpdateMsgObject.cameraName || '(cleared)');
 
             const reorderedNameUpdateMsgObject = {
                 cameraName: nameUpdateMsgObject.cameraName,
@@ -1985,7 +1977,6 @@ io.on('connection', function(socket){
         });
 
         socket.on(cameraEndpoint + 'camera' + 'reconnect', (reconnectMsgObject) => {
-            console.log('CAMERA RECONNECT REQUEST:', cameraEndpoint, 'from:', socket.id);
 
             const reorderedReconnectMsgObject = {
                 userId: socket.id
@@ -1996,7 +1987,6 @@ io.on('connection', function(socket){
         });
 
         socket.on(cameraEndpoint + 'camera' + 'requestroster', (rosterRequestMsgObject) => {
-            console.log('CAMERA ROSTER REQUEST:', cameraEndpoint, 'from:', socket.id);
 
             const reorderedRosterRequestMsgObject = {
                 userId: socket.id
@@ -2007,7 +1997,6 @@ io.on('connection', function(socket){
         });
 
         socket.on(cameraEndpoint + 'camera' + 'rosterresponse', (rosterResponseMsgObject) => {
-            console.log('CAMERA ROSTER RESPONSE:', cameraEndpoint, 'from:', socket.id, 'to:', rosterResponseMsgObject.to, 'name:', rosterResponseMsgObject.cameraName || '(none)');
 
             const reorderedRosterResponseMsgObject = {
                 from: socket.id,
