@@ -1014,9 +1014,20 @@
                     const resp = await fetch(
                         'https://' + METERED_APP_NAME + '.metered.live/api/v1/turn/credentials?apiKey=' + METERED_API_KEY
                     );
-                    const servers = await resp.json();
-                    iceServers.iceServers = iceServers.iceServers.concat(servers);
-                    console.log('✅ Fetched TURN credentials:', servers.length, 'server(s)');
+                    const data = await resp.json();
+                    console.log('TURN API response:', JSON.stringify(data).substring(0, 200));
+
+                    // The API should return an array of ICE server objects.
+                    // Only add entries that have a valid "urls" property.
+                    var servers = Array.isArray(data) ? data : (data && data.iceServers ? data.iceServers : []);
+                    servers = servers.filter(function(s) { return s && s.urls; });
+
+                    if (servers.length > 0) {
+                        iceServers.iceServers = iceServers.iceServers.concat(servers);
+                        console.log('✅ Added', servers.length, 'TURN server(s)');
+                    } else {
+                        console.warn('⚠️ TURN API returned no valid servers — check app name and API key');
+                    }
                 } catch (err) {
                     console.error('❌ Failed to fetch TURN credentials:', err);
                 }
