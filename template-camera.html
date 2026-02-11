@@ -989,29 +989,38 @@
             let lastPeerCount = 0; // Track peer count for notifications
 
             // ICE servers (STUN + TURN for NAT traversal)
-            const iceServers = {
+            // TURN server credentials — fetched from Metered.ca API on page load.
+            // Sign up free at https://www.metered.ca/stun-turn and set
+            // METERED_APP_NAME and METERED_API_KEY below (or via server-side template).
+            const METERED_APP_NAME = '{{METERED_APP_NAME}}';
+            const METERED_API_KEY  = '{{METERED_API_KEY}}';
+
+            let iceServers = {
                 iceServers: [
                     { urls: 'stun:stun.l.google.com:19302' },
-                    { urls: 'stun:stun1.l.google.com:19302' },
-                    // OpenRelay free TURN servers (provided by Metered.ca)
-                    {
-                        urls: 'turn:openrelay.metered.ca:80',
-                        username: 'openrelayproject',
-                        credential: 'openrelayproject'
-                    },
-                    {
-                        urls: 'turn:openrelay.metered.ca:443',
-                        username: 'openrelayproject',
-                        credential: 'openrelayproject'
-                    },
-                    {
-                        urls: 'turn:openrelay.metered.ca:443?transport=tcp',
-                        username: 'openrelayproject',
-                        credential: 'openrelayproject'
-                    }
+                    { urls: 'stun:stun1.l.google.com:19302' }
                 ],
-                iceCandidatePoolSize: 10  // Pre-gather candidates to speed up connection
+                iceCandidatePoolSize: 10
             };
+
+            // Fetch TURN credentials from Metered.ca (free tier: 500 MB/month)
+            (async function fetchTurnCredentials() {
+                if (!METERED_APP_NAME || METERED_APP_NAME.indexOf('{{') === 0) {
+                    console.warn('⚠️ No Metered.ca TURN credentials configured — phones behind NAT will fail to connect.');
+                    console.warn('   Sign up free at https://www.metered.ca/stun-turn');
+                    return;
+                }
+                try {
+                    const resp = await fetch(
+                        'https://' + METERED_APP_NAME + '.metered.live/api/v1/turn/credentials?apiKey=' + METERED_API_KEY
+                    );
+                    const servers = await resp.json();
+                    iceServers.iceServers = iceServers.iceServers.concat(servers);
+                    console.log('✅ Fetched TURN credentials:', servers.length, 'server(s)');
+                } catch (err) {
+                    console.error('❌ Failed to fetch TURN credentials:', err);
+                }
+            })();
 
             // Socket event names
             const voiceOfferSocketEvent = endpoint + 'cameracamera' + 'voiceoffer';
