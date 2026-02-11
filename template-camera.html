@@ -989,29 +989,49 @@
             let lastPeerCount = 0; // Track peer count for notifications
 
             // ICE servers (STUN + TURN for NAT traversal)
-            const iceServers = {
+            // TURN server credentials — fetched from Metered.ca API on page load.
+            // Sign up free at https://www.metered.ca/stun-turn and set
+            // METERED_APP_NAME and METERED_API_KEY below (or via server-side template).
+            const METERED_APP_NAME = '{{METERED_APP_NAME}}';
+            const METERED_API_KEY  = '{{METERED_API_KEY}}';
+
+            let iceServers = {
                 iceServers: [
                     { urls: 'stun:stun.l.google.com:19302' },
-                    { urls: 'stun:stun1.l.google.com:19302' },
-                    // OpenRelay free TURN servers (provided by Metered.ca)
-                    {
-                        urls: 'turn:openrelay.metered.ca:80',
-                        username: 'openrelayproject',
-                        credential: 'openrelayproject'
-                    },
-                    {
-                        urls: 'turn:openrelay.metered.ca:443',
-                        username: 'openrelayproject',
-                        credential: 'openrelayproject'
-                    },
-                    {
-                        urls: 'turn:openrelay.metered.ca:443?transport=tcp',
-                        username: 'openrelayproject',
-                        credential: 'openrelayproject'
-                    }
+                    { urls: 'stun:stun1.l.google.com:19302' }
                 ],
-                iceCandidatePoolSize: 10  // Pre-gather candidates to speed up connection
+                iceCandidatePoolSize: 10
             };
+
+            // Fetch TURN credentials from Metered.ca (free tier: 500 MB/month)
+            (async function fetchTurnCredentials() {
+                if (!METERED_APP_NAME || METERED_APP_NAME.indexOf('{{') === 0) {
+                    console.warn('⚠️ No Metered.ca TURN credentials configured — phones behind NAT will fail to connect.');
+                    console.warn('   Sign up free at https://www.metered.ca/stun-turn');
+                    return;
+                }
+                try {
+                    const resp = await fetch(
+                        'https://' + METERED_APP_NAME + '.metered.live/api/v1/turn/credentials?apiKey=' + METERED_API_KEY
+                    );
+                    const data = await resp.json();
+                    console.log('TURN API response:', JSON.stringify(data).substring(0, 200));
+
+                    // The API should return an array of ICE server objects.
+                    // Only add entries that have a valid "urls" property.
+                    var servers = Array.isArray(data) ? data : (data && data.iceServers ? data.iceServers : []);
+                    servers = servers.filter(function(s) { return s && s.urls; });
+
+                    if (servers.length > 0) {
+                        iceServers.iceServers = iceServers.iceServers.concat(servers);
+                        console.log('✅ Added', servers.length, 'TURN server(s)');
+                    } else {
+                        console.warn('⚠️ TURN API returned no valid servers — check app name and API key');
+                    }
+                } catch (err) {
+                    console.error('❌ Failed to fetch TURN credentials:', err);
+                }
+            })();
 
             // Socket event names
             const voiceOfferSocketEvent = endpoint + 'cameracamera' + 'voiceoffer';
@@ -1586,23 +1606,40 @@
             function addCameraTracksToPeers() {
                 Object.keys(peerConnections).forEach(function(peerId) {
                     const pc = peerConnections[peerId];
-                    if (pc && (pc.connectionState === 'connected' || pc.connectionState === 'connecting')) {
-                        const senders = pc.getSenders();
-                        const videoSenders = senders.filter(function(s) { return s.track && s.track.kind === 'video'; });
-                        let senderIndex = 0;
+                    if (!pc || pc.signalingState === 'closed') return;
 
-                        localCameraStreams.forEach(function(camInfo) {
-                            const videoTrack = camInfo.stream.getVideoTracks()[0];
-                            if (videoTrack) {
-                                if (senderIndex < videoSenders.length) {
-                                    videoSenders[senderIndex].replaceTrack(videoTrack);
-                                } else {
-                                    pc.addTrack(videoTrack, camInfo.stream);
-                                }
-                                senderIndex++;
+                    const senders = pc.getSenders();
+                    const videoSenders = senders.filter(function(s) { return s.track && s.track.kind === 'video'; });
+                    var senderIndex = 0;
+
+                    localCameraStreams.forEach(function(camInfo) {
+                        var videoTrack = camInfo.stream.getVideoTracks()[0];
+                        if (videoTrack) {
+                            if (senderIndex < videoSenders.length) {
+                                // Replace existing track (preserves SDP m-line order,
+                                // no renegotiation needed, no signaling glare).
+                                var sender = videoSenders[senderIndex];
+                                sender.replaceTrack(videoTrack).then(function() {
+                                    // Kick the encoder — Safari sometimes won't start
+                                    // encoding the new track until parameters are poked.
+                                    try {
+                                        var params = sender.getParameters();
+                                        if (!params.encodings || params.encodings.length === 0) {
+                                            params.encodings = [{}];
+                                        }
+                                        sender.setParameters(params);
+                                    } catch(e) {}
+                                }).catch(function(err) {
+                                    console.error('replaceTrack failed for peer:', peerId, err);
+                                });
+                            } else {
+                                // First time adding video — addTrack triggers
+                                // onnegotiationneeded which handles the offer.
+                                pc.addTrack(videoTrack, camInfo.stream);
                             }
-                        });
-                    }
+                            senderIndex++;
+                        }
+                    });
                 });
             }
 
@@ -1794,6 +1831,10 @@
                         option.text = device.label || ('Camera ' + (index + 1));
                         selector.appendChild(option);
                     });
+                    // Preserve the currently selected camera in the dropdown
+                    if (selectedCameraDeviceId) {
+                        selector.value = selectedCameraDeviceId;
+                    }
                 }
             }
 
@@ -2892,6 +2933,23 @@
                         const elementId = 'remoteVideo_' + peerId + '_' + streamId;
 
                         const remoteCameraGrid = document.getElementById('remoteCameraGrid');
+
+                        // Clean up old video elements for this peer whose tracks have ended
+                        // (happens when a peer switches cameras via removeTrack + addTrack)
+                        remoteCameraGrid.querySelectorAll('[data-peer-id="' + peerId + '"]').forEach(function(el) {
+                            if (el.id === elementId) return; // keep the one matching new stream
+                            var oldVideo = el.querySelector('video');
+                            if (oldVideo && oldVideo.srcObject) {
+                                var vt = oldVideo.srcObject.getVideoTracks();
+                                if (vt.length === 0 || vt.every(function(t) { return t.readyState === 'ended'; })) {
+                                    console.log('Cleaning up old video element:', el.id);
+                                    if (oldVideo._renderMonitor) clearInterval(oldVideo._renderMonitor);
+                                    if (oldVideo._diagInterval) clearInterval(oldVideo._diagInterval);
+                                    el.remove();
+                                }
+                            }
+                        });
+
                         let videoWrapper = document.getElementById(elementId);
                         let isNewVideoElement = false;
 
@@ -3195,8 +3253,10 @@
                 // Monitor negotiation needed
                 pc.onnegotiationneeded = async function() {
                     console.log('🔄 Negotiation needed for peer:', peerId);
-                    // Only handle if we're stable and this is a renegotiation
-                    if (pc.signalingState === 'stable' && pc._isEstablished) {
+                    // Only handle if we're stable and this is a renegotiation.
+                    // Use connectionState as fallback for _isEstablished (iOS Safari
+                    // may not reliably fire onconnectionstatechange).
+                    if (pc.signalingState === 'stable' && (pc._isEstablished || pc.connectionState === 'connected')) {
                         try {
                             const offer = await pc.createOffer();
                             await pc.setLocalDescription(offer);

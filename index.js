@@ -847,6 +847,8 @@ stuffedAnimalWarEndpoints.forEach(endpoint => {
             html = html.replace(/{{ENDPOINT}}/g, endpoint);
             html = html.replace('{{PASSWORD}}', password);
             html = html.replace('{{SERVER_INSTANCE_ID}}', SERVER_INSTANCE_ID);
+            html = html.replace('{{METERED_APP_NAME}}', process.env.METERED_APP_NAME || '');
+            html = html.replace('{{METERED_API_KEY}}', process.env.METERED_API_KEY || '');
 
             res.send(html);
         } catch (error) {
