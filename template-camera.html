@@ -1590,18 +1590,39 @@
                         const senders = pc.getSenders();
                         const videoSenders = senders.filter(function(s) { return s.track && s.track.kind === 'video'; });
                         let senderIndex = 0;
+                        let didReplaceTrack = false;
 
                         localCameraStreams.forEach(function(camInfo) {
                             const videoTrack = camInfo.stream.getVideoTracks()[0];
                             if (videoTrack) {
                                 if (senderIndex < videoSenders.length) {
                                     videoSenders[senderIndex].replaceTrack(videoTrack);
+                                    didReplaceTrack = true;
                                 } else {
                                     pc.addTrack(videoTrack, camInfo.stream);
                                 }
                                 senderIndex++;
                             }
                         });
+
+                        // Force renegotiation after replaceTrack for iOS Safari compatibility.
+                        // replaceTrack() doesn't trigger onnegotiationneeded, but iOS Safari
+                        // often needs renegotiation to actually send the new track to peers.
+                        if (didReplaceTrack && pc.signalingState === 'stable' && pc._isEstablished) {
+                            pc.createOffer().then(function(offer) {
+                                return pc.setLocalDescription(offer);
+                            }).then(function() {
+                                socket.emit(voiceOfferSocketEvent, {
+                                    offer: pc.localDescription,
+                                    to: peerId,
+                                    cameraName: myCameraName,
+                                    cameraNames: getCameraNames()
+                                });
+                                console.log('Sent renegotiation offer after camera switch to peer:', peerId);
+                            }).catch(function(err) {
+                                console.error('Renegotiation after camera switch failed for peer:', peerId, err);
+                            });
+                        }
                     }
                 });
             }
@@ -1794,6 +1815,10 @@
                         option.text = device.label || ('Camera ' + (index + 1));
                         selector.appendChild(option);
                     });
+                    // Preserve the currently selected camera in the dropdown
+                    if (selectedCameraDeviceId) {
+                        selector.value = selectedCameraDeviceId;
+                    }
                 }
             }
 
