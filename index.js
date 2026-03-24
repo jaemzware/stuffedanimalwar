@@ -397,12 +397,13 @@ const stuffedAnimalWarPageCounters = stuffedAnimalWarEndpoints.reduce((acc, page
 const activeBroadcasters = new Map();
 
 //add stuffedAnimalWarEndpoints jim000 through jim999
-// for (let i = 1; i <= 1999; i++) {
-//     const paddedNumber = String(i).padStart(3, '0');
-//     const jimEndpoint = `jim${paddedNumber}`;
-//     stuffedAnimalWarEndpoints.push(jimEndpoint);
-//     stuffedAnimalWarPageCounters[jimEndpoint] = 0; // Initialize counter for this endpoint
-//
+for (let i = 1; i <= 19999; i++) {
+    const paddedNumber = String(i).padStart(3, '0');
+    const jimEndpoint = `jim${paddedNumber}`;
+    stuffedAnimalWarEndpoints.push(jimEndpoint);
+    stuffedAnimalWarPageCounters[jimEndpoint] = 0; // Initialize counter for this endpoint
+}
+
 
 // Load canvas template HTML at startup (RIP SVG - we canvas-only now)
 let templateCanvasHtml = fs.readFileSync(path.join(__dirname, 'template-canvas.html'), 'utf8');
