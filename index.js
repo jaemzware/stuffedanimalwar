@@ -402,6 +402,7 @@ for (let i = 1; i <= 19999; i++) {
     const jimEndpoint = `jim${paddedNumber}`;
     stuffedAnimalWarEndpoints.push(jimEndpoint);
     stuffedAnimalWarPageCounters[jimEndpoint] = 0; // Initialize counter for this endpoint
+}
 
 
 // Load canvas template HTML at startup (RIP SVG - we canvas-only now)
