@@ -968,9 +968,9 @@ $('#uploadForm').on('submit', function (e) {
     }
 
     // Optionally, check file size (e.g., 50MB limit)
-    const maxSize = 50 * 1024 * 1024; // 50MB
+    const maxSize = 500 * 1024 * 1024; // 50MB
     if (file.size > maxSize) {
-        alert('File size must be less than 20MB.');
+        alert('File size must be less than 500MB.');
         e.preventDefault();
         return;
     }
@@ -1037,9 +1037,9 @@ $('#videoUploadForm').on('submit', function (e) {
         return;
     }
 
-    const maxSize = 50 * 1024 * 1024; // 50MB
+    const maxSize = 500 * 1024 * 1024; // 50MB
     if (file.size > maxSize) {
-        alert('File size must be less than 50MB.');
+        alert('File size must be less than 500MB.');
         e.preventDefault();
         return;
     }
