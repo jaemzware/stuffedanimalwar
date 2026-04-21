@@ -1870,6 +1870,103 @@ io.on('connection', function(socket){
     socket.on(cameraEndpoint + 'camerarosterresponse', (rosterResponseMsgObject) => {
         io.to(rosterResponseMsgObject.to).emit(cameraEndpoint + 'camerarosterresponse', { from: socket.id, cameraName: rosterResponseMsgObject.cameraName });
     });
+
+    //GENERIC CHATMESSAGE SENDER
+    function sendChatMessage(chatSocketEvent, chatMsgObject){
+        let chatClientAddress = getClientIp(socket);
+        let chatPstString = new Date().toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
+        const reorderedChatMsgObject = {
+            CHATSERVERENDPOINT: endpoint,
+            CHATSERVERPORT: listenPort,
+            CHATSERVERUSER: chatClientAddress,
+            CHATSERVERDATE: chatPstString,
+            CHATUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
+            ...chatMsgObject
+        };
+        console.log(JSON.stringify(reorderedChatMsgObject));
+        io.emit(chatSocketEvent, reorderedChatMsgObject);
+    }
+
+    //GENERIC TAPMESSAGE SENDER
+    function sendTapMessage(tapSocketEvent, tapMsgObject){
+        let tapClientAddress = getClientIp(socket);
+        let tapPstString = new Date().toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
+        const reorderedTapMsgObject = {
+            CHATSERVERENDPOINT: endpoint,
+            CHATSERVERPORT: listenPort,
+            CHATSERVERUSER: tapClientAddress,
+            CHATSERVERDATE: tapPstString,
+            CHATUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
+            ...tapMsgObject
+        };
+        console.log(JSON.stringify(reorderedTapMsgObject));
+        io.emit(tapSocketEvent, reorderedTapMsgObject);
+    }
+
+    //GENERIC PATHMESSAGE SENDER
+    function sendPathMessage(pathSocketEvent, pathMsgObject){
+        let pathClientAddress = getClientIp(socket);
+        let pathPstString = new Date().toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
+        const reorderedPathMsgObject = {
+            CHATSERVERENDPOINT: endpoint,
+            CHATSERVERPORT: listenPort,
+            CHATSERVERUSER: pathClientAddress,
+            CHATSERVERDATE: pathPstString,
+            CHATUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
+            ...pathMsgObject
+        };
+        console.log(JSON.stringify(reorderedPathMsgObject));
+        io.emit(pathSocketEvent, reorderedPathMsgObject);
+    }
+
+    //GENERIC PRESENT IMAGE SENDER
+    function sendPresentImageMessage(presentImageSocketEvent, presentImageMsgObject){
+        let presentImageClientAddress = getClientIp(socket);
+        let presentImagePstString = new Date().toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
+        const reorderedPresentImageMsgObject = {
+            CHATSERVERENDPOINT: endpoint,
+            CHATSERVERPORT: listenPort,
+            CHATSERVERUSER: presentImageClientAddress,
+            CHATSERVERDATE: presentImagePstString,
+            CHATUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
+            ...presentImageMsgObject
+        };
+        console.log(JSON.stringify(reorderedPresentImageMsgObject));
+        io.emit(presentImageSocketEvent, reorderedPresentImageMsgObject);
+    }
+
+    function sendAudioControlMessage(audioControlSocketEvent, audioControlMsgObject){
+        let audioControlClientAddress = getClientIp(socket);
+        let audioControlPstString = new Date().toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
+        const reorderedAudioControlMsgObject = {
+            AUDIOCONTROLSERVERENDPOINT: endpoint,
+            AUDIOCONTROLSERVERPORT: listenPort,
+            AUDIOCONTROLSERVERUSER: audioControlClientAddress,
+            AUDIOCONTROLSERVERDATE: audioControlPstString,
+            AUDIOCONTROLUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
+            ...audioControlMsgObject
+        };
+        const connectedSockets = io.sockets.sockets.size;
+        console.log('AUDIO CONTROL: [' + connectedSockets + ' sockets] event=' + audioControlSocketEvent + ' ' + JSON.stringify(reorderedAudioControlMsgObject));
+        io.emit(audioControlSocketEvent, reorderedAudioControlMsgObject);
+    }
+
+    function sendVideoControlMessage(videoControlSocketEvent, videoControlMsgObject){
+        let videoControlClientAddress = getClientIp(socket);
+        let videoControlPstString = new Date().toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
+        const reorderedVideoControlMsgObject = {
+            VIDEOCONTROLSERVERENDPOINT: endpoint,
+            VIDEOCONTROLSERVERPORT: listenPort,
+            VIDEOCONTROLSERVERUSER: videoControlClientAddress,
+            VIDEOCONTROLSERVERDATE: videoControlPstString,
+            VIDEOCONTROLUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
+            ...videoControlMsgObject
+        };
+        const connectedSockets = io.sockets.sockets.size;
+        console.log('VIDEO CONTROL: [' + connectedSockets + ' sockets] event=' + videoControlSocketEvent + ' ' + JSON.stringify(reorderedVideoControlMsgObject));
+        io.emit(videoControlSocketEvent, reorderedVideoControlMsgObject);
+    }
+
 });
 
 // Graceful shutdown handler for systemd restarts
