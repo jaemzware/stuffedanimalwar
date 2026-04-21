@@ -1651,29 +1651,26 @@ io.use((socket, next) => {
  *  curl https://ipinfo.io/71.212.60.26 for ip address info (replace ip with desired ip)
  */
 io.on('connection', function(socket){
-    //Get endpoint that made the connection (passed in .html io() instantiation)
-    const endpoint =  socket.handshake.query.endpoint;
+    const endpoint = socket.handshake.query.endpoint;
     let chatClientAddress = getClientIp(socket);
     let chatServerDate = new Date();
     let connectChatPstString = chatServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
 
     console.log(`[SERVER] 🔌 New connection - Socket ID: ${socket.id}, Endpoint: ${endpoint || 'NONE'}, IP: ${chatClientAddress}`);
 
-
     stuffedAnimalWarPageCounters[endpoint]++;
     let connectMsgObject = {
-                CHATSERVERENDPOINT: endpoint,
-                CHATSERVERPORT: listenPort,
-                CHATSERVERUSER: chatClientAddress,
-                CHATSERVERDATE: connectChatPstString,
-                CHATUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
-                CHATCLIENTMESSAGE: 'CONNECT',
-                CHATCLIENTUSER: ''
-     };
+        CHATSERVERENDPOINT: endpoint,
+        CHATSERVERPORT: listenPort,
+        CHATSERVERUSER: chatClientAddress,
+        CHATSERVERDATE: connectChatPstString,
+        CHATUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
+        CHATCLIENTMESSAGE: 'CONNECT',
+        CHATCLIENTUSER: ''
+    };
     console.log(JSON.stringify(connectMsgObject));
-    io.emit(endpoint + stuffedAnimalWarConnectSocketEvent,connectMsgObject);
+    io.emit(endpoint + stuffedAnimalWarConnectSocketEvent, connectMsgObject);
 
-    // If this is a camera endpoint, emit camera connect event
     if (endpoint && endpoint.endsWith('camera')) {
         const cameraConnectEvent = endpoint + 'camera' + 'connect';
         const cameraConnectMsg = {
@@ -1685,25 +1682,23 @@ io.on('connection', function(socket){
         io.emit(cameraConnectEvent, cameraConnectMsg);
     }
 
-    //COMMON--------------------------------------------------------------------------------------
     socket.on('disconnect', function(){
         let chatClientAddress = getClientIp(socket);
         let chatServerDate = new Date();
         let chatPstString = chatServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
         stuffedAnimalWarPageCounters[endpoint]--;
         let disconnectMsgObject = {
-                CHATSERVERENDPOINT: endpoint,
-                CHATSERVERPORT: listenPort,
-                CHATSERVERUSER:chatClientAddress,
-                CHATSERVERDATE:chatPstString,
-                CHATUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
-                CHATCLIENTMESSAGE:'DISCONNECT',
-                CHATCLIENTUSER: ''
-         };
+            CHATSERVERENDPOINT: endpoint,
+            CHATSERVERPORT: listenPort,
+            CHATSERVERUSER: chatClientAddress,
+            CHATSERVERDATE: chatPstString,
+            CHATUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
+            CHATCLIENTMESSAGE: 'DISCONNECT',
+            CHATCLIENTUSER: ''
+        };
         console.log(JSON.stringify(disconnectMsgObject));
-        io.emit(endpoint + stuffedAnimalWarDisconnectSocketEvent,disconnectMsgObject);
+        io.emit(endpoint + stuffedAnimalWarDisconnectSocketEvent, disconnectMsgObject);
 
-        // If this is a camera endpoint, emit camera disconnect event
         if (endpoint && endpoint.endsWith('camera')) {
             const cameraDisconnectEvent = endpoint + 'camera' + 'disconnect';
             const cameraDisconnectMsg = {
@@ -1715,20 +1710,16 @@ io.on('connection', function(socket){
             io.emit(cameraDisconnectEvent, cameraDisconnectMsg);
         }
 
-        // If this was a broadcaster, notify all clients
         if (activeBroadcasters.has(socket.id)) {
             console.log('[BROADCASTER] Broadcaster disconnected:', socket.id);
             activeBroadcasters.delete(socket.id);
-            io.emit('camera-broadcaster-unavailable', {
-                broadcasterId: socket.id
-            });
+            io.emit('camera-broadcaster-unavailable', { broadcasterId: socket.id });
         }
     });
 
-    //ON ERROR
     socket.on('error', function(errorMsgObject){
         let chatClientAddress = getClientIp(socket);
-        let chatPstString = chatServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
+        let chatPstString = new Date().toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
         errorMsgObject.CHATSERVERENDPOINT = endpoint;
         errorMsgObject.CHATSERVERPORT = listenPort;
         errorMsgObject.CHATSERVERUSER = chatClientAddress;
@@ -1736,411 +1727,183 @@ io.on('connection', function(socket){
         errorMsgObject.CHATUSERCOUNT = stuffedAnimalWarPageCounters[endpoint];
         errorMsgObject.CHATCLIENTMESSAGE = 'ERROR';
         errorMsgObject.CHATCLIENTUSER = '';
-        console.log("ERROR:" + " ENDPOINT: " + endpoint  + ":" + listenPort + " CLIENT: " + chatClientAddress + " TIME: " + chatPstString + " ROOM COUNT: " + stuffedAnimalWarPageCounters[endpoint]);
+        console.log("ERROR: ENDPOINT: " + endpoint + ":" + listenPort + " CLIENT: " + chatClientAddress + " TIME: " + chatPstString);
     });
 
-    //CAMERA BROADCASTER------------------------------------------------------------------------------
-    // Register a camera broadcaster (from /camera-broadcaster page)
+    // CAMERA BROADCASTER handlers
     socket.on('register-camera-broadcaster', function(data) {
         console.log('[BROADCASTER] Registering camera broadcaster:', socket.id, 'label:', data.label);
         activeBroadcasters.set(socket.id, { label: data.label, socketId: socket.id });
-        // Announce to all clients that a new broadcaster is available
-        io.emit('camera-broadcaster-available', {
-            broadcasterId: socket.id,
-            label: data.label
-        });
-        // Send list of existing broadcasters to the new connection
+        io.emit('camera-broadcaster-available', { broadcasterId: socket.id, label: data.label });
         activeBroadcasters.forEach((broadcaster, id) => {
             if (id !== socket.id) {
-                socket.emit('camera-broadcaster-available', {
-                    broadcasterId: id,
-                    label: broadcaster.label
-                });
+                socket.emit('camera-broadcaster-available', { broadcasterId: id, label: broadcaster.label });
             }
         });
     });
 
-    // Unregister a camera broadcaster
     socket.on('unregister-camera-broadcaster', function() {
         if (activeBroadcasters.has(socket.id)) {
             console.log('[BROADCASTER] Unregistering camera broadcaster:', socket.id);
             activeBroadcasters.delete(socket.id);
-            io.emit('camera-broadcaster-unavailable', {
-                broadcasterId: socket.id
-            });
+            io.emit('camera-broadcaster-unavailable', { broadcasterId: socket.id });
         }
     });
 
-    // Viewer requests stream from broadcaster
     socket.on('viewer-request-stream', function(data) {
         console.log('[BROADCASTER] Viewer', socket.id, 'requesting stream from broadcaster:', data.broadcasterId);
-        io.to(data.broadcasterId).emit('viewer-request-stream', {
-            viewerId: socket.id
-        });
+        io.to(data.broadcasterId).emit('viewer-request-stream', { viewerId: socket.id });
     });
 
-    // Broadcaster sends offer to viewer
     socket.on('broadcaster-offer', function(data) {
         console.log('[BROADCASTER] Offer from', socket.id, 'to viewer:', data.to);
-        io.to(data.to).emit('broadcaster-offer', {
-            offer: data.offer,
-            from: socket.id
-        });
+        io.to(data.to).emit('broadcaster-offer', { offer: data.offer, from: socket.id });
     });
 
-    // Viewer sends answer to broadcaster
     socket.on('broadcaster-answer', function(data) {
         console.log('[BROADCASTER] Answer from', socket.id, 'to broadcaster:', data.to);
-        io.to(data.to).emit('broadcaster-answer', {
-            answer: data.answer,
-            from: socket.id
-        });
+        io.to(data.to).emit('broadcaster-answer', { answer: data.answer, from: socket.id });
     });
 
-    // ICE candidate exchange for broadcaster connections
     socket.on('broadcaster-ice-candidate', function(data) {
-        io.to(data.to).emit('broadcaster-ice-candidate', {
-            candidate: data.candidate,
-            from: socket.id
-        });
+        io.to(data.to).emit('broadcaster-ice-candidate', { candidate: data.candidate, from: socket.id });
     });
 
-    /**
-     * 2 - define sockets to serve custom stuffedanimalwar page Socket Events (e.g. chat message and gameboard tap message)
-     */
-    stuffedAnimalWarEndpoints.forEach(endpoint => {
-        socket.on(endpoint + stuffedAnimalWarChatSocketEvent, function(chatMsgObject){
-            //emit to everyone else
-            sendChatMessage(endpoint + stuffedAnimalWarChatSocketEvent,chatMsgObject);
-        });
-        socket.on(endpoint + stuffedAnimalWarTapSocketEvent, function(tapMsgObject){
-            //emit to everyone else
-            sendTapMessage(endpoint + stuffedAnimalWarTapSocketEvent,tapMsgObject);
-        });
-        socket.on(endpoint + stuffedAnimalWarPathSocketEvent, (pathMsgObject) => {
-            //emit to everyone else
-            sendPathMessage(endpoint + stuffedAnimalWarPathSocketEvent,pathMsgObject);
-        });
-        socket.on(endpoint + stuffedAnimalWarPresentImageSocketEvent, (presentImageMsgObject) => {
-            //emit to everyone else
-            sendPresentImageMessage(endpoint + stuffedAnimalWarPresentImageSocketEvent,presentImageMsgObject);
-        });
-        socket.on(endpoint + stuffedAnimalWarAudioControlSocketEvent, (audioControlMsgObject) => {
-            //broadcast audio control to everyone else (play, pause, seek, speed)
-            sendAudioControlMessage(endpoint + stuffedAnimalWarAudioControlSocketEvent, audioControlMsgObject);
-        });
-        socket.on(endpoint + stuffedAnimalWarVideoControlSocketEvent, (videoControlMsgObject) => {
-            //broadcast video control to everyone else (play, pause, seek, speed)
-            sendVideoControlMessage(endpoint + stuffedAnimalWarVideoControlSocketEvent, videoControlMsgObject);
-        });
-        socket.on(endpoint + stuffedAnimalWarVoiceOfferSocketEvent, (offerMsgObject) => {
-            //send voice offer to specific peer or broadcast to all in this endpoint
-            let voiceClientAddress = getClientIp(socket);
-            let voiceServerDate = new Date();
-            let voicePstString = voiceServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
+    // SINGLE onAny handler replaces the 100,008-iteration forEach loop
+    socket.onAny((eventName, msgObject) => {
+        const serverDate = new Date().toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
+        const clientAddress = getClientIp(socket);
 
-            const reorderedOfferMsgObject = {
+        // Helper to build base server fields
+        const serverFields = {
+            CHATSERVERENDPOINT: endpoint,
+            CHATSERVERPORT: listenPort,
+            CHATSERVERUSER: clientAddress,
+            CHATSERVERDATE: serverDate,
+            CHATUSERCOUNT: stuffedAnimalWarPageCounters[endpoint]
+        };
+
+        if (eventName.endsWith(stuffedAnimalWarChatSocketEvent)) {
+            const msg = { ...serverFields, ...msgObject };
+            console.log(JSON.stringify(msg));
+            io.emit(eventName, msg);
+
+        } else if (eventName.endsWith(stuffedAnimalWarTapSocketEvent)) {
+            const msg = { ...serverFields, ...msgObject };
+            console.log(JSON.stringify(msg));
+            io.emit(eventName, msg);
+
+        } else if (eventName.endsWith(stuffedAnimalWarPathSocketEvent)) {
+            const msg = { ...serverFields, ...msgObject };
+            console.log(JSON.stringify(msg));
+            io.emit(eventName, msg);
+
+        } else if (eventName.endsWith(stuffedAnimalWarPresentImageSocketEvent)) {
+            const msg = { ...serverFields, ...msgObject };
+            console.log(JSON.stringify(msg));
+            io.emit(eventName, msg);
+
+        } else if (eventName.endsWith(stuffedAnimalWarAudioControlSocketEvent)) {
+            const msg = {
+                AUDIOCONTROLSERVERENDPOINT: endpoint,
+                AUDIOCONTROLSERVERPORT: listenPort,
+                AUDIOCONTROLSERVERUSER: clientAddress,
+                AUDIOCONTROLSERVERDATE: serverDate,
+                AUDIOCONTROLUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
+                ...msgObject
+            };
+            const connectedSockets = io.sockets.sockets.size;
+            console.log('AUDIO CONTROL: [' + connectedSockets + ' sockets] event=' + eventName + ' ' + JSON.stringify(msg));
+            io.emit(eventName, msg);
+
+        } else if (eventName.endsWith(stuffedAnimalWarVideoControlSocketEvent)) {
+            const msg = {
+                VIDEOCONTROLSERVERENDPOINT: endpoint,
+                VIDEOCONTROLSERVERPORT: listenPort,
+                VIDEOCONTROLSERVERUSER: clientAddress,
+                VIDEOCONTROLSERVERDATE: serverDate,
+                VIDEOCONTROLUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
+                ...msgObject
+            };
+            const connectedSockets = io.sockets.sockets.size;
+            console.log('VIDEO CONTROL: [' + connectedSockets + ' sockets] event=' + eventName + ' ' + JSON.stringify(msg));
+            io.emit(eventName, msg);
+
+        } else if (eventName.endsWith(stuffedAnimalWarVoiceOfferSocketEvent)) {
+            const msg = {
                 VOICESERVERENDPOINT: endpoint,
                 VOICESERVERPORT: listenPort,
-                VOICESERVERUSER: voiceClientAddress,
-                VOICESERVERDATE: voicePstString,
+                VOICESERVERUSER: clientAddress,
+                VOICESERVERDATE: serverDate,
                 VOICEUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
-                offer: offerMsgObject.offer,
+                offer: msgObject.offer,
                 from: socket.id,
-                to: offerMsgObject.to || 'broadcast'
+                to: msgObject.to || 'broadcast'
             };
-
-            console.log('VOICE OFFER:', JSON.stringify({
-                endpoint: endpoint,
-                from: socket.id,
-                to: offerMsgObject.to || 'broadcast',
-                userCount: stuffedAnimalWarPageCounters[endpoint]
-            }));
-
-            if (offerMsgObject.to) {
-                io.to(offerMsgObject.to).emit(endpoint + stuffedAnimalWarVoiceOfferSocketEvent, reorderedOfferMsgObject);
+            console.log('VOICE OFFER:', JSON.stringify({ endpoint, from: socket.id, to: msgObject.to || 'broadcast' }));
+            if (msgObject.to) {
+                io.to(msgObject.to).emit(eventName, msg);
             } else {
-                io.emit(endpoint + stuffedAnimalWarVoiceOfferSocketEvent, reorderedOfferMsgObject);
+                io.emit(eventName, msg);
             }
-        });
-        socket.on(endpoint + stuffedAnimalWarVoiceAnswerSocketEvent, (answerMsgObject) => {
-            //send voice answer to the specific peer
-            let voiceClientAddress = getClientIp(socket);
-            let voiceServerDate = new Date();
-            let voicePstString = voiceServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
 
-            const reorderedAnswerMsgObject = {
+        } else if (eventName.endsWith(stuffedAnimalWarVoiceAnswerSocketEvent)) {
+            const msg = {
                 VOICESERVERENDPOINT: endpoint,
                 VOICESERVERPORT: listenPort,
-                VOICESERVERUSER: voiceClientAddress,
-                VOICESERVERDATE: voicePstString,
+                VOICESERVERUSER: clientAddress,
+                VOICESERVERDATE: serverDate,
                 VOICEUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
-                answer: answerMsgObject.answer,
+                answer: msgObject.answer,
                 from: socket.id,
-                to: answerMsgObject.to
+                to: msgObject.to
             };
+            console.log('VOICE ANSWER:', JSON.stringify({ endpoint, from: socket.id, to: msgObject.to }));
+            io.to(msgObject.to).emit(eventName, msg);
 
-            console.log('VOICE ANSWER:', JSON.stringify({
-                endpoint: endpoint,
-                from: socket.id,
-                to: answerMsgObject.to,
-                userCount: stuffedAnimalWarPageCounters[endpoint]
-            }));
-
-            io.to(answerMsgObject.to).emit(endpoint + stuffedAnimalWarVoiceAnswerSocketEvent, reorderedAnswerMsgObject);
-        });
-        socket.on(endpoint + stuffedAnimalWarVoiceIceCandidateSocketEvent, (iceMsgObject) => {
-            //send ICE candidate to specific peer or broadcast to all in this endpoint
-            let voiceClientAddress = getClientIp(socket);
-            let voiceServerDate = new Date();
-            let voicePstString = voiceServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
-
-            const reorderedIceMsgObject = {
+        } else if (eventName.endsWith(stuffedAnimalWarVoiceIceCandidateSocketEvent)) {
+            const msg = {
                 VOICESERVERENDPOINT: endpoint,
                 VOICESERVERPORT: listenPort,
-                VOICESERVERUSER: voiceClientAddress,
-                VOICESERVERDATE: voicePstString,
+                VOICESERVERUSER: clientAddress,
+                VOICESERVERDATE: serverDate,
                 VOICEUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
-                candidate: iceMsgObject.candidate,
+                candidate: msgObject.candidate,
                 from: socket.id,
-                to: iceMsgObject.to || 'broadcast'
+                to: msgObject.to || 'broadcast'
             };
-
-            console.log('VOICE ICE:', JSON.stringify({
-                endpoint: endpoint,
-                from: socket.id,
-                to: iceMsgObject.to || 'broadcast',
-                userCount: stuffedAnimalWarPageCounters[endpoint]
-            }));
-
-            if (iceMsgObject.to) {
-                io.to(iceMsgObject.to).emit(endpoint + stuffedAnimalWarVoiceIceCandidateSocketEvent, reorderedIceMsgObject);
+            console.log('VOICE ICE:', JSON.stringify({ endpoint, from: socket.id, to: msgObject.to || 'broadcast' }));
+            if (msgObject.to) {
+                io.to(msgObject.to).emit(eventName, msg);
             } else {
-                io.emit(endpoint + stuffedAnimalWarVoiceIceCandidateSocketEvent, reorderedIceMsgObject);
+                io.emit(eventName, msg);
             }
-        });
 
-        // Camera endpoint WebRTC handlers
-        const cameraEndpoint = endpoint + 'camera';
+        } else if (eventName.endsWith('cameracamera' + 'voiceoffer')) {
+            const msg = { offer: msgObject.offer, from: socket.id, to: msgObject.to || 'broadcast', cameraName: msgObject.cameraName };
+            if (msgObject.to) { io.to(msgObject.to).emit(eventName, msg); } else { io.emit(eventName, msg); }
 
-        socket.on(cameraEndpoint + 'camera' + 'voiceoffer', (offerMsgObject) => {
+        } else if (eventName.endsWith('cameracamera' + 'voiceanswer')) {
+            const msg = { answer: msgObject.answer, from: socket.id, to: msgObject.to, cameraName: msgObject.cameraName };
+            io.to(msgObject.to).emit(eventName, msg);
 
-            const reorderedOfferMsgObject = {
-                offer: offerMsgObject.offer,
-                from: socket.id,
-                to: offerMsgObject.to || 'broadcast',
-                cameraName: offerMsgObject.cameraName
-            };
+        } else if (eventName.endsWith('cameracamera' + 'voiceicecandidate')) {
+            const msg = { candidate: msgObject.candidate, from: socket.id, to: msgObject.to || 'broadcast' };
+            if (msgObject.to) { io.to(msgObject.to).emit(eventName, msg); } else { io.emit(eventName, msg); }
 
-            if (offerMsgObject.to) {
-                io.to(offerMsgObject.to).emit(cameraEndpoint + 'camera' + 'voiceoffer', reorderedOfferMsgObject);
-            } else {
-                io.emit(cameraEndpoint + 'camera' + 'voiceoffer', reorderedOfferMsgObject);
-            }
-        });
+        } else if (eventName.endsWith('cameracamera' + 'nameupdate')) {
+            io.emit(eventName, { cameraName: msgObject.cameraName, userId: socket.id });
 
-        socket.on(cameraEndpoint + 'camera' + 'voiceanswer', (answerMsgObject) => {
+        } else if (eventName.endsWith('cameracamera' + 'reconnect')) {
+            io.emit(eventName, { userId: socket.id });
 
-            const reorderedAnswerMsgObject = {
-                answer: answerMsgObject.answer,
-                from: socket.id,
-                to: answerMsgObject.to,
-                cameraName: answerMsgObject.cameraName
-            };
+        } else if (eventName.endsWith('cameracamera' + 'requestroster')) {
+            io.emit(eventName, { userId: socket.id });
 
-            io.to(answerMsgObject.to).emit(cameraEndpoint + 'camera' + 'voiceanswer', reorderedAnswerMsgObject);
-        });
-
-        socket.on(cameraEndpoint + 'camera' + 'voiceicecandidate', (iceMsgObject) => {
-
-            const reorderedIceMsgObject = {
-                candidate: iceMsgObject.candidate,
-                from: socket.id,
-                to: iceMsgObject.to || 'broadcast'
-            };
-
-            if (iceMsgObject.to) {
-                io.to(iceMsgObject.to).emit(cameraEndpoint + 'camera' + 'voiceicecandidate', reorderedIceMsgObject);
-            } else {
-                io.emit(cameraEndpoint + 'camera' + 'voiceicecandidate', reorderedIceMsgObject);
-            }
-        });
-
-        socket.on(cameraEndpoint + 'camera' + 'nameupdate', (nameUpdateMsgObject) => {
-
-            const reorderedNameUpdateMsgObject = {
-                cameraName: nameUpdateMsgObject.cameraName,
-                userId: socket.id
-            };
-
-            // Broadcast to all clients (event name contains endpoint so only relevant clients receive it)
-            io.emit(cameraEndpoint + 'camera' + 'nameupdate', reorderedNameUpdateMsgObject);
-        });
-
-        socket.on(cameraEndpoint + 'camera' + 'reconnect', (reconnectMsgObject) => {
-
-            const reorderedReconnectMsgObject = {
-                userId: socket.id
-            };
-
-            // Broadcast to all clients (event name contains endpoint so only relevant clients receive it)
-            io.emit(cameraEndpoint + 'camera' + 'reconnect', reorderedReconnectMsgObject);
-        });
-
-        socket.on(cameraEndpoint + 'camera' + 'requestroster', (rosterRequestMsgObject) => {
-
-            const reorderedRosterRequestMsgObject = {
-                userId: socket.id
-            };
-
-            // Broadcast to all clients so everyone announces themselves
-            io.emit(cameraEndpoint + 'camera' + 'requestroster', reorderedRosterRequestMsgObject);
-        });
-
-        socket.on(cameraEndpoint + 'camera' + 'rosterresponse', (rosterResponseMsgObject) => {
-
-            const reorderedRosterResponseMsgObject = {
-                from: socket.id,
-                cameraName: rosterResponseMsgObject.cameraName
-            };
-
-            // Send to the specific requester
-            io.to(rosterResponseMsgObject.to).emit(cameraEndpoint + 'camera' + 'rosterresponse', reorderedRosterResponseMsgObject);
-        });
+        } else if (eventName.endsWith('cameracamera' + 'rosterresponse')) {
+            io.to(msgObject.to).emit(eventName, { from: socket.id, cameraName: msgObject.cameraName });
+        }
     });
-
-    //GENERIC CHATMESSAGE SENDER, FOR MULTIPLE, INDEPENDENT CHAT CHANNELS
-    function sendChatMessage(chatSocketEvent,chatMsgObject){
-        //GET THE ADDRESS AND DATE
-        let chatClientAddress = getClientIp(socket);
-        let chatServerDate = new Date();
-        let chatPstString = chatServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
-
-        //create reordered object with server fields first
-        const reorderedChatMsgObject = {
-            CHATSERVERENDPOINT: endpoint,
-            CHATSERVERPORT: listenPort,
-            CHATSERVERUSER: chatClientAddress,
-            CHATSERVERDATE: chatPstString,
-            CHATUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
-            ...chatMsgObject
-        };
-
-        console.log(JSON.stringify(reorderedChatMsgObject));
-
-        //broadcast
-        io.emit(chatSocketEvent, reorderedChatMsgObject);
-    }
-    //GENERIC TAPMESSAGE SENDER, FOR MULTIPLE, INDEPENDENT CHAT CHANNELS
-    function sendTapMessage(tapSocketEvent,tapMsgObject){
-
-        //GET THE ADDRESS AND DATE
-        let tapClientAddress = getClientIp(socket);
-        let tapServerDate = new Date();
-        let tapPstString = tapServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
-
-        //create reordered object with server fields first
-        const reorderedTapMsgObject = {
-            CHATSERVERENDPOINT: endpoint,
-            CHATSERVERPORT: listenPort,
-            CHATSERVERUSER: tapClientAddress,
-            CHATSERVERDATE: tapPstString,
-            CHATUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
-            ...tapMsgObject
-        };
-
-        console.log(JSON.stringify(reorderedTapMsgObject));
-
-        //broadcast TAP message (client page needs to have  a socket.on handler for this)
-        io.emit(tapSocketEvent, reorderedTapMsgObject);
-
-    }
-    //GENERIC PATHMESSAGE SENDER, FOR MULTIPLE, INDEPENDENT CHAT CHANNELS
-    function sendPathMessage(pathSocketEvent,pathMsgObject){
-        let pathClientAddress = getClientIp(socket);
-        let pathServerDate = new Date();
-        let pathPstString = pathServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
-
-        //create reordered object with server fields first
-        const reorderedPathMsgObject = {
-            CHATSERVERENDPOINT: endpoint,
-            CHATSERVERPORT: listenPort,
-            CHATSERVERUSER: pathClientAddress,
-            CHATSERVERDATE: pathPstString,
-            CHATUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
-            ...pathMsgObject
-        };
-
-        console.log(JSON.stringify(reorderedPathMsgObject));
-
-        //broadcast TAP message (client page needs to have  a socket.on handler for this)
-        io.emit(pathSocketEvent, reorderedPathMsgObject);
-    }
-    //GENERIC PRESENTATION IMAGE SENDER, FOR MULTIPLE, INDEPENDENT CHAT CHANNELS
-    function sendPresentImageMessage(presentImageSocketEvent,presentImageMsgObject){
-        let presentImageClientAddress = getClientIp(socket);
-        let presentImageServerDate = new Date();
-        let presentImagePstString = presentImageServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
-
-        //create reordered object with server fields first
-        const reorderedPresentImageMsgObject = {
-            CHATSERVERENDPOINT: endpoint,
-            CHATSERVERPORT: listenPort,
-            CHATSERVERUSER: presentImageClientAddress,
-            CHATSERVERDATE: presentImagePstString,
-            CHATUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
-            ...presentImageMsgObject
-        };
-
-        console.log(JSON.stringify(reorderedPresentImageMsgObject));
-
-        io.emit(presentImageSocketEvent, reorderedPresentImageMsgObject);
-    }
-
-    function sendAudioControlMessage(audioControlSocketEvent, audioControlMsgObject){
-        let audioControlClientAddress = getClientIp(socket);
-        let audioControlServerDate = new Date();
-        let audioControlPstString = audioControlServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
-
-        //create reordered object with server fields first
-        const reorderedAudioControlMsgObject = {
-            AUDIOCONTROLSERVERENDPOINT: endpoint,
-            AUDIOCONTROLSERVERPORT: listenPort,
-            AUDIOCONTROLSERVERUSER: audioControlClientAddress,
-            AUDIOCONTROLSERVERDATE: audioControlPstString,
-            AUDIOCONTROLUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
-            ...audioControlMsgObject
-        };
-
-        // Debug: log connected socket count
-        const connectedSockets = io.sockets.sockets.size;
-        console.log('AUDIO CONTROL: [' + connectedSockets + ' sockets] event=' + audioControlSocketEvent + ' ' + JSON.stringify(reorderedAudioControlMsgObject));
-
-        io.emit(audioControlSocketEvent, reorderedAudioControlMsgObject);
-    }
-
-    function sendVideoControlMessage(videoControlSocketEvent, videoControlMsgObject){
-        let videoControlClientAddress = getClientIp(socket);
-        let videoControlServerDate = new Date();
-        let videoControlPstString = videoControlServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
-
-        //create reordered object with server fields first
-        const reorderedVideoControlMsgObject = {
-            VIDEOCONTROLSERVERENDPOINT: endpoint,
-            VIDEOCONTROLSERVERPORT: listenPort,
-            VIDEOCONTROLSERVERUSER: videoControlClientAddress,
-            VIDEOCONTROLSERVERDATE: videoControlPstString,
-            VIDEOCONTROLUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
-            ...videoControlMsgObject
-        };
-
-        // Debug: log connected socket count
-        const connectedSockets = io.sockets.sockets.size;
-        console.log('VIDEO CONTROL: [' + connectedSockets + ' sockets] event=' + videoControlSocketEvent + ' ' + JSON.stringify(reorderedVideoControlMsgObject));
-
-        io.emit(videoControlSocketEvent, reorderedVideoControlMsgObject);
-    }
-
 });
 
 // Graceful shutdown handler for systemd restarts
