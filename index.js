@@ -1769,140 +1769,106 @@ io.on('connection', function(socket){
         io.to(data.to).emit('broadcaster-ice-candidate', { candidate: data.candidate, from: socket.id });
     });
 
-    // SINGLE onAny handler replaces the 100,008-iteration forEach loop
-    socket.onAny((eventName, msgObject) => {
-        const serverDate = new Date().toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
-        const clientAddress = getClientIp(socket);
-
-        // Helper to build base server fields
-        const serverFields = {
-            CHATSERVERENDPOINT: endpoint,
-            CHATSERVERPORT: listenPort,
-            CHATSERVERUSER: clientAddress,
-            CHATSERVERDATE: serverDate,
-            CHATUSERCOUNT: stuffedAnimalWarPageCounters[endpoint]
+    // Register listeners only for this socket's own endpoint (fixes memory leak)
+    socket.on(endpoint + stuffedAnimalWarChatSocketEvent, function(chatMsgObject){
+        sendChatMessage(endpoint + stuffedAnimalWarChatSocketEvent, chatMsgObject);
+    });
+    socket.on(endpoint + stuffedAnimalWarTapSocketEvent, function(tapMsgObject){
+        sendTapMessage(endpoint + stuffedAnimalWarTapSocketEvent, tapMsgObject);
+    });
+    socket.on(endpoint + stuffedAnimalWarPathSocketEvent, (pathMsgObject) => {
+        sendPathMessage(endpoint + stuffedAnimalWarPathSocketEvent, pathMsgObject);
+    });
+    socket.on(endpoint + stuffedAnimalWarPresentImageSocketEvent, (presentImageMsgObject) => {
+        sendPresentImageMessage(endpoint + stuffedAnimalWarPresentImageSocketEvent, presentImageMsgObject);
+    });
+    socket.on(endpoint + stuffedAnimalWarAudioControlSocketEvent, (audioControlMsgObject) => {
+        sendAudioControlMessage(endpoint + stuffedAnimalWarAudioControlSocketEvent, audioControlMsgObject);
+    });
+    socket.on(endpoint + stuffedAnimalWarVideoControlSocketEvent, (videoControlMsgObject) => {
+        sendVideoControlMessage(endpoint + stuffedAnimalWarVideoControlSocketEvent, videoControlMsgObject);
+    });
+    socket.on(endpoint + stuffedAnimalWarVoiceOfferSocketEvent, (offerMsgObject) => {
+        let voiceClientAddress = getClientIp(socket);
+        let voicePstString = new Date().toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
+        const reorderedOfferMsgObject = {
+            VOICESERVERENDPOINT: endpoint,
+            VOICESERVERPORT: listenPort,
+            VOICESERVERUSER: voiceClientAddress,
+            VOICESERVERDATE: voicePstString,
+            VOICEUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
+            offer: offerMsgObject.offer,
+            from: socket.id,
+            to: offerMsgObject.to || 'broadcast'
         };
-
-        if (eventName.endsWith(stuffedAnimalWarChatSocketEvent)) {
-            const msg = { ...serverFields, ...msgObject };
-            console.log(JSON.stringify(msg));
-            io.emit(eventName, msg);
-
-        } else if (eventName.endsWith(stuffedAnimalWarTapSocketEvent)) {
-            const msg = { ...serverFields, ...msgObject };
-            console.log(JSON.stringify(msg));
-            io.emit(eventName, msg);
-
-        } else if (eventName.endsWith(stuffedAnimalWarPathSocketEvent)) {
-            const msg = { ...serverFields, ...msgObject };
-            console.log(JSON.stringify(msg));
-            io.emit(eventName, msg);
-
-        } else if (eventName.endsWith(stuffedAnimalWarPresentImageSocketEvent)) {
-            const msg = { ...serverFields, ...msgObject };
-            console.log(JSON.stringify(msg));
-            io.emit(eventName, msg);
-
-        } else if (eventName.endsWith(stuffedAnimalWarAudioControlSocketEvent)) {
-            const msg = {
-                AUDIOCONTROLSERVERENDPOINT: endpoint,
-                AUDIOCONTROLSERVERPORT: listenPort,
-                AUDIOCONTROLSERVERUSER: clientAddress,
-                AUDIOCONTROLSERVERDATE: serverDate,
-                AUDIOCONTROLUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
-                ...msgObject
-            };
-            const connectedSockets = io.sockets.sockets.size;
-            console.log('AUDIO CONTROL: [' + connectedSockets + ' sockets] event=' + eventName + ' ' + JSON.stringify(msg));
-            io.emit(eventName, msg);
-
-        } else if (eventName.endsWith(stuffedAnimalWarVideoControlSocketEvent)) {
-            const msg = {
-                VIDEOCONTROLSERVERENDPOINT: endpoint,
-                VIDEOCONTROLSERVERPORT: listenPort,
-                VIDEOCONTROLSERVERUSER: clientAddress,
-                VIDEOCONTROLSERVERDATE: serverDate,
-                VIDEOCONTROLUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
-                ...msgObject
-            };
-            const connectedSockets = io.sockets.sockets.size;
-            console.log('VIDEO CONTROL: [' + connectedSockets + ' sockets] event=' + eventName + ' ' + JSON.stringify(msg));
-            io.emit(eventName, msg);
-
-        } else if (eventName.endsWith(stuffedAnimalWarVoiceOfferSocketEvent)) {
-            const msg = {
-                VOICESERVERENDPOINT: endpoint,
-                VOICESERVERPORT: listenPort,
-                VOICESERVERUSER: clientAddress,
-                VOICESERVERDATE: serverDate,
-                VOICEUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
-                offer: msgObject.offer,
-                from: socket.id,
-                to: msgObject.to || 'broadcast'
-            };
-            console.log('VOICE OFFER:', JSON.stringify({ endpoint, from: socket.id, to: msgObject.to || 'broadcast' }));
-            if (msgObject.to) {
-                io.to(msgObject.to).emit(eventName, msg);
-            } else {
-                io.emit(eventName, msg);
-            }
-
-        } else if (eventName.endsWith(stuffedAnimalWarVoiceAnswerSocketEvent)) {
-            const msg = {
-                VOICESERVERENDPOINT: endpoint,
-                VOICESERVERPORT: listenPort,
-                VOICESERVERUSER: clientAddress,
-                VOICESERVERDATE: serverDate,
-                VOICEUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
-                answer: msgObject.answer,
-                from: socket.id,
-                to: msgObject.to
-            };
-            console.log('VOICE ANSWER:', JSON.stringify({ endpoint, from: socket.id, to: msgObject.to }));
-            io.to(msgObject.to).emit(eventName, msg);
-
-        } else if (eventName.endsWith(stuffedAnimalWarVoiceIceCandidateSocketEvent)) {
-            const msg = {
-                VOICESERVERENDPOINT: endpoint,
-                VOICESERVERPORT: listenPort,
-                VOICESERVERUSER: clientAddress,
-                VOICESERVERDATE: serverDate,
-                VOICEUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
-                candidate: msgObject.candidate,
-                from: socket.id,
-                to: msgObject.to || 'broadcast'
-            };
-            console.log('VOICE ICE:', JSON.stringify({ endpoint, from: socket.id, to: msgObject.to || 'broadcast' }));
-            if (msgObject.to) {
-                io.to(msgObject.to).emit(eventName, msg);
-            } else {
-                io.emit(eventName, msg);
-            }
-
-        } else if (eventName.endsWith('cameracamera' + 'voiceoffer')) {
-            const msg = { offer: msgObject.offer, from: socket.id, to: msgObject.to || 'broadcast', cameraName: msgObject.cameraName };
-            if (msgObject.to) { io.to(msgObject.to).emit(eventName, msg); } else { io.emit(eventName, msg); }
-
-        } else if (eventName.endsWith('cameracamera' + 'voiceanswer')) {
-            const msg = { answer: msgObject.answer, from: socket.id, to: msgObject.to, cameraName: msgObject.cameraName };
-            io.to(msgObject.to).emit(eventName, msg);
-
-        } else if (eventName.endsWith('cameracamera' + 'voiceicecandidate')) {
-            const msg = { candidate: msgObject.candidate, from: socket.id, to: msgObject.to || 'broadcast' };
-            if (msgObject.to) { io.to(msgObject.to).emit(eventName, msg); } else { io.emit(eventName, msg); }
-
-        } else if (eventName.endsWith('cameracamera' + 'nameupdate')) {
-            io.emit(eventName, { cameraName: msgObject.cameraName, userId: socket.id });
-
-        } else if (eventName.endsWith('cameracamera' + 'reconnect')) {
-            io.emit(eventName, { userId: socket.id });
-
-        } else if (eventName.endsWith('cameracamera' + 'requestroster')) {
-            io.emit(eventName, { userId: socket.id });
-
-        } else if (eventName.endsWith('cameracamera' + 'rosterresponse')) {
-            io.to(msgObject.to).emit(eventName, { from: socket.id, cameraName: msgObject.cameraName });
+        console.log('VOICE OFFER:', JSON.stringify({ endpoint, from: socket.id, to: offerMsgObject.to || 'broadcast', userCount: stuffedAnimalWarPageCounters[endpoint] }));
+        if (offerMsgObject.to) {
+            io.to(offerMsgObject.to).emit(endpoint + stuffedAnimalWarVoiceOfferSocketEvent, reorderedOfferMsgObject);
+        } else {
+            io.emit(endpoint + stuffedAnimalWarVoiceOfferSocketEvent, reorderedOfferMsgObject);
         }
+    });
+    socket.on(endpoint + stuffedAnimalWarVoiceAnswerSocketEvent, (answerMsgObject) => {
+        let voiceClientAddress = getClientIp(socket);
+        let voicePstString = new Date().toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
+        const reorderedAnswerMsgObject = {
+            VOICESERVERENDPOINT: endpoint,
+            VOICESERVERPORT: listenPort,
+            VOICESERVERUSER: voiceClientAddress,
+            VOICESERVERDATE: voicePstString,
+            VOICEUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
+            answer: answerMsgObject.answer,
+            from: socket.id,
+            to: answerMsgObject.to
+        };
+        console.log('VOICE ANSWER:', JSON.stringify({ endpoint, from: socket.id, to: answerMsgObject.to, userCount: stuffedAnimalWarPageCounters[endpoint] }));
+        io.to(answerMsgObject.to).emit(endpoint + stuffedAnimalWarVoiceAnswerSocketEvent, reorderedAnswerMsgObject);
+    });
+    socket.on(endpoint + stuffedAnimalWarVoiceIceCandidateSocketEvent, (iceMsgObject) => {
+        let voiceClientAddress = getClientIp(socket);
+        let voicePstString = new Date().toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
+        const reorderedIceMsgObject = {
+            VOICESERVERENDPOINT: endpoint,
+            VOICESERVERPORT: listenPort,
+            VOICESERVERUSER: voiceClientAddress,
+            VOICESERVERDATE: voicePstString,
+            VOICEUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
+            candidate: iceMsgObject.candidate,
+            from: socket.id,
+            to: iceMsgObject.to || 'broadcast'
+        };
+        console.log('VOICE ICE:', JSON.stringify({ endpoint, from: socket.id, to: iceMsgObject.to || 'broadcast', userCount: stuffedAnimalWarPageCounters[endpoint] }));
+        if (iceMsgObject.to) {
+            io.to(iceMsgObject.to).emit(endpoint + stuffedAnimalWarVoiceIceCandidateSocketEvent, reorderedIceMsgObject);
+        } else {
+            io.emit(endpoint + stuffedAnimalWarVoiceIceCandidateSocketEvent, reorderedIceMsgObject);
+        }
+    });
+
+    const cameraEndpoint = endpoint + 'camera';
+    socket.on(cameraEndpoint + 'cameravoiceoffer', (offerMsgObject) => {
+        const msg = { offer: offerMsgObject.offer, from: socket.id, to: offerMsgObject.to || 'broadcast', cameraName: offerMsgObject.cameraName };
+        if (offerMsgObject.to) { io.to(offerMsgObject.to).emit(cameraEndpoint + 'cameravoiceoffer', msg); } else { io.emit(cameraEndpoint + 'cameravoiceoffer', msg); }
+    });
+    socket.on(cameraEndpoint + 'cameravoiceanswer', (answerMsgObject) => {
+        const msg = { answer: answerMsgObject.answer, from: socket.id, to: answerMsgObject.to, cameraName: answerMsgObject.cameraName };
+        io.to(answerMsgObject.to).emit(cameraEndpoint + 'cameravoiceanswer', msg);
+    });
+    socket.on(cameraEndpoint + 'cameravoiceicecandidate', (iceMsgObject) => {
+        const msg = { candidate: iceMsgObject.candidate, from: socket.id, to: iceMsgObject.to || 'broadcast' };
+        if (iceMsgObject.to) { io.to(iceMsgObject.to).emit(cameraEndpoint + 'cameravoiceicecandidate', msg); } else { io.emit(cameraEndpoint + 'cameravoiceicecandidate', msg); }
+    });
+    socket.on(cameraEndpoint + 'cameranameupdate', (nameUpdateMsgObject) => {
+        io.emit(cameraEndpoint + 'cameranameupdate', { cameraName: nameUpdateMsgObject.cameraName, userId: socket.id });
+    });
+    socket.on(cameraEndpoint + 'camerareconnect', () => {
+        io.emit(cameraEndpoint + 'camerareconnect', { userId: socket.id });
+    });
+    socket.on(cameraEndpoint + 'camerarequestroster', () => {
+        io.emit(cameraEndpoint + 'camerarequestroster', { userId: socket.id });
+    });
+    socket.on(cameraEndpoint + 'camerarosterresponse', (rosterResponseMsgObject) => {
+        io.to(rosterResponseMsgObject.to).emit(cameraEndpoint + 'camerarosterresponse', { from: socket.id, cameraName: rosterResponseMsgObject.cameraName });
     });
 });
 
