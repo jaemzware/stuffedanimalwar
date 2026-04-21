@@ -397,12 +397,7 @@ const stuffedAnimalWarPageCounters = stuffedAnimalWarEndpoints.reduce((acc, page
 const activeBroadcasters = new Map();
 
 //add stuffedAnimalWarEndpoints jim000 through jim999
-for (let i = 1; i <= 99999; i++) {
-    const paddedNumber = String(i).padStart(3, '0');
-    const jimEndpoint = `jim${paddedNumber}`;
-    stuffedAnimalWarEndpoints.push(jimEndpoint);
-    stuffedAnimalWarPageCounters[jimEndpoint] = 0; // Initialize counter for this endpoint
-}
+// NOTE: We no longer push 100k entries into the array - use isValidEndpoint() regex instead
 
 
 // Load canvas template HTML at startup (RIP SVG - we canvas-only now)
@@ -781,179 +776,137 @@ app.get('/camera-broadcaster', function(req, res){
 /**
  * 1 - define endpoints to serve custom stuffedanimalwar pages (e.g. jim.json)
  */
-stuffedAnimalWarEndpoints.forEach(endpoint => {
-    //SERVE THE HTML PAGE ENDPOINT
-    app.get('/' + endpoint, ipBlockMiddleware, function(req, res){
+/**
+ * WILDCARD ROUTES - replaces 100,008-iteration forEach to prevent memory exhaustion
+ */
+
+// Helper: check if a path segment is a valid endpoint (named or jim000-jim99999)
+function isValidEndpoint(name) {
+    if (!name) return false;
+    if (stuffedAnimalWarEndpoints.includes(name)) return true;
+    // Also accept jim001 through jim99999 without storing them all in memory
+    return /^jim\d{3,5}$/.test(name);
+}
+
+// Helper: get or initialize page counter for any endpoint
+function getPageCounter(endpoint) {
+    if (!(endpoint in stuffedAnimalWarPageCounters)) {
+        stuffedAnimalWarPageCounters[endpoint] = 0;
+    }
+    return stuffedAnimalWarPageCounters[endpoint];
+}
+
+// SERVE CANVAS PAGE: /:endpoint
+app.get('/:endpoint', ipBlockMiddleware, function(req, res, next){
+    const endpoint = req.params.endpoint;
+    if (!isValidEndpoint(endpoint)) return next();
+    try {
+        const configPath = path.join(__dirname, 'endpoints', endpoint + '.json');
+        let configData;
         try {
-            // Try to read the endpoint-specific JSON configuration
-            const configPath = path.join(__dirname, 'endpoints', endpoint + '.json');
-            let configData;
-
-            try {
-                configData = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-            } catch (fileError) {
-                // If the endpoint-specific JSON doesn't exist, fall back to jim.json
-                console.log(`No custom JSON found for endpoint ${endpoint}, falling back to jim.json`);
-                const jimConfigPath = path.join(__dirname, 'endpoints', 'jim.json');
-                configData = JSON.parse(fs.readFileSync(jimConfigPath, 'utf8'));
-
-                // Override endpoint and masterAlias for the fallback
-                configData.endpoint = endpoint;
-                configData.masterAlias = endpoint.toUpperCase();
-            }
-
-            // Auto-populate photos and videos if arrays are empty but paths exist
-            autoPopulateMedia(configData.mediaObject);
-
-            // Always use canvas template (SVG is dead, long live canvas)
-            let html = templateCanvasHtml;
-
-            console.log(`Serving ${endpoint} in CANVAS mode`);
-
-            // Generate HTML by replacing placeholders in the template
-            html = html.replace(/{{ENDPOINT}}/g, configData.endpoint);
-            html = html.replace('{{MASTER_ALIAS}}', configData.masterAlias);
-            html = html.replace('{{UNSPECIFIED_ALIAS}}', configData.unspecifiedAlias);
-            html = html.replace('{{STUFFED_ANIMAL_MEDIA_OBJECT}}', JSON.stringify(configData.stuffedAnimalMediaObject, null, 2));
-            html = html.replace('{{MEDIA_OBJECT}}', JSON.stringify(configData.mediaObject, null, 2));
-            html = html.replace('{{RESPONSES_OBJECT}}', JSON.stringify(configData.responsesObject, null, 2));
-            html = html.replace('{{PASSWORD}}', configData.password || '');
-            html = html.replace('{{SERVER_INSTANCE_ID}}', SERVER_INSTANCE_ID);
-
-            // Send the generated HTML
-            res.send(html);
-        } catch (error) {
-            console.error(`Error generating page for endpoint ${endpoint}:`, error);
-            res.status(500).send(`Error generating page for endpoint ${endpoint}: ${error.message}`);
+            configData = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+        } catch (fileError) {
+            console.log(`No custom JSON found for endpoint ${endpoint}, falling back to jim.json`);
+            const jimConfigPath = path.join(__dirname, 'endpoints', 'jim.json');
+            configData = JSON.parse(fs.readFileSync(jimConfigPath, 'utf8'));
+            configData.endpoint = endpoint;
+            configData.masterAlias = endpoint.toUpperCase();
         }
-    });
+        autoPopulateMedia(configData.mediaObject);
+        let html = templateCanvasHtml;
+        console.log(`Serving ${endpoint} in CANVAS mode`);
+        html = html.replace(/{{ENDPOINT}}/g, configData.endpoint);
+        html = html.replace('{{MASTER_ALIAS}}', configData.masterAlias);
+        html = html.replace('{{UNSPECIFIED_ALIAS}}', configData.unspecifiedAlias);
+        html = html.replace('{{STUFFED_ANIMAL_MEDIA_OBJECT}}', JSON.stringify(configData.stuffedAnimalMediaObject, null, 2));
+        html = html.replace('{{MEDIA_OBJECT}}', JSON.stringify(configData.mediaObject, null, 2));
+        html = html.replace('{{RESPONSES_OBJECT}}', JSON.stringify(configData.responsesObject, null, 2));
+        html = html.replace('{{PASSWORD}}', configData.password || '');
+        html = html.replace('{{SERVER_INSTANCE_ID}}', SERVER_INSTANCE_ID);
+        res.send(html);
+    } catch (error) {
+        console.error(`Error generating page for endpoint ${endpoint}:`, error);
+        res.status(500).send(`Error generating page for endpoint ${endpoint}: ${error.message}`);
+    }
+});
 
-    //SERVE THE CAMERA ENDPOINT FOR THIS ROOM
-    app.get('/' + endpoint + 'camera', ipBlockMiddleware, function(req, res){
+// SERVE CAMERA PAGE: /:endpointcamera
+app.get('/:endpointcamera', ipBlockMiddleware, function(req, res, next){
+    const full = req.params.endpointcamera;
+    if (!full.endsWith('camera')) return next();
+    const endpoint = full.slice(0, -6); // strip 'camera'
+    if (!isValidEndpoint(endpoint)) return next();
+    try {
+        let html = templateCameraHtml;
+        console.log(`Serving camera endpoint for ${endpoint}`);
+        const configPath = path.join(__dirname, 'endpoints', endpoint + '.json');
+        let password = '';
         try {
-            let html = templateCameraHtml;
-            console.log(`Serving camera endpoint for ${endpoint}`);
-
-            // Read the config to get the password
-            const configPath = path.join(__dirname, 'endpoints', endpoint + '.json');
-            let password = '';
-            try {
-                const configData = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-                password = configData.password || '';
-            } catch (fileError) {
-                console.log(`No config found for camera endpoint ${endpoint}`);
-            }
-
-            // Replace endpoint placeholder
-            html = html.replace(/{{ENDPOINT}}/g, endpoint);
-            html = html.replace('{{PASSWORD}}', password);
-            html = html.replace('{{SERVER_INSTANCE_ID}}', SERVER_INSTANCE_ID);
-            html = html.replace('{{METERED_APP_NAME}}', process.env.METERED_APP_NAME || '');
-            html = html.replace('{{METERED_API_KEY}}', process.env.METERED_API_KEY || '');
-
-            res.send(html);
-        } catch (error) {
-            console.error(`Error generating camera page for endpoint ${endpoint}:`, error);
-            res.status(500).send(`Error generating camera page for endpoint ${endpoint}: ${error.message}`);
+            const configData = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+            password = configData.password || '';
+        } catch (fileError) {
+            console.log(`No config found for camera endpoint ${endpoint}`);
         }
-    });
+        html = html.replace(/{{ENDPOINT}}/g, endpoint);
+        html = html.replace('{{PASSWORD}}', password);
+        html = html.replace('{{SERVER_INSTANCE_ID}}', SERVER_INSTANCE_ID);
+        html = html.replace('{{METERED_APP_NAME}}', process.env.METERED_APP_NAME || '');
+        html = html.replace('{{METERED_API_KEY}}', process.env.METERED_API_KEY || '');
+        res.send(html);
+    } catch (error) {
+        console.error(`Error generating camera page for endpoint ${endpoint}:`, error);
+        res.status(500).send(`Error generating camera page for endpoint ${endpoint}: ${error.message}`);
+    }
+});
 
-    //UPLOAD AN IMAGE ENDPOINT
-    app.post('/' + endpoint + stuffedAnimalWarChatImageSocketEvent, upload.single('image'), (req, res) => {
-        if (!req.file) {
-            return res.status(400).json({ success: false, message: 'No file uploaded.' });
-        }
+// UPLOAD IMAGE: /:endpointuploadchatimage
+app.post('/:endpointupload', upload.single('image'), (req, res, next) => {
+    const full = req.params.endpointupload;
+    if (!full.endsWith(stuffedAnimalWarChatImageSocketEvent)) return next();
+    const endpoint = full.slice(0, -stuffedAnimalWarChatImageSocketEvent.length);
+    if (!isValidEndpoint(endpoint)) return next();
+    if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded.' });
+    const clientIp = req.ip;
+    const chatPstString = new Date().toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
+    const imageData = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+    const sizeInBytes = Buffer.from(imageData.split(';base64,').pop(), 'base64').length;
+    const chatImageMsgObject = {
+        CHATCLIENTIMAGE: imageData,
+        CHATCLIENTUSER: '',
+        CHATSERVERUSER: clientIp,
+        CHATSERVERDATE: chatPstString,
+        CHATUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
+        CHATSERVERENDPOINT: endpoint,
+        CHATSERVERPORT: listenPort
+    };
+    console.log(`CHATSERVERENDPOINT:${endpoint} CHATSERVERPORT: ${listenPort} CHATSERVERUSER: ${clientIp} CHATSERVERDATE: ${chatPstString} RAW IMAGE UPLOAD ${sizeInBytes} BYTES`);
+    io.emit(endpoint + stuffedAnimalWarChatImageSocketEvent, chatImageMsgObject);
+    res.status(200).json({ success: true, message: 'Image uploaded and broadcasted.' });
+});
 
-        //GET THE CLIENT IP
-        const clientIp = req.ip;
-
-        //get the date stamp
-        let chatServerDate = new Date();
-        let chatPstString = chatServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
-
-        // Convert the image buffer to a base64 string
-        const imageData = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
-
-        let chatImageMsgObject = {
-            CHATCLIENTIMAGE: imageData,
-            CHATCLIENTUSER: '',
-            CHATSERVERUSER: clientIp,
-            CHATSERVERDATE: chatPstString,
-            CHATUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
-            CHATSERVERENDPOINT: endpoint,
-            CHATSERVERPORT: listenPort
-        };
-
-        // Step 1: Extract the base64 part (remove the prefix)
-        const base64Data = imageData.split(';base64,').pop();
-
-        // Step 2: Decode the base64 string to binary data
-        const binaryData = Buffer.from(base64Data, 'base64');
-
-        // Step 3: Calculate the size in bytes
-        const sizeInBytes = binaryData.length;
-        console.log("CHATSERVERENDPOINT:" + chatImageMsgObject.CHATSERVERENDPOINT +
-            " CHATSERVERPORT: " + chatImageMsgObject.CHATSERVERPORT +
-            " CHATSERVERUSER: " + chatImageMsgObject.CHATSERVERUSER +
-            " CHATSERVERDATE: " +chatImageMsgObject.CHATSERVERDATE +
-            " CHATUSERCOUNT: " + chatImageMsgObject.CHATUSERCOUNT +
-            " RAW IMAGE UPLOAD " + sizeInBytes + " BYTES ");
-
-        // Broadcast the image data to all connected Socket.IO clients
-        io.emit(endpoint + stuffedAnimalWarChatImageSocketEvent, chatImageMsgObject);
-
-        res.status(200).json({ success: true, message: 'Image uploaded and broadcasted.' });
-    });
-
-    //UPLOAD AN VIDEO ENDPOINT
-    app.post('/' + endpoint + stuffedAnimalWarChatVideoSocketEvent, upload.single('video'), (req, res) => {
-        if (!req.file) {
-            return res.status(400).json({ success: false, message: 'No file uploaded.' });
-        }
-
-        //GET THE CLIENT IP
-        const clientIp = req.ip;
-
-        //get the date stamp
-        let chatServerDate = new Date();
-        let chatPstString = chatServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
-
-        // Convert the video buffer to a base64 string
-        const videoData = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
-
-        let chatVideoMsgObject = {
-            CHATCLIENTVIDEO: videoData,
-            CHATCLIENTUSER: '',
-            CHATSERVERUSER: clientIp,
-            CHATSERVERDATE: chatPstString,
-            CHATUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
-            CHATSERVERENDPOINT: endpoint,
-            CHATSERVERPORT: listenPort
-        };
-
-        // Step 1: Extract the base64 part (remove the prefix)
-        const base64Data = videoData.split(';base64,').pop();
-
-// Step 2: Decode the base64 string to binary data
-        const binaryData = Buffer.from(base64Data, 'base64');
-
-// Step 3: Calculate the size in bytes
-        const sizeInBytes = binaryData.length;
-        console.log("CHATSERVERENDPOINT:" + chatVideoMsgObject.CHATSERVERENDPOINT +
-            " CHATSERVERPORT: " + chatVideoMsgObject.CHATSERVERPORT +
-            " CHATSERVERUSER: " +chatVideoMsgObject.CHATSERVERUSER +
-            " CHATSERVERDATE: " + chatVideoMsgObject.CHATSERVERDATE +
-            " CHATUSERCOUNT: " + chatVideoMsgObject.CHATUSERCOUNT +
-            " RAW VIDEO UPLOAD " + sizeInBytes + " BYTES ");
-
-        /**
-         * 3 - broadcast the right event for you your custom stuffedanimalwar page. the name must match chatImageSocketEvent in your custom stuffedanimalwar page (e.g. jim.json)
-         */
-        // Broadcast the image data to all connected Socket.IO clients
-        io.emit(endpoint + stuffedAnimalWarChatVideoSocketEvent, chatVideoMsgObject);
-
-        res.status(200).json({ success: true, message: 'Video uploaded and broadcasted.' });
-    });
+// UPLOAD VIDEO: /:endpointuploadchatvideo
+app.post('/:endpointuploadvideo', upload.single('video'), (req, res, next) => {
+    const full = req.params.endpointuploadvideo;
+    if (!full.endsWith(stuffedAnimalWarChatVideoSocketEvent)) return next();
+    const endpoint = full.slice(0, -stuffedAnimalWarChatVideoSocketEvent.length);
+    if (!isValidEndpoint(endpoint)) return next();
+    if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded.' });
+    const clientIp = req.ip;
+    const chatPstString = new Date().toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
+    const videoData = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+    const sizeInBytes = Buffer.from(videoData.split(';base64,').pop(), 'base64').length;
+    const chatVideoMsgObject = {
+        CHATCLIENTVIDEO: videoData,
+        CHATCLIENTUSER: '',
+        CHATSERVERUSER: clientIp,
+        CHATSERVERDATE: chatPstString,
+        CHATUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
+        CHATSERVERENDPOINT: endpoint,
+        CHATSERVERPORT: listenPort
+    };
+    console.log(`CHATSERVERENDPOINT:${endpoint} CHATSERVERPORT: ${listenPort} CHATSERVERUSER: ${clientIp} CHATSERVERDATE: ${chatPstString} RAW VIDEO UPLOAD ${sizeInBytes} BYTES`);
+    io.emit(endpoint + stuffedAnimalWarChatVideoSocketEvent, chatVideoMsgObject);
+    res.status(200).json({ success: true, message: 'Video uploaded and broadcasted.' });
 });
 
 /**
@@ -1658,6 +1611,8 @@ io.on('connection', function(socket){
 
     console.log(`[SERVER] 🔌 New connection - Socket ID: ${socket.id}, Endpoint: ${endpoint || 'NONE'}, IP: ${chatClientAddress}`);
 
+    // Initialize counter for dynamic endpoints (jim001-jim99999) that aren't pre-populated
+    if (!(endpoint in stuffedAnimalWarPageCounters)) stuffedAnimalWarPageCounters[endpoint] = 0;
     stuffedAnimalWarPageCounters[endpoint]++;
     let connectMsgObject = {
         CHATSERVERENDPOINT: endpoint,
