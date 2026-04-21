@@ -624,9 +624,16 @@ app.get('/', function(req, res){
 //SERVE ROOM LIST AT /rooms
 app.get('/rooms', function(req, res){
     // Generate dynamic HTML with links from stuffedAnimalWarEndpoints as buttons
-    const linksHtml = stuffedAnimalWarEndpoints.map(endpoint =>
+    const namedLinksHtml = stuffedAnimalWarEndpoints.map(endpoint =>
         `            <a class="room-button" href="/${endpoint}">${endpoint}</a>`
     ).join('\n');
+
+    // Generate enumerated jim001-jim100000 rooms
+    let enumeratedLinksHtml = '';
+    for (let i = 1; i <= 100000; i++) {
+        const roomName = `jim${String(i).padStart(5, '0')}`;
+        enumeratedLinksHtml += `            <a class="room-button" href="/${roomName}">${roomName}</a>\n`;
+    }
 
     const html = `<!--STUFFED ANIMAL WAR - jaemzware.org - 20150611 -->
 <!--STUFFED ANIMAL WAR - stuffedanimalwar.com - 20211128 -->
@@ -677,6 +684,14 @@ app.get('/rooms', function(req, res){
 
             .back-link:hover {
                 text-decoration: underline;
+            }
+
+            .section-title {
+                margin-top: 40px;
+                margin-bottom: 20px;
+                font-size: 1.5em;
+                color: #aaa;
+                text-align: center;
             }
 
             .room-grid {
@@ -758,8 +773,15 @@ app.get('/rooms', function(req, res){
             <p>Choose a room to enter</p>
             <a href="/" class="back-link">← Back to home</a>
         </div>
+
+        <div class="section-title">Named Rooms</div>
         <div class="room-grid">
-${linksHtml}
+${namedLinksHtml}
+        </div>
+
+        <div class="section-title">Enumerated Rooms (jim00001 - jim100000)</div>
+        <div class="room-grid">
+${enumeratedLinksHtml}
         </div>
     </body>
 </html>
