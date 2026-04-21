@@ -1657,6 +1657,22 @@ io.on('connection', function(socket){
         };
         console.log(`[CAMERA] Broadcasting connect for ${endpoint}, socket: ${socket.id}`);
         io.emit(cameraConnectEvent, cameraConnectMsg);
+
+        // Send new camera the list of all existing cameras so they can discover peers
+        setTimeout(() => {
+            const cameraEndpoint = endpoint + 'camera';
+            const existingCameras = [];
+            io.sockets.sockets.forEach((sock) => {
+                const sockEndpoint = sock.handshake.query.endpoint;
+                if (sockEndpoint === endpoint && sock.id !== socket.id) {
+                    existingCameras.push({ userId: sock.id });
+                }
+            });
+            console.log(`[CAMERA] Sending ${existingCameras.length} existing cameras to ${socket.id}`);
+            existingCameras.forEach(cam => {
+                socket.emit(cameraEndpoint + 'cameraexists', { userId: cam.userId });
+            });
+        }, 100);
     }
 
     socket.on('disconnect', function(){
@@ -1845,7 +1861,11 @@ io.on('connection', function(socket){
         io.emit(cameraEndpoint + 'camerarequestroster', { userId: socket.id });
     });
     socket.on(cameraEndpoint + 'camerarosterresponse', (rosterResponseMsgObject) => {
-        io.to(rosterResponseMsgObject.to).emit(cameraEndpoint + 'camerarosterresponse', { from: socket.id, cameraName: rosterResponseMsgObject.cameraName });
+        io.to(rosterResponseMsgObject.to).emit(cameraEndpoint + 'camerarosterresponse', {
+            from: socket.id,
+            cameraName: rosterResponseMsgObject.cameraName,
+            cameraNames: rosterResponseMsgObject.cameraNames
+        });
     });
 
     //GENERIC CHATMESSAGE SENDER
