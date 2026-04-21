@@ -1660,7 +1660,6 @@ io.on('connection', function(socket){
 
         // Send new camera the list of all existing cameras so they can discover peers
         setTimeout(() => {
-            const cameraEndpoint = endpoint + 'camera';
             const existingCameras = [];
             io.sockets.sockets.forEach((sock) => {
                 const sockEndpoint = sock.handshake.query.endpoint;
@@ -1670,7 +1669,7 @@ io.on('connection', function(socket){
             });
             console.log(`[CAMERA] Sending ${existingCameras.length} existing cameras to ${socket.id}`);
             existingCameras.forEach(cam => {
-                socket.emit(cameraEndpoint + 'cameraexists', { userId: cam.userId });
+                socket.emit(endpoint + 'camera' + 'exists', { userId: cam.userId });
             });
         }, 100);
     }
@@ -1838,30 +1837,29 @@ io.on('connection', function(socket){
         }
     });
 
-    const cameraEndpoint = endpoint + 'camera';
-    socket.on(cameraEndpoint + 'cameravoiceoffer', (offerMsgObject) => {
+    socket.on(endpoint + 'camera' + 'voiceoffer', (offerMsgObject) => {
         const msg = { offer: offerMsgObject.offer, from: socket.id, to: offerMsgObject.to || 'broadcast', cameraName: offerMsgObject.cameraName };
-        if (offerMsgObject.to) { io.to(offerMsgObject.to).emit(cameraEndpoint + 'cameravoiceoffer', msg); } else { io.emit(cameraEndpoint + 'cameravoiceoffer', msg); }
+        if (offerMsgObject.to) { io.to(offerMsgObject.to).emit(endpoint + 'camera' + 'voiceoffer', msg); } else { io.emit(endpoint + 'camera' + 'voiceoffer', msg); }
     });
-    socket.on(cameraEndpoint + 'cameravoiceanswer', (answerMsgObject) => {
+    socket.on(endpoint + 'camera' + 'voiceanswer', (answerMsgObject) => {
         const msg = { answer: answerMsgObject.answer, from: socket.id, to: answerMsgObject.to, cameraName: answerMsgObject.cameraName };
-        io.to(answerMsgObject.to).emit(cameraEndpoint + 'cameravoiceanswer', msg);
+        io.to(answerMsgObject.to).emit(endpoint + 'camera' + 'voiceanswer', msg);
     });
-    socket.on(cameraEndpoint + 'cameravoiceicecandidate', (iceMsgObject) => {
+    socket.on(endpoint + 'camera' + 'voiceicecandidate', (iceMsgObject) => {
         const msg = { candidate: iceMsgObject.candidate, from: socket.id, to: iceMsgObject.to || 'broadcast' };
-        if (iceMsgObject.to) { io.to(iceMsgObject.to).emit(cameraEndpoint + 'cameravoiceicecandidate', msg); } else { io.emit(cameraEndpoint + 'cameravoiceicecandidate', msg); }
+        if (iceMsgObject.to) { io.to(iceMsgObject.to).emit(endpoint + 'camera' + 'voiceicecandidate', msg); } else { io.emit(endpoint + 'camera' + 'voiceicecandidate', msg); }
     });
-    socket.on(cameraEndpoint + 'cameranameupdate', (nameUpdateMsgObject) => {
-        io.emit(cameraEndpoint + 'cameranameupdate', { cameraName: nameUpdateMsgObject.cameraName, userId: socket.id });
+    socket.on(endpoint + 'camera' + 'nameupdate', (nameUpdateMsgObject) => {
+        io.emit(endpoint + 'camera' + 'nameupdate', { cameraName: nameUpdateMsgObject.cameraName, userId: socket.id });
     });
-    socket.on(cameraEndpoint + 'camerareconnect', () => {
-        io.emit(cameraEndpoint + 'camerareconnect', { userId: socket.id });
+    socket.on(endpoint + 'camera' + 'reconnect', () => {
+        io.emit(endpoint + 'camera' + 'reconnect', { userId: socket.id });
     });
-    socket.on(cameraEndpoint + 'camerarequestroster', () => {
-        io.emit(cameraEndpoint + 'camerarequestroster', { userId: socket.id });
+    socket.on(endpoint + 'camera' + 'requestroster', () => {
+        io.emit(endpoint + 'camera' + 'requestroster', { userId: socket.id });
     });
-    socket.on(cameraEndpoint + 'camerarosterresponse', (rosterResponseMsgObject) => {
-        io.to(rosterResponseMsgObject.to).emit(cameraEndpoint + 'camerarosterresponse', {
+    socket.on(endpoint + 'camera' + 'rosterresponse', (rosterResponseMsgObject) => {
+        io.to(rosterResponseMsgObject.to).emit(endpoint + 'camera' + 'rosterresponse', {
             from: socket.id,
             cameraName: rosterResponseMsgObject.cameraName,
             cameraNames: rosterResponseMsgObject.cameraNames
