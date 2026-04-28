@@ -290,8 +290,33 @@ function drawAnimal(animal) {
 }
 
 function drawShape(shape) {
+    //draw a circle
     ctx.beginPath();
     ctx.arc(shape.x, shape.y, shape.radius, 0, 2 * Math.PI);
+    ctx.fillStyle = shape.color;
+    ctx.strokeStyle = shape.color;
+    ctx.fill();
+    ctx.stroke();
+    //draw a star
+    ctx.beginPath();
+    const spikes = 5;
+    const outerRadius = shape.starLength;
+    const innerRadius = shape.starLength * 0.4;
+    let angle = Math.PI / 2;
+    const angleStep = (Math.PI * 2) / spikes;
+
+    for (let i = 0; i < spikes * 2; i++) {
+        const radius = i % 2 === 0 ? outerRadius : innerRadius;
+        const x = shape.x + Math.cos(angle) * radius;
+        const y = shape.y - Math.sin(angle) * radius;
+        if (i === 0) {
+            ctx.moveTo(x, y);
+        } else {
+            ctx.lineTo(x, y);
+        }
+        angle += angleStep;
+    }
+    ctx.closePath();
     ctx.fillStyle = shape.color;
     ctx.strokeStyle = shape.color;
     ctx.fill();
@@ -490,12 +515,13 @@ function onBaseTapSocketEventDots(tapMsgObject) {
     const rgbValue = tapMsgObject.red + ',' + tapMsgObject.green + ',' + tapMsgObject.blue;
     const color = 'rgb(' + rgbValue + ')';
     const bulletRadius = tapMsgObject.lineWidth || radius; // Use lineWidth from message or default
-
+    const starlength = tapMsgObject.lineWidth || radius;
     const shape = {
         id: 'circle' + Date.now() + Math.random(),
         x: tapMsgObject.x,
         y: tapMsgObject.y,
         radius: bulletRadius,
+        starlength: starlength,
         color: color,
         movement: tapMsgObject.movement,
         speed: tapMsgObject.speed,
