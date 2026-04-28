@@ -290,14 +290,23 @@ function drawAnimal(animal) {
 }
 
 function drawShape(shape) {
-    //draw a circle
+    if (shape.type === 'NINJASTAR') {
+        drawNinjaStar(shape);
+    } else {
+        drawBullet(shape);
+    }
+}
+
+function drawBullet(shape) {
     ctx.beginPath();
     ctx.arc(shape.x, shape.y, shape.radius, 0, 2 * Math.PI);
     ctx.fillStyle = shape.color;
     ctx.strokeStyle = shape.color;
     ctx.fill();
     ctx.stroke();
-    //draw a star
+}
+
+function drawNinjaStar(shape) {
     ctx.beginPath();
     const spikes = 5;
     const outerRadius = shape.starLength;
@@ -514,14 +523,34 @@ function checkCollisions() {
 function onBaseTapSocketEventDots(tapMsgObject) {
     const rgbValue = tapMsgObject.red + ',' + tapMsgObject.green + ',' + tapMsgObject.blue;
     const color = 'rgb(' + rgbValue + ')';
-    const bulletRadius = tapMsgObject.lineWidth || radius; // Use lineWidth from message or default
-    const starlength = tapMsgObject.lineWidth || radius;
+    const bulletRadius = tapMsgObject.lineWidth || radius;
     const shape = {
         id: 'circle' + Date.now() + Math.random(),
         x: tapMsgObject.x,
         y: tapMsgObject.y,
+        type: 'BULLET',
         radius: bulletRadius,
-        starlength: starlength,
+        color: color,
+        movement: tapMsgObject.movement,
+        speed: tapMsgObject.speed,
+        amplitude: tapMsgObject.amplitude || 50,
+        lastUpdate: null,
+        user: tapMsgObject.CHATCLIENTUSER
+    };
+
+    shapeObjects.push(shape);
+}
+
+function onBaseTapSocketEventNinjaStar(tapMsgObject) {
+    const rgbValue = tapMsgObject.red + ',' + tapMsgObject.green + ',' + tapMsgObject.blue;
+    const color = 'rgb(' + rgbValue + ')';
+    const starLength = tapMsgObject.lineWidth || radius;
+    const shape = {
+        id: 'ninjastar' + Date.now() + Math.random(),
+        x: tapMsgObject.x,
+        y: tapMsgObject.y,
+        type: 'NINJASTAR',
+        starLength: starLength,
         color: color,
         movement: tapMsgObject.movement,
         speed: tapMsgObject.speed,
