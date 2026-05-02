@@ -2656,6 +2656,15 @@
                 socket.on(endpoint + 'cameracamera' + 'reconnect', handlePeerReconnect);
                 socket.on(endpoint + 'cameracamera' + 'requestroster', handleRosterRequest);
                 socket.on(endpoint + 'cameracamera' + 'rosterresponse', handleRosterResponse);
+                socket.on(endpoint + 'cameracamera' + 'exists', handleCameraExists);
+            }
+
+            function handleCameraExists(data) {
+                console.log('🔍 Discovered existing camera:', data.userId);
+                // Request the roster to learn about all existing cameras
+                if (!peerConnections[data.userId]) {
+                    socket.emit(endpoint + 'cameracamera' + 'requestroster', { userId: socket.id });
+                }
             }
 
             function handleRosterResponse(data) {

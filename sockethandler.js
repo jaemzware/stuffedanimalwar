@@ -69,10 +69,13 @@ function initializeSocketHandlers(){
             case "line":
                 onBaseTapSocketEventLines(tapMsgObject);
                 break;
+            case "ninjastar":
+                onBaseTapSocketEventNinjaStar(tapMsgObject);
+                break;
             default:
                 onBaseTapSocketEventImages(tapMsgObject);
                 break;
-        }        
+        }
     });
     socket.on(pathSocketEvent, function(pathMsgObject){
         // Canvas-only now (RIP SVG path rendering)
@@ -1275,6 +1278,13 @@ function updateAnimalPreview(value) {
         // Show a line symbol
         previewContent.html('─').css({
             'font-size': '20px',
+            'background': 'none',
+            'color': '#1a1a2e'
+        });
+    } else if (value === 'ninjastar') {
+        // Show a ninja star symbol
+        previewContent.html('✦').css({
+            'font-size': '18px',
             'background': 'none',
             'color': '#1a1a2e'
         });
