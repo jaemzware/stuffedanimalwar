@@ -628,9 +628,9 @@ app.get('/rooms', function(req, res){
         `            <a class="room-button" href="/${endpoint}">${endpoint}</a>`
     ).join('\n');
 
-    // Generate enumerated jim001-jim100000 rooms
+    // Generate enumerated jim00001-jim00420 rooms
     let enumeratedLinksHtml = '';
-    for (let i = 1; i <= 100000; i++) {
+    for (let i = 1; i <= 420; i++) {
         const roomName = `jim${String(i).padStart(5, '0')}`;
         enumeratedLinksHtml += `            <a class="room-button" href="/${roomName}">${roomName}</a>\n`;
     }
@@ -779,7 +779,7 @@ app.get('/rooms', function(req, res){
 ${namedLinksHtml}
         </div>
 
-        <div class="section-title">Enumerated Rooms (jim00001 - jim100000)</div>
+        <div class="section-title">Enumerated Rooms (jim00001 - jim00420)</div>
         <div class="room-grid">
 ${enumeratedLinksHtml}
         </div>
