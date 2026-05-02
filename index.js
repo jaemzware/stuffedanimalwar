@@ -374,6 +374,7 @@ server.listen(listenPort, async () => {
 /**
  * ENDPOINTS: Each endpoint uses the custom .json of the same name. if there is not a custom .json of the same name, the fallback is jim.json]
  */
+const MAX_JIM_ROOMS = 420;
 const stuffedAnimalWarEndpoints = ['katie', 'jim', 'jacob','mark','nina','maddie','onboard','xxx'];
 const stuffedAnimalWarChatSocketEvent = 'chatmessage';
 const stuffedAnimalWarTapSocketEvent = 'tapmessage';
@@ -628,9 +629,9 @@ app.get('/rooms', function(req, res){
         `            <a class="room-button" href="/${endpoint}">${endpoint}</a>`
     ).join('\n');
 
-    // Generate enumerated jim00001-jim00420 rooms
+    // Generate enumerated jim rooms
     let enumeratedLinksHtml = '';
-    for (let i = 1; i <= 420; i++) {
+    for (let i = 1; i <= MAX_JIM_ROOMS; i++) {
         const roomName = `jim${String(i).padStart(5, '0')}`;
         enumeratedLinksHtml += `            <a class="room-button" href="/${roomName}">${roomName}</a>\n`;
     }
@@ -779,7 +780,7 @@ app.get('/rooms', function(req, res){
 ${namedLinksHtml}
         </div>
 
-        <div class="section-title">Enumerated Rooms (jim00001 - jim00420)</div>
+        <div class="section-title">Enumerated Rooms (jim00001 - jim${String(MAX_JIM_ROOMS).padStart(5, '0')})</div>
         <div class="room-grid">
 ${enumeratedLinksHtml}
         </div>
@@ -802,12 +803,17 @@ app.get('/camera-broadcaster', function(req, res){
  * WILDCARD ROUTES - replaces 100,008-iteration forEach to prevent memory exhaustion
  */
 
-// Helper: check if a path segment is a valid endpoint (named or jim000-jim99999)
+// Helper: check if a path segment is a valid endpoint (named or jim000-jimMAX_JIM_ROOMS)
 function isValidEndpoint(name) {
     if (!name) return false;
     if (stuffedAnimalWarEndpoints.includes(name)) return true;
-    // Also accept jim001 through jim99999 without storing them all in memory
-    return /^jim\d{3,5}$/.test(name);
+    // Also accept jim001 through jimMAX_JIM_ROOMS
+    const jimMatch = /^jim(\d+)$/.test(name);
+    if (jimMatch) {
+        const roomNum = parseInt(name.substring(3));
+        return roomNum >= 1 && roomNum <= MAX_JIM_ROOMS;
+    }
+    return false;
 }
 
 // Helper: get or initialize page counter for any endpoint
