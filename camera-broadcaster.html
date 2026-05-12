@@ -219,27 +219,11 @@
     </div>
 
     <script>
-        // ICE servers for WebRTC (same as template-camera.html)
+        // ICE servers for WebRTC
+        // On isolated networks: use empty array to rely on host candidates (direct LAN addresses)
+        // Public STUN/TURN servers are unreachable when offline
         const iceServers = {
-            iceServers: [
-                { urls: 'stun:stun.l.google.com:19302' },
-                { urls: 'stun:stun1.l.google.com:19302' },
-                {
-                    urls: 'turn:openrelay.metered.ca:80',
-                    username: 'openrelayproject',
-                    credential: 'openrelayproject'
-                },
-                {
-                    urls: 'turn:openrelay.metered.ca:443',
-                    username: 'openrelayproject',
-                    credential: 'openrelayproject'
-                },
-                {
-                    urls: 'turn:openrelay.metered.ca:443?transport=tcp',
-                    username: 'openrelayproject',
-                    credential: 'openrelayproject'
-                }
-            ],
+            iceServers: [],
             iceCandidatePoolSize: 10
         };
 
