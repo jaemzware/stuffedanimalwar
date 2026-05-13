@@ -31,6 +31,7 @@ const io = new Server(server, {
 });
 const path = require('path');
 const sharp = require('sharp');
+const statsLogger = require('./stats-logger');
 let listenPort =55556;
 
 // Server instance ID - changes on each restart to invalidate client sessions
@@ -1642,6 +1643,7 @@ io.on('connection', function(socket){
     // Initialize counter for dynamic endpoints (jim001-jim99999) that aren't pre-populated
     if (!(endpoint in stuffedAnimalWarPageCounters)) stuffedAnimalWarPageCounters[endpoint] = 0;
     stuffedAnimalWarPageCounters[endpoint]++;
+    statsLogger.updateEndpoints(stuffedAnimalWarPageCounters);
     let connectMsgObject = {
         CHATSERVERENDPOINT: endpoint,
         CHATSERVERPORT: listenPort,
@@ -1685,6 +1687,7 @@ io.on('connection', function(socket){
         let chatServerDate = new Date();
         let chatPstString = chatServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
         stuffedAnimalWarPageCounters[endpoint]--;
+        statsLogger.updateEndpoints(stuffedAnimalWarPageCounters);
         let disconnectMsgObject = {
             CHATSERVERENDPOINT: endpoint,
             CHATSERVERPORT: listenPort,
@@ -1769,24 +1772,31 @@ io.on('connection', function(socket){
 
     // Register listeners only for this socket's own endpoint (fixes memory leak)
     socket.on(endpoint + stuffedAnimalWarChatSocketEvent, function(chatMsgObject){
+        statsLogger.recordEvent('chat', endpoint);
         sendChatMessage(endpoint + stuffedAnimalWarChatSocketEvent, chatMsgObject);
     });
     socket.on(endpoint + stuffedAnimalWarTapSocketEvent, function(tapMsgObject){
+        statsLogger.recordEvent('tap', endpoint);
         sendTapMessage(endpoint + stuffedAnimalWarTapSocketEvent, tapMsgObject);
     });
     socket.on(endpoint + stuffedAnimalWarPathSocketEvent, (pathMsgObject) => {
+        statsLogger.recordEvent('path', endpoint);
         sendPathMessage(endpoint + stuffedAnimalWarPathSocketEvent, pathMsgObject);
     });
     socket.on(endpoint + stuffedAnimalWarPresentImageSocketEvent, (presentImageMsgObject) => {
+        statsLogger.recordEvent('presentImage', endpoint);
         sendPresentImageMessage(endpoint + stuffedAnimalWarPresentImageSocketEvent, presentImageMsgObject);
     });
     socket.on(endpoint + stuffedAnimalWarAudioControlSocketEvent, (audioControlMsgObject) => {
+        statsLogger.recordEvent('audioControl', endpoint);
         sendAudioControlMessage(endpoint + stuffedAnimalWarAudioControlSocketEvent, audioControlMsgObject);
     });
     socket.on(endpoint + stuffedAnimalWarVideoControlSocketEvent, (videoControlMsgObject) => {
+        statsLogger.recordEvent('videoControl', endpoint);
         sendVideoControlMessage(endpoint + stuffedAnimalWarVideoControlSocketEvent, videoControlMsgObject);
     });
     socket.on(endpoint + stuffedAnimalWarVoiceOfferSocketEvent, (offerMsgObject) => {
+        statsLogger.recordEvent('voiceOffer', endpoint);
         let voiceClientAddress = getClientIp(socket);
         let voicePstString = new Date().toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
         const reorderedOfferMsgObject = {
@@ -1807,6 +1817,7 @@ io.on('connection', function(socket){
         }
     });
     socket.on(endpoint + stuffedAnimalWarVoiceAnswerSocketEvent, (answerMsgObject) => {
+        statsLogger.recordEvent('voiceAnswer', endpoint);
         let voiceClientAddress = getClientIp(socket);
         let voicePstString = new Date().toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
         const reorderedAnswerMsgObject = {
@@ -1823,6 +1834,7 @@ io.on('connection', function(socket){
         io.to(answerMsgObject.to).emit(endpoint + stuffedAnimalWarVoiceAnswerSocketEvent, reorderedAnswerMsgObject);
     });
     socket.on(endpoint + stuffedAnimalWarVoiceIceCandidateSocketEvent, (iceMsgObject) => {
+        statsLogger.recordEvent('voiceIceCandidate', endpoint);
         let voiceClientAddress = getClientIp(socket);
         let voicePstString = new Date().toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
         const reorderedIceMsgObject = {
