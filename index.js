@@ -75,6 +75,44 @@ function loadBlockedIps() {
 // Load blocked IPs on startup
 loadBlockedIps();
 
+// ─── ENDPOINT HTML CACHE ────────────────────────────────────────────────────
+// Pre-rendered HTML per endpoint so bot floods never hit the filesystem
+const endpointHtmlCache = new Map();
+
+/**
+ * Pre-load all valid endpoint configs at startup.
+ * Falls back to jim.json for any jim### room without a custom config.
+ * Called once at boot; call again (e.g. after CRUD update) to refresh.
+ */
+const endpointConfigs = new Map();
+function preloadEndpointConfigs() {
+    endpointConfigs.clear();
+    endpointHtmlCache.clear(); // invalidate rendered HTML too
+    const jimConfigPath = path.join(__dirname, 'endpoints', 'jim.json');
+    const jimConfig = JSON.parse(fs.readFileSync(jimConfigPath, 'utf8'));
+
+    for (const name of stuffedAnimalWarEndpoints) {
+        try {
+            const cfg = JSON.parse(fs.readFileSync(path.join(__dirname, 'endpoints', name + '.json'), 'utf8'));
+            endpointConfigs.set(name, cfg);
+        } catch {
+            const fallback = { ...jimConfig, endpoint: name, masterAlias: name.toUpperCase() };
+            endpointConfigs.set(name, fallback);
+        }
+    }
+    for (let i = 1; i <= MAX_JIM_ROOMS; i++) {
+        const name = `jim${String(i).padStart(5, '0')}`;
+        try {
+            const cfg = JSON.parse(fs.readFileSync(path.join(__dirname, 'endpoints', name + '.json'), 'utf8'));
+            endpointConfigs.set(name, cfg);
+        } catch {
+            const fallback = { ...jimConfig, endpoint: name, masterAlias: name.toUpperCase() };
+            endpointConfigs.set(name, fallback);
+        }
+    }
+    console.log(`[CONFIG] Preloaded ${endpointConfigs.size} endpoint configs`);
+}
+
 // Watch for changes to blocked-ips.json (hot-reload)
 fs.watch(BLOCKED_IPS_FILE, { persistent: false }, (eventType) => {
     if (eventType === 'change') {
@@ -404,6 +442,9 @@ const activeBroadcasters = new Map();
 
 // Load canvas template HTML at startup (RIP SVG - we canvas-only now)
 let templateCanvasHtml = fs.readFileSync(path.join(__dirname, 'template-canvas.html'), 'utf8');
+
+// Preload all endpoint configs now that MAX_JIM_ROOMS and stuffedAnimalWarEndpoints are defined
+preloadEndpointConfigs();
 // Load camera template HTML
 let templateCameraHtml = fs.readFileSync(path.join(__dirname, 'template-camera.html'), 'utf8');
 
@@ -829,18 +870,16 @@ function getPageCounter(endpoint) {
 app.get('/:endpoint', ipBlockMiddleware, function(req, res, next){
     const endpoint = req.params.endpoint;
     if (!isValidEndpoint(endpoint)) return next();
+
+    // ── Serve from HTML cache if available (zero file I/O on repeat hits) ──
+    if (endpointHtmlCache.has(endpoint)) {
+        return res.send(endpointHtmlCache.get(endpoint));
+    }
+
     try {
-        const configPath = path.join(__dirname, 'endpoints', endpoint + '.json');
-        let configData;
-        try {
-            configData = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-        } catch (fileError) {
-            console.log(`No custom JSON found for endpoint ${endpoint}, falling back to jim.json`);
-            const jimConfigPath = path.join(__dirname, 'endpoints', 'jim.json');
-            configData = JSON.parse(fs.readFileSync(jimConfigPath, 'utf8'));
-            configData.endpoint = endpoint;
-            configData.masterAlias = endpoint.toUpperCase();
-        }
+        const configData = endpointConfigs.get(endpoint);
+        if (!configData) return next();
+
         autoPopulateMedia(configData.mediaObject);
         let html = templateCanvasHtml;
         console.log(`Serving ${endpoint} in CANVAS mode`);
@@ -852,6 +891,8 @@ app.get('/:endpoint', ipBlockMiddleware, function(req, res, next){
         html = html.replace('{{RESPONSES_OBJECT}}', JSON.stringify(configData.responsesObject, null, 2));
         html = html.replace('{{PASSWORD}}', configData.password || '');
         html = html.replace('{{SERVER_INSTANCE_ID}}', SERVER_INSTANCE_ID);
+
+        endpointHtmlCache.set(endpoint, html); // cache so next hit is instant
         res.send(html);
     } catch (error) {
         console.error(`Error generating page for endpoint ${endpoint}:`, error);
@@ -1047,6 +1088,10 @@ app.post('/api/endpoint/:name', checkCrudAuth, function(req, res){
 
         // Write the updated configuration
         fs.writeFileSync(configPath, JSON.stringify(configData, null, 4));
+
+        // Invalidate caches so the next request picks up the new config
+        preloadEndpointConfigs();
+        console.log(`[CONFIG] Reloaded endpoint configs after CRUD update to ${endpointName}`);
 
         res.json({
             success: true,
@@ -1624,6 +1669,23 @@ io.use((socket, next) => {
         console.log(`[IP-BLOCK] Blocked WebSocket connection from ${clientIp}`);
         return next(new Error('Access denied'));
     }
+    next();
+});
+
+// ─── SOCKET.IO CONNECTION RATE LIMITER ──────────────────────────────────────
+// Allows at most 1 new connection per IP per 500ms — kills bot socket floods
+// without affecting real users (who rarely open >2 connections/sec)
+const connRateMap = new Map();
+setInterval(() => connRateMap.clear(), 60 * 1000); // prune every minute
+io.use((socket, next) => {
+    const ip = getClientIp(socket);
+    const now = Date.now();
+    const last = connRateMap.get(ip) || 0;
+    if (now - last < 500) {
+        console.log(`[RATE] Throttled WebSocket connection from ${ip}`);
+        return next(new Error('Rate limited'));
+    }
+    connRateMap.set(ip, now);
     next();
 });
 
