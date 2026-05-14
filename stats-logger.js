@@ -61,6 +61,17 @@ class StatsLogger {
 
     startLogging() {
         setInterval(() => {
+            // Total active connections
+            const totalConnections = Object.values(this.stats.endpoints).reduce(
+                (sum, ep) => sum + ep.connections, 0
+            );
+
+            // Only log if there's activity
+            if (totalConnections === 0) {
+                this.reset();
+                return;
+            }
+
             const now = new Date();
             const pstTime = now.toLocaleString("en-US", {
                 timeZone: "America/Los_Angeles",
@@ -72,44 +83,27 @@ class StatsLogger {
                 second: '2-digit'
             });
 
-            let logMessage = `\n========== [${pstTime}] STATS ==========\n`;
-
-            // Total active connections
-            const totalConnections = Object.values(this.stats.endpoints).reduce(
-                (sum, ep) => sum + ep.connections, 0
-            );
-            logMessage += `Total Connections: ${totalConnections}\n`;
+            let logMessage = `[${pstTime}] Connections: ${totalConnections}`;
 
             // Active rooms/endpoints
             const activeEndpoints = Object.keys(this.stats.endpoints)
-                .filter(ep => this.stats.endpoints[ep].connections > 0);
+                .filter(ep => this.stats.endpoints[ep].connections > 0)
+                .sort();
 
             if (activeEndpoints.length > 0) {
-                logMessage += `\nActive Rooms:\n`;
-                activeEndpoints.forEach(endpoint => {
-                    const ep = this.stats.endpoints[endpoint];
-                    logMessage += `  ${endpoint}: ${ep.connections} user(s), ${ep.events} event(s)\n`;
-                });
-            } else {
-                logMessage += `\nActive Rooms: None\n`;
+                logMessage += ' | Rooms: ';
+                logMessage += activeEndpoints
+                    .map(endpoint => {
+                        const ep = this.stats.endpoints[endpoint];
+                        return `${endpoint}(${ep.connections}u,${ep.events}e)`;
+                    })
+                    .join(', ');
             }
 
-            // Event breakdown
-            const totalEvents = Object.values(this.stats.events).reduce((a, b) => a + b, 0);
-            if (totalEvents > 0) {
-                logMessage += `\nEvents (last 60s): ${totalEvents} total\n`;
-                Object.entries(this.stats.events).forEach(([type, count]) => {
-                    if (count > 0) {
-                        logMessage += `  ${type}: ${count}\n`;
-                    }
-                });
-            }
-
-            logMessage += `==========================================\n`;
+            logMessage += '\n';
 
             // Append to log file
             fs.appendFileSync(LOG_FILE, logMessage);
-            console.log(`[STATS] Logged to output.log - ${totalConnections} connections, ${totalEvents} events`);
 
             // Reset event counters for next interval
             this.reset();
