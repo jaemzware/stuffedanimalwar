@@ -30,6 +30,39 @@ const io = new Server(server, {
     }
 });
 const path = require('path');
+
+// ─── MQTT TEMPERATURE MONITORING (Raspberry Pi only) ─────────────────────
+// Only initialize MQTT if running on Raspberry Pi (detected by thermal zone file)
+if (fs.existsSync('/sys/class/thermal/thermal_zone0/temp')) {
+    console.log('[MQTT] Raspberry Pi detected, initializing temperature monitoring');
+    const mqtt = require('mqtt');
+    const mqttClient = mqtt.connect('mqtt://localhost');
+
+    mqttClient.on('connect', () => {
+        console.log('[MQTT] Connected to Mosquitto broker');
+        mqttClient.subscribe('pi/temperature', (err) => {
+            if (err) console.error('[MQTT] Subscribe error:', err);
+            else console.log('[MQTT] Subscribed to pi/temperature');
+        });
+    });
+
+    mqttClient.on('message', (topic, message) => {
+        if (topic === 'pi/temperature') {
+            const celsius = parseFloat(message.toString());
+            const fahrenheit = (celsius * 9/5) + 32;
+
+            io.emit('temperature', {
+                celsius: Math.round(celsius * 10) / 10,
+                fahrenheit: Math.round(fahrenheit * 10) / 10,
+                timestamp: new Date().toISOString()
+            });
+        }
+    });
+
+    mqttClient.on('error', (err) => {
+        console.error('[MQTT] Connection error:', err);
+    });
+}
 const sharp = require('sharp');
 const statsLogger = require('./stats-logger');
 let listenPort =55556;
