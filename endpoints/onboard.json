@@ -1,5 +1,6 @@
 {
     "endpoint": "onboard",
+    "password": "",
     "masterAlias": "ONBOARD",
     "unspecifiedAlias": "samsquanch",
     "stuffedAnimalMediaObject": {
@@ -97,11 +98,8 @@
     },
     "mediaObject": {
         "songspath": "songs/",
-        "_comment": "scanPath = filesystem path for server to scan, urlPath = web URL where files are served",
-        "videosScanPath": "/home/jaemzware/analogarchive/music/",
         "videospath": "https://analogarchive.com/",
-        "photosScanPath": "/home/jaemzware/analogarchive/music/",
-        "photospath": "https://analogarchive.com/",
+        "photospath": "photos/",
         "songs": [
             {
                 "file": "pixies-imamazed-brokenface-demo.mp3",
@@ -113,10 +111,14 @@
             }
         ],
         "photos": [
-
+            {
+                "file": "bootsmurderedout.PNG",
+                "title": "BOOTS MURDRED OUT"
+            }
         ],
-        "videos": [
-        ]
+        "videos": [],
+        "videosScanPath": "/home/jaemzware/analogarchive/music/",
+        "photosScanPath": "/home/jaemzware/analogarchive/music/"
     },
     "responsesObject": {
         "responses": [
