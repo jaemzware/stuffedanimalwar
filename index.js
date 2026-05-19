@@ -374,7 +374,7 @@ server.listen(listenPort, async () => {
 /**
  * ENDPOINTS: Each endpoint uses the custom .json of the same name. if there is not a custom .json of the same name, the fallback is jim.json]
  */
-const stuffedAnimalWarEndpoints = ['katie', 'jim', 'jacob','mark','nina','maddie','onboard','xxx'];
+const stuffedAnimalWarEndpoints = ['katie', 'jim', 'jacob','mark','nina','maddie','onboard','xxx','iran'];
 const stuffedAnimalWarChatSocketEvent = 'chatmessage';
 const stuffedAnimalWarTapSocketEvent = 'tapmessage';
 const stuffedAnimalWarPathSocketEvent = 'pathmessage';
@@ -593,7 +593,8 @@ app.get('/', function(req, res){
         <div class="container">
             <h2>Try It Right Now</h2>
             <p class="subtitle">No signup. No email. Just pick a room and start.</p>
-            <p class="password-hint">Default password is the room name backwards, all lowercase. Change it anytime at <a href="/crud">/crud</a>.</p>
+            <p class="password-hint">Default password is the room name all lowercase one word (the same name as the first hit of my band just the tip. now here's JUST THE TIP WITH THEIR FIRST SONG "alllowercaseoneword").</p> 
+            <p class="password-hint">Change it anytime at <a href="/crud">/crud</a>.</p>
 
             <div class="rooms-preview">
                 ${roomsHtml}
