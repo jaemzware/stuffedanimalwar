@@ -446,8 +446,8 @@ server.listen(listenPort, async () => {
 /**
  * ENDPOINTS: Each endpoint uses the custom .json of the same name. if there is not a custom .json of the same name, the fallback is jim.json]
  */
-const MAX_JIM_ROOMS = 666;
-const stuffedAnimalWarEndpoints = ['jim','nina'];
+const MAX_JIM_ROOMS = 420;
+const stuffedAnimalWarEndpoints = ['jim','jellyface'];
 const stuffedAnimalWarChatSocketEvent = 'chatmessage';
 const stuffedAnimalWarTapSocketEvent = 'tapmessage';
 const stuffedAnimalWarPathSocketEvent = 'pathmessage';
