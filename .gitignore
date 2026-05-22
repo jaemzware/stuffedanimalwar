@@ -104,8 +104,6 @@ public
 .env
 
 deploy*
-xxx.json
-endpoints/xxx.json
 
 # Thumbnail cache
 .thumbcache/

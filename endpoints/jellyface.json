@@ -1,10 +1,10 @@
 {
-    "endpoint": "mark",
-    "password": "kram",
-    "masterAlias": "MARK",
-    "unspecifiedAlias": "anonymous",
+    "endpoint": "jellyface",
+    "password": "ecafyllej",
+    "masterAlias": "JELLYFACE",
+    "unspecifiedAlias": "douchebag",
     "stuffedAnimalMediaObject": {
-        "backgroundimage": "https://jaemzware.com/media/stuffedanimalwar/sea.jpg",
+        "backgroundimage": "photos/IMG_5269.JPG",
         "animals": [
             {
                 "file": "animals/badger.png",
@@ -99,7 +99,7 @@
     "mediaObject": {
         "songspath": "https://analogarchive.com/b2proxy/analog/",
         "videospath": "https://jaemzware.com/media/trump/videos/",
-        "photospath": "https://jaemzware.com/media/stuffedanimalwar/mark/",
+        "photospath": "https://jaemzware.com/media/stuffedanimalwar/fromkittehwithlove/",
         "songs": [
             {
                 "file": "Lost%20Highway/losthighwaysoundtrack-sidea.mp3",
@@ -120,16 +120,240 @@
         ],
         "photos": [
             {
-                "file": "mark1.jpg",
-                "title": "deck"
+                "file": "IMG_0024.JPG",
+                "title": "photo by jim"
             },
             {
-                "file": "mark2.jpg",
-                "title": "ska"
+                "file": "IMG_0168.JPG",
+                "title": "photo by jim"
             },
             {
-                "file": "mark3.jpg",
-                "title": "metal"
+                "file": "IMG_0197.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_0198.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_0199.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_0334.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_0338.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_0396.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_0397.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_0405.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_0406.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_0407.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_0560.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_0630.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_0632.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_0634.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_0805.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_2392.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_2405.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_2500.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_2538.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_2558.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_2559.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_2560.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_2561.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_2562.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_2563.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_2706.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_2708.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_2711.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_2715.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_2716.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_2720.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_2724.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_2731.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_2735.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_2737.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_2741.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_2771.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_8233.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_8303.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_8311.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_8361.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_8741.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_8765.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_8781.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_8784.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_8893.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_9362.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_9363.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_9376.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_9381.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_9383.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_9386.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_9389.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_9394.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_9538.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_9567.JPG",
+                "title": "photo by jim"
+            },
+            {
+                "file": "IMG_9784.JPG",
+                "title": "photo by jim"
             }
         ],
         "videos": [
@@ -239,6 +463,9 @@
             },
             {
                 "response": "thats cool"
+            },
+            {
+                "response": "these boots were made for walkin"
             },
             {
                 "response": "thats what she said"
