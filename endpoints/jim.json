@@ -99,8 +99,12 @@
     "mediaObject": {
         "songspath": "songs/",
         "videospath": "videos/",
-        "photospath": "animals/",
+        "photospath": "photos/",
         "songs": [
+            {
+                "file": "ahha-takeonme-bw-loveisreason.mp3",
+                "title": "AHA Take On Me b/w Love is Reason"
+            },
             {
                 "file": "pixies-imamazed-brokenface-demo.mp3",
                 "title": "Pixies - I'm Amazed / Broken Face"
@@ -112,98 +116,34 @@
         ],
         "photos": [
             {
-                "file": "badger.png",
-                "title": "Badger"
+                "file": "boots.jpg",
+                "title": "BOOTS"
             },
             {
-                "file": "bat.png",
-                "title": "Bat"
+                "file": "IMG_3512.JPG",
+                "title": "3512"
             },
             {
-                "file": "bear.png",
-                "title": "Bear"
+                "file": "IMG_5269.JPG",
+                "title": "5269"
             },
             {
-                "file": "birds.png",
-                "title": "Birds"
+                "file": "jim-boneless.JPG",
+                "title": "BONELESS"
             },
             {
-                "file": "bison.png",
-                "title": "Bison"
+                "file": "space.jpg",
+                "title": "SPACE"
             },
             {
-                "file": "boar.png",
-                "title": "Boar"
-            },
-            {
-                "file": "deer.png",
-                "title": "Buck"
-            },
-            {
-                "file": "cats.png",
-                "title": "Cats"
-            },
-            {
-                "file": "cheetah.png",
-                "title": "Cheetah"
-            },
-            {
-                "file": "chickens.png",
-                "title": "Chickens"
-            },
-            {
-                "file": "crocodiles.png",
-                "title": "Crocodiles"
-            },
-            {
-                "file": "crow.png",
-                "title": "Crow"
-            },
-            {
-                "file": "dogs.png",
-                "title": "Dog"
-            },
-            {
-                "file": "duck.png",
-                "title": "Duck"
-            },
-            {
-                "file": "eagle.png",
-                "title": "Eagle"
-            },
-            {
-                "file": "frog.png",
-                "title": "Frog"
-            },
-            {
-                "file": "giraffe.png",
-                "title": "Giraffe"
-            },
-            {
-                "file": "goldfish.png",
-                "title": "Goldfish"
-            },
-            {
-                "file": "gorilla.png",
-                "title": "Gorilla"
-            },
-            {
-                "file": "monkey.png",
-                "title": "Monkey"
-            },
-            {
-                "file": "moose.png",
-                "title": "Moose"
-            },
-            {
-                "file": "seagull.png",
-                "title": "Seagull"
+                "file": "stuffedanimalwarfinal.jpg",
+                "title": "FINAL"
             }
         ],
         "videos": [
             {
                 "file": "jimskate.mp4",
-                "title": "Jim Skate",
+                "title": "JIM SKATE",
                 "poster": "stuffedanimalmountain.jpg"
             }
         ]
@@ -356,6 +296,9 @@
             },
             {
                 "response": "no, just no"
+            },
+            {
+                "response": "hygge"
             }
         ]
     }
