@@ -7,7 +7,7 @@
 # - AP mode for "in the woods" use (no internet needed)
 # - Home WiFi mode for local network access
 #
-# Supports: Pi Zero 2 W, Pi 5, and other models
+# Supports: Pi Zero 2 W,
 
 set -e  # Exit on error
 
