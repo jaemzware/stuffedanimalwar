@@ -1,10 +1,10 @@
 {
-    "endpoint": "jim",
-    "password": "mij",
-    "masterAlias": "JIM",
-    "unspecifiedAlias": "mr nobody",
+    "endpoint": "blackpanthers",
+    "password": "blackpanthers",
+    "masterAlias": "BLACKPANTHER",
+    "unspecifiedAlias": "loser",
     "stuffedAnimalMediaObject": {
-        "backgroundimage": "photos/space.jpg",
+        "backgroundimage": "photos/IMG_5269.JPG",
         "animals": [
             {
                 "file": "animals/badger.png",
@@ -100,46 +100,53 @@
         "songspath": "songs/",
         "videospath": "videos/",
         "photospath": "photos/",
+
+
         "songs": [
             {
                 "file": "ahha-takeonme-bw-loveisreason.mp3",
-                "title": "AHA Take On Me b/w Love is Reason"
+                "title": "Take On Me, Bitch"
             },
             {
                 "file": "pixies-imamazed-brokenface-demo.mp3",
-                "title": "Pixies - I'm Amazed / Broken Face"
+                "title": "Broken Face"
             },
             {
                 "file": "zeke-cheer.mp3",
-                "title": "Zeke show applause"
+                "title": "Applause"
             }
         ],
+
         "photos": [
             {
                 "file": "boots.jpg",
-                "title": "BOOTS"
+                "title": "Boots on Patrol"
             },
             {
                 "file": "IMG_3512.JPG",
-                "title": "3512"
+                "title": "IMG_3512.JPG"
             },
             {
                 "file": "IMG_5269.JPG",
-                "title": "5269"
+                "title": "IMG_5269.JPG"
             },
             {
                 "file": "jim-boneless.JPG",
-                "title": "BONELESS"
+                "title": "jim-boneless.JPG"
             },
             {
                 "file": "space.jpg",
-                "title": "SPACE"
+                "title": "space.jpg"
+            },
+            {
+                "file": "stuffedanimalwarfinal.jpg",
+                "title": "stuffedanimalwarfinal.jpg"
             }
         ],
         "videos": [
             {
                 "file": "jimskate.mp4",
-                "title": "JIM SKATE",
+                "title": "12th Man Loves Greta",
                 "poster": "stuffedanimalmountain.jpg"
             }
         ]
@@ -240,6 +247,9 @@
                 "response": "thats cool"
             },
             {
+                "response": "these boots were made for walkin"
+            },
+            {
                 "response": "thats what she said"
             },
             {
@@ -288,19 +298,7 @@
                 "response": "youre wrong"
             },
             {
-                "response": "get a life"
-            },
-            {
-                "response": "no, just no"
-            },
-            {
-                "response": "hygge"
-            },
-            {
-                "response": "get hygge with it"
-            },
-            {
-                "response": "Joe and the juice has great wifi"
+                "response": "youre complicit"
             }
         ]
     }
