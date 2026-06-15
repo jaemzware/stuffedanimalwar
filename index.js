@@ -885,7 +885,7 @@ function isValidEndpoint(name) {
     // Also accept denmark001 through denmarkMAX_DENMARK_ROOMS
     const denmarkMatch = /^denmark(\d+)$/.test(name);
     if (denmarkMatch) {
-        const roomNum = parseInt(name.substring(3));
+        const roomNum = parseInt(name.substring(7));
         return roomNum >= 1 && roomNum <= MAX_DENMARK_ROOMS;
     }
     return false;
