@@ -114,32 +114,32 @@ const endpointHtmlCache = new Map();
 
 /**
  * Pre-load all valid endpoint configs at startup.
- * Falls back to jim.json for any jim### room without a custom config.
+ * Falls back to denmark.json for any denmark### room without a custom config.
  * Called once at boot; call again (e.g. after CRUD update) to refresh.
  */
 const endpointConfigs = new Map();
 function preloadEndpointConfigs() {
     endpointConfigs.clear();
     endpointHtmlCache.clear(); // invalidate rendered HTML too
-    const jimConfigPath = path.join(__dirname, 'endpoints', 'jim.json');
-    const jimConfig = JSON.parse(fs.readFileSync(jimConfigPath, 'utf8'));
+    const denmarkConfigPath = path.join(__dirname, 'endpoints', 'denmark.json');
+    const denmarkConfig = JSON.parse(fs.readFileSync(denmarkConfigPath, 'utf8'));
 
     for (const name of stuffedAnimalWarEndpoints) {
         try {
             const cfg = JSON.parse(fs.readFileSync(path.join(__dirname, 'endpoints', name + '.json'), 'utf8'));
             endpointConfigs.set(name, cfg);
         } catch {
-            const fallback = { ...jimConfig, endpoint: name, masterAlias: name.toUpperCase() };
+            const fallback = { ...denmarkConfig, endpoint: name, masterAlias: name.toUpperCase() };
             endpointConfigs.set(name, fallback);
         }
     }
-    for (let i = 1; i <= MAX_JIM_ROOMS; i++) {
-        const name = `jim${String(i).padStart(5, '0')}`;
+    for (let i = 1; i <= MAX_DENMARK_ROOMS; i++) {
+        const name = `denmark${String(i).padStart(5, '0')}`;
         try {
             const cfg = JSON.parse(fs.readFileSync(path.join(__dirname, 'endpoints', name + '.json'), 'utf8'));
             endpointConfigs.set(name, cfg);
         } catch {
-            const fallback = { ...jimConfig, endpoint: name, masterAlias: name.toUpperCase() };
+            const fallback = { ...denmarkConfig, endpoint: name, masterAlias: name.toUpperCase() };
             endpointConfigs.set(name, fallback);
         }
     }
@@ -444,9 +444,9 @@ server.listen(listenPort, async () => {
 });
 
 /**
- * ENDPOINTS: Each endpoint uses the custom .json of the same name. if there is not a custom .json of the same name, the fallback is jim.json]
+ * ENDPOINTS: Each endpoint uses the custom .json of the same name. if there is not a custom .json of the same name, the fallback is denmark.json]
  */
-const MAX_JIM_ROOMS = 8;
+const MAX_DENMARK_ROOMS = 8;
 const stuffedAnimalWarEndpoints = ['denmark','greta','blackpanthers'];
 const stuffedAnimalWarChatSocketEvent = 'chatmessage';
 const stuffedAnimalWarTapSocketEvent = 'tapmessage';
@@ -469,14 +469,14 @@ const stuffedAnimalWarPageCounters = stuffedAnimalWarEndpoints.reduce((acc, page
 // Track active camera broadcasters (for /camera-broadcaster page)
 const activeBroadcasters = new Map();
 
-//add stuffedAnimalWarEndpoints jim000 through jim999
+//add stuffedAnimalWarEndpoints denmark000 through denmark999
 // NOTE: We no longer push 100k entries into the array - use isValidEndpoint() regex instead
 
 
 // Load canvas template HTML at startup (RIP SVG - we canvas-only now)
 let templateCanvasHtml = fs.readFileSync(path.join(__dirname, 'template-canvas.html'), 'utf8');
 
-// Preload all endpoint configs now that MAX_JIM_ROOMS and stuffedAnimalWarEndpoints are defined
+// Preload all endpoint configs now that MAX_DENMARK_ROOMS and stuffedAnimalWarEndpoints are defined
 preloadEndpointConfigs();
 // Load camera template HTML
 let templateCameraHtml = fs.readFileSync(path.join(__dirname, 'template-camera.html'), 'utf8');
@@ -704,10 +704,10 @@ app.get('/rooms', function(req, res){
         `            <a class="room-button" href="/${endpoint}">${endpoint}</a>`
     ).join('\n');
 
-    // Generate enumerated jim rooms
+    // Generate enumerated denmark rooms
     let enumeratedLinksHtml = '';
-    for (let i = 1; i <= MAX_JIM_ROOMS; i++) {
-        const roomName = `jim${String(i).padStart(5, '0')}`;
+    for (let i = 1; i <= MAX_DENMARK_ROOMS; i++) {
+        const roomName = `denmark${String(i).padStart(5, '0')}`;
         enumeratedLinksHtml += `            <a class="room-button" href="/${roomName}">${roomName}</a>\n`;
     }
 
@@ -855,7 +855,7 @@ app.get('/rooms', function(req, res){
 ${namedLinksHtml}
         </div>
 
-        <div class="section-title">Enumerated Rooms (jim00001 - jim${String(MAX_JIM_ROOMS).padStart(5, '0')})</div>
+        <div class="section-title">Enumerated Rooms (denmark00001 - denmark${String(MAX_DENMARK_ROOMS).padStart(5, '0')})</div>
         <div class="room-grid">
 ${enumeratedLinksHtml}
         </div>
@@ -872,21 +872,21 @@ app.get('/camera-broadcaster', function(req, res){
 });
 
 /**
- * 1 - define endpoints to serve custom stuffedanimalwar pages (e.g. jim.json)
+ * 1 - define endpoints to serve custom stuffedanimalwar pages (e.g. denmark.json)
  */
 /**
  * WILDCARD ROUTES - replaces 100,008-iteration forEach to prevent memory exhaustion
  */
 
-// Helper: check if a path segment is a valid endpoint (named or jim000-jimMAX_JIM_ROOMS)
+// Helper: check if a path segment is a valid endpoint (named or denmark000-denmarkMAX_DENMARK_ROOMS)
 function isValidEndpoint(name) {
     if (!name) return false;
     if (stuffedAnimalWarEndpoints.includes(name)) return true;
-    // Also accept jim001 through jimMAX_JIM_ROOMS
-    const jimMatch = /^jim(\d+)$/.test(name);
-    if (jimMatch) {
+    // Also accept denmark001 through denmarkMAX_DENMARK_ROOMS
+    const denmarkMatch = /^denmark(\d+)$/.test(name);
+    if (denmarkMatch) {
         const roomNum = parseInt(name.substring(3));
-        return roomNum >= 1 && roomNum <= MAX_JIM_ROOMS;
+        return roomNum >= 1 && roomNum <= MAX_DENMARK_ROOMS;
     }
     return false;
 }
@@ -1735,7 +1735,7 @@ io.on('connection', function(socket){
 
     console.log(`[SERVER] 🔌 New connection - Socket ID: ${socket.id}, Endpoint: ${endpoint || 'NONE'}, IP: ${chatClientAddress}`);
 
-    // Initialize counter for dynamic endpoints (jim001-jim99999) that aren't pre-populated
+    // Initialize counter for dynamic endpoints (denmark001-denmark99999) that aren't pre-populated
     if (!(endpoint in stuffedAnimalWarPageCounters)) stuffedAnimalWarPageCounters[endpoint] = 0;
     stuffedAnimalWarPageCounters[endpoint]++;
     statsLogger.updateEndpoints(stuffedAnimalWarPageCounters);
