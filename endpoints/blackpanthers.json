@@ -4222,21 +4222,13 @@
         ],
         "videos": [
             {
-                "file": "southgaterollerrink.2026.03.26.mp4",
-                "title": "southgaterollerrink.2026.03.26.mp4"
-            },
-            {
                 "file": "rhodes 2000.mp4",
-                "title": "rhodes 2000.mp4"
+                "title": "rhodes 2000.mp4",
+                "poster": "stuffedanimalmountain.jpg"
             },
             {
                 "file": "GH010408.MP4",
                 "title": "GH010408.MP4",
-                "poster": "stuffedanimalmountain.jpg"
-            },
-            {
-                "file": "rhodes 2000.mp4",
-                "title": "rhodes 2000.mp4",
                 "poster": "stuffedanimalmountain.jpg"
             },
             {
@@ -4312,11 +4304,6 @@
             {
                 "file": "GH010423.MP4",
                 "title": "GH010423.MP4",
-                "poster": "stuffedanimalmountain.jpg"
-            },
-            {
-                "file": "godhelpthegirlbyjim.mp4",
-                "title": "godhelpthegirlbyjim.mp4",
                 "poster": "stuffedanimalmountain.jpg"
             },
             {
