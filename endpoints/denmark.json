@@ -4314,9 +4314,89 @@
         ],
         "videos": [
             {
-                "file": "jimskate.mp4",
-                "title": "JIM SKATE",
-                "poster": "stuffedanimalmountain.jpg"
+            "file": "GH010408.MP4",
+            "title": "GH010408.MP4",
+            "poster": "stuffedanimalmountain.jpg"
+            },
+            {
+            "file": "GH010409.MP4",
+            "title": "GH010409.MP4",
+            "poster": "stuffedanimalmountain.jpg"
+            },
+            {
+            "file": "GH010410.MP4",
+            "title": "GH010410.MP4",
+            "poster": "stuffedanimalmountain.jpg"
+            },
+            {
+            "file": "GH010411.MP4",
+            "title": "GH010411.MP4",
+            "poster": "stuffedanimalmountain.jpg"
+            },
+            {
+            "file": "GH010412.MP4",
+            "title": "GH010412.MP4",
+            "poster": "stuffedanimalmountain.jpg"
+            },
+            {
+            "file": "GH010413.MP4",
+            "title": "GH010413.MP4",
+            "poster": "stuffedanimalmountain.jpg"
+            },
+            {
+            "file": "GH010414.MP4",
+            "title": "GH010414.MP4",
+            "poster": "stuffedanimalmountain.jpg"
+            },
+            {
+            "file": "GH010416.MP4",
+            "title": "GH010416.MP4",
+            "poster": "stuffedanimalmountain.jpg"
+            },
+            {
+            "file": "GH010417.MP4",
+            "title": "GH010417.MP4",
+            "poster": "stuffedanimalmountain.jpg"
+            },
+            {
+            "file": "GH010418.MP4",
+            "title": "GH010418.MP4",
+            "poster": "stuffedanimalmountain.jpg"
+            },
+            {
+            "file": "GH010419.MP4",
+            "title": "GH010419.MP4",
+            "poster": "stuffedanimalmountain.jpg"
+            },
+            {
+            "file": "GH010420.MP4",
+            "title": "GH010420.MP4",
+            "poster": "stuffedanimalmountain.jpg"
+            },
+            {
+            "file": "GH010421hella close to my face.MP4",
+            "title": "GH010421hella close to my face.MP4",
+            "poster": "stuffedanimalmountain.jpg"
+            },
+            {
+            "file": "GH010422.MP4",
+            "title": "GH010422.MP4",
+            "poster": "stuffedanimalmountain.jpg"
+            },
+            {
+            "file": "GH010423.MP4",
+            "title": "GH010423.MP4",
+            "poster": "stuffedanimalmountain.jpg"
+            },
+            {
+            "file": "jimskate.mp4",
+            "title": "jimskate.mp4",
+            "poster": "stuffedanimalmountain.jpg"
+            },
+            {
+            "file": "ocean shores may 26 to may 28 2022.mp4",
+            "title": "ocean shores may 26 to may 28 2022.mp4",
+            "poster": "stuffedanimalmountain.jpg"
             }
         ]
     },
