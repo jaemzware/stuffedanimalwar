@@ -3356,10 +3356,6 @@
                 "title": "paint the monolith white.PNG"
             },
             {
-                "file": "rhodes 2000.mp4",
-                "title": "rhodes 2000.mp4"
-            },
-            {
                 "file": "ricky board.JPG",
                 "title": "ricky board.JPG"
             },
@@ -3390,10 +3386,6 @@
             {
                 "file": "Screenshot 2026-01-16 at 6.24.05 AM.png",
                 "title": "Screenshot 2026-01-16 at 6.24.05 AM.png"
-            },
-            {
-                "file": "southgaterollerrink.2026.03.26.mp4",
-                "title": "southgaterollerrink.2026.03.26.mp4"
             },
             {
                 "file": "space.jpg",
@@ -3470,10 +3462,6 @@
             {
                 "file": "GHAL7943.PNG",
                 "title": "GHAL7943.PNG"
-            },
-            {
-                "file": "godhelpthegirlbyjim.mp4",
-                "title": "godhelpthegirlbyjim.mp4"
             },
             {
                 "file": "GOMW9340.PNG",
@@ -4242,84 +4230,99 @@
         ],
         "videos": [
             {
-            "file": "GH010408.MP4",
-            "title": "GH010408.MP4",
-            "poster": "stuffedanimalmountain.jpg"
+                "file": "GH010408.MP4",
+                "title": "GH010408.MP4",
+                "poster": "stuffedanimalmountain.jpg"
             },
             {
-            "file": "GH010409.MP4",
-            "title": "GH010409.MP4",
-            "poster": "stuffedanimalmountain.jpg"
+                "file": "rhodes 2000.mp4",
+                "title": "rhodes 2000.mp4",
+                "poster": "stuffedanimalmountain.jpg"
             },
             {
-            "file": "GH010410.MP4",
-            "title": "GH010410.MP4",
-            "poster": "stuffedanimalmountain.jpg"
+                "file": "southgaterollerrink.2026.03.26.mp4",
+                "title": "southgaterollerrink.2026.03.26.mp4",
+                "poster": "stuffedanimalmountain.jpg"
             },
             {
-            "file": "GH010411.MP4",
-            "title": "GH010411.MP4",
-            "poster": "stuffedanimalmountain.jpg"
+                "file": "GH010409.MP4",
+                "title": "GH010409.MP4",
+                "poster": "stuffedanimalmountain.jpg"
             },
             {
-            "file": "GH010412.MP4",
-            "title": "GH010412.MP4",
-            "poster": "stuffedanimalmountain.jpg"
+                "file": "GH010410.MP4",
+                "title": "GH010410.MP4",
+                "poster": "stuffedanimalmountain.jpg"
             },
             {
-            "file": "GH010413.MP4",
-            "title": "GH010413.MP4",
-            "poster": "stuffedanimalmountain.jpg"
+                "file": "GH010411.MP4",
+                "title": "GH010411.MP4",
+                "poster": "stuffedanimalmountain.jpg"
             },
             {
-            "file": "GH010414.MP4",
-            "title": "GH010414.MP4",
-            "poster": "stuffedanimalmountain.jpg"
+                "file": "GH010412.MP4",
+                "title": "GH010412.MP4",
+                "poster": "stuffedanimalmountain.jpg"
             },
             {
-            "file": "GH010416.MP4",
-            "title": "GH010416.MP4",
-            "poster": "stuffedanimalmountain.jpg"
+                "file": "GH010413.MP4",
+                "title": "GH010413.MP4",
+                "poster": "stuffedanimalmountain.jpg"
             },
             {
-            "file": "GH010417.MP4",
-            "title": "GH010417.MP4",
-            "poster": "stuffedanimalmountain.jpg"
+                "file": "GH010414.MP4",
+                "title": "GH010414.MP4",
+                "poster": "stuffedanimalmountain.jpg"
             },
             {
-            "file": "GH010418.MP4",
-            "title": "GH010418.MP4",
-            "poster": "stuffedanimalmountain.jpg"
+                "file": "GH010416.MP4",
+                "title": "GH010416.MP4",
+                "poster": "stuffedanimalmountain.jpg"
             },
             {
-            "file": "GH010419.MP4",
-            "title": "GH010419.MP4",
-            "poster": "stuffedanimalmountain.jpg"
+                "file": "GH010417.MP4",
+                "title": "GH010417.MP4",
+                "poster": "stuffedanimalmountain.jpg"
             },
             {
-            "file": "GH010420.MP4",
-            "title": "GH010420.MP4",
-            "poster": "stuffedanimalmountain.jpg"
+                "file": "GH010418.MP4",
+                "title": "GH010418.MP4",
+                "poster": "stuffedanimalmountain.jpg"
             },
             {
-            "file": "GH010421hella close to my face.MP4",
-            "title": "GH010421hella close to my face.MP4",
-            "poster": "stuffedanimalmountain.jpg"
+                "file": "GH010419.MP4",
+                "title": "GH010419.MP4",
+                "poster": "stuffedanimalmountain.jpg"
             },
             {
-            "file": "GH010422.MP4",
-            "title": "GH010422.MP4",
-            "poster": "stuffedanimalmountain.jpg"
+                "file": "GH010420.MP4",
+                "title": "GH010420.MP4",
+                "poster": "stuffedanimalmountain.jpg"
             },
             {
-            "file": "GH010423.MP4",
-            "title": "GH010423.MP4",
-            "poster": "stuffedanimalmountain.jpg"
+                "file": "GH010421hella close to my face.MP4",
+                "title": "GH010421hella close to my face.MP4",
+                "poster": "stuffedanimalmountain.jpg"
             },
             {
-            "file": "jimskate.mp4",
-            "title": "jimskate.mp4",
-            "poster": "stuffedanimalmountain.jpg"
+                "file": "GH010422.MP4",
+                "title": "GH010422.MP4",
+                "poster": "stuffedanimalmountain.jpg"
+            },
+            {
+                "file": "GH010423.MP4",
+                "title": "GH010423.MP4",
+                "poster": "stuffedanimalmountain.jpg"
+            },
+            {
+                "file": "godhelpthegirlbyjim.mp4",
+                "title": "godhelpthegirlbyjim.mp4",
+                "poster": "stuffedanimalmountain.jpg"
+            },
+            {
+                "file": "jimskate.mp4",
+                "title": "jimskate.mp4",
+                "poster": "stuffedanimalmountain.jpg"
             },
             {
                 "file": "FullMetalJacket.mp4",
