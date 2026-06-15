@@ -107,3 +107,7 @@ deploy*
 
 # Thumbnail cache
 .thumbcache/
+
+songs/
+photos/
+videos/
