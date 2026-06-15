@@ -4168,10 +4168,6 @@
                 "title": "paint the monolith white.PNG"
             },
             {
-                "file": "rhodes 2000.mp4",
-                "title": "rhodes 2000.mp4"
-            },
-            {
                 "file": "ricky board.JPG",
                 "title": "ricky board.JPG"
             },
@@ -4204,10 +4200,6 @@
                 "title": "Screenshot 2026-01-16 at 6.24.05 AM.png"
             },
             {
-                "file": "southgaterollerrink.2026.03.26.mp4",
-                "title": "southgaterollerrink.2026.03.26.mp4"
-            },
-            {
                 "file": "space.jpg",
                 "title": "space.jpg"
             },
@@ -4229,6 +4221,14 @@
             }
         ],
         "videos": [
+            {
+                "file": "southgaterollerrink.2026.03.26.mp4",
+                "title": "southgaterollerrink.2026.03.26.mp4"
+            },
+            {
+                "file": "rhodes 2000.mp4",
+                "title": "rhodes 2000.mp4"
+            },
             {
                 "file": "GH010408.MP4",
                 "title": "GH010408.MP4",
