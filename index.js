@@ -447,7 +447,7 @@ server.listen(listenPort, async () => {
  * ENDPOINTS: Each endpoint uses the custom .json of the same name. if there is not a custom .json of the same name, the fallback is denmark.json]
  */
 const MAX_DENMARK_ROOMS = 8;
-const stuffedAnimalWarEndpoints = ['denmark','greta','blackpanthers'];
+const stuffedAnimalWarEndpoints = ['denmark','spain','greta','blackpanthers'];
 const stuffedAnimalWarChatSocketEvent = 'chatmessage';
 const stuffedAnimalWarTapSocketEvent = 'tapmessage';
 const stuffedAnimalWarPathSocketEvent = 'pathmessage';
