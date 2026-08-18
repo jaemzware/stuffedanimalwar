@@ -275,6 +275,10 @@ function updateAndDrawShapes(timestamp) {
         if (elapsed >= shape.speed) {
             // Update position based on movement type
             updateShapePosition(shape);
+            if (shape.type === 'NINJASTAR') {
+                // Spin rate is inversely proportional to delay: higher delay (shape.speed) spins slower
+                shape.rotation = (shape.rotation || 0) + (15 / shape.speed);
+            }
             shape.lastUpdate = timestamp;
         }
 
@@ -307,6 +311,9 @@ function drawBullet(shape) {
 }
 
 function drawNinjaStar(shape) {
+    ctx.save();
+    ctx.translate(shape.x, shape.y);
+    ctx.rotate(shape.rotation || 0);
     ctx.beginPath();
     const spikes = 5;
     const outerRadius = shape.starLength;
@@ -316,8 +323,8 @@ function drawNinjaStar(shape) {
 
     for (let i = 0; i < spikes * 2; i++) {
         const radius = i % 2 === 0 ? outerRadius : innerRadius;
-        const x = shape.x + Math.cos(angle) * radius;
-        const y = shape.y - Math.sin(angle) * radius;
+        const x = Math.cos(angle) * radius;
+        const y = -Math.sin(angle) * radius;
         if (i === 0) {
             ctx.moveTo(x, y);
         } else {
@@ -330,6 +337,7 @@ function drawNinjaStar(shape) {
     ctx.strokeStyle = shape.color;
     ctx.fill();
     ctx.stroke();
+    ctx.restore();
 }
 
 // ============================================================================
