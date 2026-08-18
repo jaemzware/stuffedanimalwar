@@ -10,6 +10,9 @@ function writeStuffedAnimalWar(stuffedAnimalMediaObject, readonly = false){
         document.write("<div style='display: flex; gap: 10px;'>");
         document.write("<a id='canvasLink' href='#' style='padding: 8px 16px; background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); color: white; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 6px;'><span>🎨</span><span>Canvas</span></a>");
         document.write("<a id='cameraLink' href='#' style='padding: 8px 16px; background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 6px;'><span>📹</span><span>Camera</span></a>");
+        document.write("<a href='https://analogarchive.com' target='_blank' style='padding: 8px 16px; background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); color: white; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 6px;'><span>🎞️</span><span>Analog</span></a>");
+        document.write("<a href='https://marginalwayskateparkfoundation.org' target='_blank' style='padding: 8px 16px; background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); color: white; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 6px;'><span>🛹</span><span>Marginal Way</span></a>");
+        document.write("<a href='https://skatecreteordie.com' target='_blank' style='padding: 8px 16px; background: linear-gradient(135deg, #f39c12 0%, #d68910 100%); color: white; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 6px;'><span>🏗️</span><span>Skate Crete</span></a>");
         document.write("</div>");
         // Right side: Collapse All button
         document.write("<button id='collapseAllButton' style='padding: 8px 16px; background: #444; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px;'>Collapse All Sections</button>");
@@ -105,6 +108,7 @@ function writeStuffedAnimalWarForm(stuffedAnimalMediaObject){
     document.write("<option value=\"dot\" selected>BULLET</option>");
     document.write("<option value=\"ninjaStar\">NINJA STAR</option>");
     document.write("<option value=\"line\">LINE</option>");
+    document.write("<option value=\"ninjastar\">NINJA STAR</option>");
     document.write("<option value=\"custom\">CUSTOM URL</option>");
     //SPECIFIED ANIMALS
     if(stuffedAnimalMediaObject && stuffedAnimalMediaObject.animals[0]){
@@ -469,7 +473,7 @@ function writePhotosFromJson(mediaObject){
                     thumbpath = "/thumb/" + mediaObject.photospath + encodeURIComponent(mediaObject.photos[i].file);
                 }
                 let filetitle=mediaObject.photos[i].title;
-                document.write("<div class=\"photo-item\"><img class=\"photo-thumbnail photosformthumbnail\" src=\""+thumbpath+"\" data-fullsize=\""+filepath+"\" alt=\""+filetitle+"\" loading=\"lazy\" oncontextmenu=\"return false;\" draggable=\"false\" /><span class=\"photo-title\">"+filetitle+"</span></div>");
+                document.write("<div class=\"photo-item\"><img class=\"photo-thumbnail photosformthumbnail\" src=\""+thumbpath+"\" data-fullsize=\""+filepath+"\" alt=\""+filetitle+"\" loading=\"lazy\" /><span class=\"photo-title\">"+filetitle+"</span></div>");
             }
             document.write("</div>");
         document.write("</div>");

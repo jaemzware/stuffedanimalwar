@@ -30,7 +30,41 @@ const io = new Server(server, {
     }
 });
 const path = require('path');
+
+// ─── MQTT TEMPERATURE MONITORING (Raspberry Pi only) ─────────────────────
+// Only initialize MQTT if running on Raspberry Pi (detected by thermal zone file)
+if (fs.existsSync('/sys/class/thermal/thermal_zone0/temp')) {
+    console.log('[MQTT] Raspberry Pi detected, initializing temperature monitoring');
+    const mqtt = require('mqtt');
+    const mqttClient = mqtt.connect('mqtt://localhost');
+
+    mqttClient.on('connect', () => {
+        console.log('[MQTT] Connected to Mosquitto broker');
+        mqttClient.subscribe('pi/temperature', (err) => {
+            if (err) console.error('[MQTT] Subscribe error:', err);
+            else console.log('[MQTT] Subscribed to pi/temperature');
+        });
+    });
+
+    mqttClient.on('message', (topic, message) => {
+        if (topic === 'pi/temperature') {
+            const celsius = parseFloat(message.toString());
+            const fahrenheit = (celsius * 9/5) + 32;
+
+            io.emit('temperature', {
+                celsius: Math.round(celsius * 10) / 10,
+                fahrenheit: Math.round(fahrenheit * 10) / 10,
+                timestamp: new Date().toISOString()
+            });
+        }
+    });
+
+    mqttClient.on('error', (err) => {
+        console.error('[MQTT] Connection error:', err);
+    });
+}
 const sharp = require('sharp');
+const statsLogger = require('./stats-logger');
 let listenPort =55556;
 
 // Server instance ID - changes on each restart to invalidate client sessions
@@ -73,6 +107,44 @@ function loadBlockedIps() {
 
 // Load blocked IPs on startup
 loadBlockedIps();
+
+// ─── ENDPOINT HTML CACHE ────────────────────────────────────────────────────
+// Pre-rendered HTML per endpoint so bot floods never hit the filesystem
+const endpointHtmlCache = new Map();
+
+/**
+ * Pre-load all valid endpoint configs at startup.
+ * Falls back to denmark.json for any denmark### room without a custom config.
+ * Called once at boot; call again (e.g. after CRUD update) to refresh.
+ */
+const endpointConfigs = new Map();
+function preloadEndpointConfigs() {
+    endpointConfigs.clear();
+    endpointHtmlCache.clear(); // invalidate rendered HTML too
+    const denmarkConfigPath = path.join(__dirname, 'endpoints', 'denmark.json');
+    const denmarkConfig = JSON.parse(fs.readFileSync(denmarkConfigPath, 'utf8'));
+
+    for (const name of stuffedAnimalWarEndpoints) {
+        try {
+            const cfg = JSON.parse(fs.readFileSync(path.join(__dirname, 'endpoints', name + '.json'), 'utf8'));
+            endpointConfigs.set(name, cfg);
+        } catch {
+            const fallback = { ...denmarkConfig, endpoint: name, masterAlias: name.toUpperCase() };
+            endpointConfigs.set(name, fallback);
+        }
+    }
+    for (let i = 1; i <= MAX_DENMARK_ROOMS; i++) {
+        const name = `denmark${String(i).padStart(5, '0')}`;
+        try {
+            const cfg = JSON.parse(fs.readFileSync(path.join(__dirname, 'endpoints', name + '.json'), 'utf8'));
+            endpointConfigs.set(name, cfg);
+        } catch {
+            const fallback = { ...denmarkConfig, endpoint: name, masterAlias: name.toUpperCase() };
+            endpointConfigs.set(name, fallback);
+        }
+    }
+    console.log(`[CONFIG] Preloaded ${endpointConfigs.size} endpoint configs`);
+}
 
 // Watch for changes to blocked-ips.json (hot-reload)
 fs.watch(BLOCKED_IPS_FILE, { persistent: false }, (eventType) => {
@@ -372,9 +444,10 @@ server.listen(listenPort, async () => {
 });
 
 /**
- * ENDPOINTS: Each endpoint uses the custom .json of the same name. if there is not a custom .json of the same name, the fallback is jim.json]
+ * ENDPOINTS: Each endpoint uses the custom .json of the same name. if there is not a custom .json of the same name, the fallback is denmark.json]
  */
-const stuffedAnimalWarEndpoints = ['katie', 'jim', 'jacob','mark','nina','maddie','onboard','xxx','iran'];
+const MAX_DENMARK_ROOMS = 888;
+const stuffedAnimalWarEndpoints = ['denmark','spain','greta','blackpanthers','iran','onboard'];
 const stuffedAnimalWarChatSocketEvent = 'chatmessage';
 const stuffedAnimalWarTapSocketEvent = 'tapmessage';
 const stuffedAnimalWarPathSocketEvent = 'pathmessage';
@@ -396,12 +469,15 @@ const stuffedAnimalWarPageCounters = stuffedAnimalWarEndpoints.reduce((acc, page
 // Track active camera broadcasters (for /camera-broadcaster page)
 const activeBroadcasters = new Map();
 
-//add stuffedAnimalWarEndpoints jim000 through jim999
+//add stuffedAnimalWarEndpoints denmark000 through denmark999
 // NOTE: We no longer push 100k entries into the array - use isValidEndpoint() regex instead
 
 
 // Load canvas template HTML at startup (RIP SVG - we canvas-only now)
 let templateCanvasHtml = fs.readFileSync(path.join(__dirname, 'template-canvas.html'), 'utf8');
+
+// Preload all endpoint configs now that MAX_DENMARK_ROOMS and stuffedAnimalWarEndpoints are defined
+preloadEndpointConfigs();
 // Load camera template HTML
 let templateCameraHtml = fs.readFileSync(path.join(__dirname, 'template-camera.html'), 'utf8');
 
@@ -629,10 +705,10 @@ app.get('/rooms', function(req, res){
         `            <a class="room-button" href="/${endpoint}">${endpoint}</a>`
     ).join('\n');
 
-    // Generate enumerated jim001-jim100000 rooms
+    // Generate enumerated denmark rooms
     let enumeratedLinksHtml = '';
-    for (let i = 1; i <= 100000; i++) {
-        const roomName = `jim${String(i).padStart(5, '0')}`;
+    for (let i = 1; i <= MAX_DENMARK_ROOMS; i++) {
+        const roomName = `denmark${String(i).padStart(5, '0')}`;
         enumeratedLinksHtml += `            <a class="room-button" href="/${roomName}">${roomName}</a>\n`;
     }
 
@@ -780,7 +856,7 @@ app.get('/rooms', function(req, res){
 ${namedLinksHtml}
         </div>
 
-        <div class="section-title">Enumerated Rooms (jim00001 - jim100000)</div>
+        <div class="section-title">Enumerated Rooms (denmark00001 - denmark${String(MAX_DENMARK_ROOMS).padStart(5, '0')})</div>
         <div class="room-grid">
 ${enumeratedLinksHtml}
         </div>
@@ -797,18 +873,23 @@ app.get('/camera-broadcaster', function(req, res){
 });
 
 /**
- * 1 - define endpoints to serve custom stuffedanimalwar pages (e.g. jim.json)
+ * 1 - define endpoints to serve custom stuffedanimalwar pages (e.g. denmark.json)
  */
 /**
  * WILDCARD ROUTES - replaces 100,008-iteration forEach to prevent memory exhaustion
  */
 
-// Helper: check if a path segment is a valid endpoint (named or jim000-jim99999)
+// Helper: check if a path segment is a valid endpoint (named or denmark000-denmarkMAX_DENMARK_ROOMS)
 function isValidEndpoint(name) {
     if (!name) return false;
     if (stuffedAnimalWarEndpoints.includes(name)) return true;
-    // Also accept jim001 through jim99999 without storing them all in memory
-    return /^jim\d{3,5}$/.test(name);
+    // Also accept denmark001 through denmarkMAX_DENMARK_ROOMS
+    const denmarkMatch = /^denmark(\d+)$/.test(name);
+    if (denmarkMatch) {
+        const roomNum = parseInt(name.substring(7));
+        return roomNum >= 1 && roomNum <= MAX_DENMARK_ROOMS;
+    }
+    return false;
 }
 
 // Helper: get or initialize page counter for any endpoint
@@ -823,18 +904,16 @@ function getPageCounter(endpoint) {
 app.get('/:endpoint', ipBlockMiddleware, function(req, res, next){
     const endpoint = req.params.endpoint;
     if (!isValidEndpoint(endpoint)) return next();
+
+    // ── Serve from HTML cache if available (zero file I/O on repeat hits) ──
+    if (endpointHtmlCache.has(endpoint)) {
+        return res.send(endpointHtmlCache.get(endpoint));
+    }
+
     try {
-        const configPath = path.join(__dirname, 'endpoints', endpoint + '.json');
-        let configData;
-        try {
-            configData = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-        } catch (fileError) {
-            console.log(`No custom JSON found for endpoint ${endpoint}, falling back to jim.json`);
-            const jimConfigPath = path.join(__dirname, 'endpoints', 'jim.json');
-            configData = JSON.parse(fs.readFileSync(jimConfigPath, 'utf8'));
-            configData.endpoint = endpoint;
-            configData.masterAlias = endpoint.toUpperCase();
-        }
+        const configData = endpointConfigs.get(endpoint);
+        if (!configData) return next();
+
         autoPopulateMedia(configData.mediaObject);
         let html = templateCanvasHtml;
         console.log(`Serving ${endpoint} in CANVAS mode`);
@@ -846,6 +925,8 @@ app.get('/:endpoint', ipBlockMiddleware, function(req, res, next){
         html = html.replace('{{RESPONSES_OBJECT}}', JSON.stringify(configData.responsesObject, null, 2));
         html = html.replace('{{PASSWORD}}', configData.password || '');
         html = html.replace('{{SERVER_INSTANCE_ID}}', SERVER_INSTANCE_ID);
+
+        endpointHtmlCache.set(endpoint, html); // cache so next hit is instant
         res.send(html);
     } catch (error) {
         console.error(`Error generating page for endpoint ${endpoint}:`, error);
@@ -1041,6 +1122,10 @@ app.post('/api/endpoint/:name', checkCrudAuth, function(req, res){
 
         // Write the updated configuration
         fs.writeFileSync(configPath, JSON.stringify(configData, null, 4));
+
+        // Invalidate caches so the next request picks up the new config
+        preloadEndpointConfigs();
+        console.log(`[CONFIG] Reloaded endpoint configs after CRUD update to ${endpointName}`);
 
         res.json({
             success: true,
@@ -1621,6 +1706,23 @@ io.use((socket, next) => {
     next();
 });
 
+// ─── SOCKET.IO CONNECTION RATE LIMITER ──────────────────────────────────────
+// Allows at most 1 new connection per IP per 500ms — kills bot socket floods
+// without affecting real users (who rarely open >2 connections/sec)
+const connRateMap = new Map();
+setInterval(() => connRateMap.clear(), 60 * 1000); // prune every minute
+io.use((socket, next) => {
+    const ip = getClientIp(socket);
+    const now = Date.now();
+    const last = connRateMap.get(ip) || 0;
+    if (now - last < 500) {
+        console.log(`[RATE] Throttled WebSocket connection from ${ip}`);
+        return next(new Error('Rate limited'));
+    }
+    connRateMap.set(ip, now);
+    next();
+});
+
 /**
  *  ON PERSISTENT CONNECTION
  *  handler for incoming socket connections
@@ -1634,9 +1736,10 @@ io.on('connection', function(socket){
 
     console.log(`[SERVER] 🔌 New connection - Socket ID: ${socket.id}, Endpoint: ${endpoint || 'NONE'}, IP: ${chatClientAddress}`);
 
-    // Initialize counter for dynamic endpoints (jim001-jim99999) that aren't pre-populated
+    // Initialize counter for dynamic endpoints (denmark001-denmark99999) that aren't pre-populated
     if (!(endpoint in stuffedAnimalWarPageCounters)) stuffedAnimalWarPageCounters[endpoint] = 0;
     stuffedAnimalWarPageCounters[endpoint]++;
+    statsLogger.updateEndpoints(stuffedAnimalWarPageCounters);
     let connectMsgObject = {
         CHATSERVERENDPOINT: endpoint,
         CHATSERVERPORT: listenPort,
@@ -1661,7 +1764,6 @@ io.on('connection', function(socket){
 
         // Send new camera the list of all existing cameras so they can discover peers
         setTimeout(() => {
-            const cameraEndpoint = endpoint + 'camera';
             const existingCameras = [];
             io.sockets.sockets.forEach((sock) => {
                 const sockEndpoint = sock.handshake.query.endpoint;
@@ -1671,7 +1773,7 @@ io.on('connection', function(socket){
             });
             console.log(`[CAMERA] Sending ${existingCameras.length} existing cameras to ${socket.id}`);
             existingCameras.forEach(cam => {
-                socket.emit(cameraEndpoint + 'cameraexists', { userId: cam.userId });
+                socket.emit(endpoint + 'camera' + 'exists', { userId: cam.userId });
             });
         }, 100);
     }
@@ -1681,6 +1783,7 @@ io.on('connection', function(socket){
         let chatServerDate = new Date();
         let chatPstString = chatServerDate.toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
         stuffedAnimalWarPageCounters[endpoint]--;
+        statsLogger.updateEndpoints(stuffedAnimalWarPageCounters);
         let disconnectMsgObject = {
             CHATSERVERENDPOINT: endpoint,
             CHATSERVERPORT: listenPort,
@@ -1765,24 +1868,31 @@ io.on('connection', function(socket){
 
     // Register listeners only for this socket's own endpoint (fixes memory leak)
     socket.on(endpoint + stuffedAnimalWarChatSocketEvent, function(chatMsgObject){
+        statsLogger.recordEvent('chat', endpoint);
         sendChatMessage(endpoint + stuffedAnimalWarChatSocketEvent, chatMsgObject);
     });
     socket.on(endpoint + stuffedAnimalWarTapSocketEvent, function(tapMsgObject){
+        statsLogger.recordEvent('tap', endpoint);
         sendTapMessage(endpoint + stuffedAnimalWarTapSocketEvent, tapMsgObject);
     });
     socket.on(endpoint + stuffedAnimalWarPathSocketEvent, (pathMsgObject) => {
+        statsLogger.recordEvent('path', endpoint);
         sendPathMessage(endpoint + stuffedAnimalWarPathSocketEvent, pathMsgObject);
     });
     socket.on(endpoint + stuffedAnimalWarPresentImageSocketEvent, (presentImageMsgObject) => {
+        statsLogger.recordEvent('presentImage', endpoint);
         sendPresentImageMessage(endpoint + stuffedAnimalWarPresentImageSocketEvent, presentImageMsgObject);
     });
     socket.on(endpoint + stuffedAnimalWarAudioControlSocketEvent, (audioControlMsgObject) => {
+        statsLogger.recordEvent('audioControl', endpoint);
         sendAudioControlMessage(endpoint + stuffedAnimalWarAudioControlSocketEvent, audioControlMsgObject);
     });
     socket.on(endpoint + stuffedAnimalWarVideoControlSocketEvent, (videoControlMsgObject) => {
+        statsLogger.recordEvent('videoControl', endpoint);
         sendVideoControlMessage(endpoint + stuffedAnimalWarVideoControlSocketEvent, videoControlMsgObject);
     });
     socket.on(endpoint + stuffedAnimalWarVoiceOfferSocketEvent, (offerMsgObject) => {
+        statsLogger.recordEvent('voiceOffer', endpoint);
         let voiceClientAddress = getClientIp(socket);
         let voicePstString = new Date().toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
         const reorderedOfferMsgObject = {
@@ -1803,6 +1913,7 @@ io.on('connection', function(socket){
         }
     });
     socket.on(endpoint + stuffedAnimalWarVoiceAnswerSocketEvent, (answerMsgObject) => {
+        statsLogger.recordEvent('voiceAnswer', endpoint);
         let voiceClientAddress = getClientIp(socket);
         let voicePstString = new Date().toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
         const reorderedAnswerMsgObject = {
@@ -1819,6 +1930,7 @@ io.on('connection', function(socket){
         io.to(answerMsgObject.to).emit(endpoint + stuffedAnimalWarVoiceAnswerSocketEvent, reorderedAnswerMsgObject);
     });
     socket.on(endpoint + stuffedAnimalWarVoiceIceCandidateSocketEvent, (iceMsgObject) => {
+        statsLogger.recordEvent('voiceIceCandidate', endpoint);
         let voiceClientAddress = getClientIp(socket);
         let voicePstString = new Date().toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
         const reorderedIceMsgObject = {
@@ -1839,30 +1951,29 @@ io.on('connection', function(socket){
         }
     });
 
-    const cameraEndpoint = endpoint + 'camera';
-    socket.on(cameraEndpoint + 'cameravoiceoffer', (offerMsgObject) => {
+    socket.on(endpoint + 'camera' + 'voiceoffer', (offerMsgObject) => {
         const msg = { offer: offerMsgObject.offer, from: socket.id, to: offerMsgObject.to || 'broadcast', cameraName: offerMsgObject.cameraName };
-        if (offerMsgObject.to) { io.to(offerMsgObject.to).emit(cameraEndpoint + 'cameravoiceoffer', msg); } else { io.emit(cameraEndpoint + 'cameravoiceoffer', msg); }
+        if (offerMsgObject.to) { io.to(offerMsgObject.to).emit(endpoint + 'camera' + 'voiceoffer', msg); } else { io.emit(endpoint + 'camera' + 'voiceoffer', msg); }
     });
-    socket.on(cameraEndpoint + 'cameravoiceanswer', (answerMsgObject) => {
+    socket.on(endpoint + 'camera' + 'voiceanswer', (answerMsgObject) => {
         const msg = { answer: answerMsgObject.answer, from: socket.id, to: answerMsgObject.to, cameraName: answerMsgObject.cameraName };
-        io.to(answerMsgObject.to).emit(cameraEndpoint + 'cameravoiceanswer', msg);
+        io.to(answerMsgObject.to).emit(endpoint + 'camera' + 'voiceanswer', msg);
     });
-    socket.on(cameraEndpoint + 'cameravoiceicecandidate', (iceMsgObject) => {
+    socket.on(endpoint + 'camera' + 'voiceicecandidate', (iceMsgObject) => {
         const msg = { candidate: iceMsgObject.candidate, from: socket.id, to: iceMsgObject.to || 'broadcast' };
-        if (iceMsgObject.to) { io.to(iceMsgObject.to).emit(cameraEndpoint + 'cameravoiceicecandidate', msg); } else { io.emit(cameraEndpoint + 'cameravoiceicecandidate', msg); }
+        if (iceMsgObject.to) { io.to(iceMsgObject.to).emit(endpoint + 'camera' + 'voiceicecandidate', msg); } else { io.emit(endpoint + 'camera' + 'voiceicecandidate', msg); }
     });
-    socket.on(cameraEndpoint + 'cameranameupdate', (nameUpdateMsgObject) => {
-        io.emit(cameraEndpoint + 'cameranameupdate', { cameraName: nameUpdateMsgObject.cameraName, userId: socket.id });
+    socket.on(endpoint + 'camera' + 'nameupdate', (nameUpdateMsgObject) => {
+        io.emit(endpoint + 'camera' + 'nameupdate', { cameraName: nameUpdateMsgObject.cameraName, userId: socket.id });
     });
-    socket.on(cameraEndpoint + 'camerareconnect', () => {
-        io.emit(cameraEndpoint + 'camerareconnect', { userId: socket.id });
+    socket.on(endpoint + 'camera' + 'reconnect', () => {
+        io.emit(endpoint + 'camera' + 'reconnect', { userId: socket.id });
     });
-    socket.on(cameraEndpoint + 'camerarequestroster', () => {
-        io.emit(cameraEndpoint + 'camerarequestroster', { userId: socket.id });
+    socket.on(endpoint + 'camera' + 'requestroster', () => {
+        io.emit(endpoint + 'camera' + 'requestroster', { userId: socket.id });
     });
-    socket.on(cameraEndpoint + 'camerarosterresponse', (rosterResponseMsgObject) => {
-        io.to(rosterResponseMsgObject.to).emit(cameraEndpoint + 'camerarosterresponse', {
+    socket.on(endpoint + 'camera' + 'rosterresponse', (rosterResponseMsgObject) => {
+        io.to(rosterResponseMsgObject.to).emit(endpoint + 'camera' + 'rosterresponse', {
             from: socket.id,
             cameraName: rosterResponseMsgObject.cameraName,
             cameraNames: rosterResponseMsgObject.cameraNames

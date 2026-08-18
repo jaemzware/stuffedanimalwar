@@ -293,10 +293,21 @@ function drawAnimal(animal) {
 }
 
 function drawShape(shape) {
+<<<<<<< HEAD
     if (shape.type === 'ninjaStar') {
         drawNinjaStar(shape);
         return;
     }
+=======
+    if (shape.type === 'NINJASTAR') {
+        drawNinjaStar(shape);
+    } else {
+        drawBullet(shape);
+    }
+}
+
+function drawBullet(shape) {
+>>>>>>> main
     ctx.beginPath();
     ctx.arc(shape.x, shape.y, shape.radius, 0, 2 * Math.PI);
     ctx.fillStyle = shape.color;
@@ -306,6 +317,7 @@ function drawShape(shape) {
 }
 
 function drawNinjaStar(shape) {
+<<<<<<< HEAD
     const r = shape.radius;
     const innerR = r * 0.45;
     const points = 5;
@@ -330,6 +342,31 @@ function drawNinjaStar(shape) {
     ctx.fill();
     ctx.stroke();
     ctx.restore();
+=======
+    ctx.beginPath();
+    const spikes = 5;
+    const outerRadius = shape.starLength;
+    const innerRadius = shape.starLength * 0.4;
+    let angle = Math.PI / 2;
+    const angleStep = (Math.PI * 2) / spikes;
+
+    for (let i = 0; i < spikes * 2; i++) {
+        const radius = i % 2 === 0 ? outerRadius : innerRadius;
+        const x = shape.x + Math.cos(angle) * radius;
+        const y = shape.y - Math.sin(angle) * radius;
+        if (i === 0) {
+            ctx.moveTo(x, y);
+        } else {
+            ctx.lineTo(x, y);
+        }
+        angle += angleStep;
+    }
+    ctx.closePath();
+    ctx.fillStyle = shape.color;
+    ctx.strokeStyle = shape.color;
+    ctx.fill();
+    ctx.stroke();
+>>>>>>> main
 }
 
 // ============================================================================
@@ -523,12 +560,12 @@ function checkCollisions() {
 function onBaseTapSocketEventDots(tapMsgObject) {
     const rgbValue = tapMsgObject.red + ',' + tapMsgObject.green + ',' + tapMsgObject.blue;
     const color = 'rgb(' + rgbValue + ')';
-    const bulletRadius = tapMsgObject.lineWidth || radius; // Use lineWidth from message or default
-
+    const bulletRadius = tapMsgObject.lineWidth || radius;
     const shape = {
         id: 'circle' + Date.now() + Math.random(),
         x: tapMsgObject.x,
         y: tapMsgObject.y,
+        type: 'BULLET',
         radius: bulletRadius,
         color: color,
         movement: tapMsgObject.movement,
@@ -541,6 +578,7 @@ function onBaseTapSocketEventDots(tapMsgObject) {
     shapeObjects.push(shape);
 }
 
+<<<<<<< HEAD
 function onBaseTapSocketEventNinjaStars(tapMsgObject) {
     const starRadius = tapMsgObject.lineWidth || radius;
 
@@ -554,6 +592,22 @@ function onBaseTapSocketEventNinjaStars(tapMsgObject) {
         speed: tapMsgObject.speed,
         amplitude: tapMsgObject.amplitude || 50,
         rotation: 0,
+=======
+function onBaseTapSocketEventNinjaStar(tapMsgObject) {
+    const rgbValue = tapMsgObject.red + ',' + tapMsgObject.green + ',' + tapMsgObject.blue;
+    const color = 'rgb(' + rgbValue + ')';
+    const starLength = tapMsgObject.lineWidth || radius;
+    const shape = {
+        id: 'ninjastar' + Date.now() + Math.random(),
+        x: tapMsgObject.x,
+        y: tapMsgObject.y,
+        type: 'NINJASTAR',
+        starLength: starLength,
+        color: color,
+        movement: tapMsgObject.movement,
+        speed: tapMsgObject.speed,
+        amplitude: tapMsgObject.amplitude || 50,
+>>>>>>> main
         lastUpdate: null,
         user: tapMsgObject.CHATCLIENTUSER
     };

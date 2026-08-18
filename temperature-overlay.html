@@ -1,0 +1,49 @@
+<!-- temperature-overlay.html -->
+<!-- Add this snippet to your camera room template -->
+
+<style>
+  #temp-overlay {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.75);
+    color: #fff;
+    padding: 12px 16px;
+    border-radius: 6px;
+    font-family: monospace;
+    font-size: 14px;
+    z-index: 9999;
+    min-width: 120px;
+    text-align: center;
+  }
+  #temp-overlay .label {
+    font-size: 11px;
+    opacity: 0.8;
+    margin-bottom: 4px;
+  }
+  #temp-overlay .value {
+    font-size: 18px;
+    font-weight: bold;
+  }
+  #temp-overlay .timestamp {
+    font-size: 10px;
+    opacity: 0.6;
+    margin-top: 4px;
+  }
+</style>
+
+<div id="temp-overlay">
+  <div class="label">Pi Temp</div>
+  <div class="value"><span id="temp-value">--</span></div>
+  <div class="timestamp"><span id="temp-time"></span></div>
+</div>
+
+<script>
+  // Assume socket is your existing Socket.IO client instance
+  socket.on('temperature', (data) => {
+    document.getElementById('temp-value').textContent =
+      `${data.fahrenheit}°F / ${data.celsius}°C`;
+    document.getElementById('temp-time').textContent =
+      new Date(data.timestamp).toLocaleTimeString();
+  });
+</script>

@@ -595,6 +595,15 @@
             <a id="cameraLink" href="#" style="padding: 6px 12px; background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 4px;">
                 <span>📹</span><span>Camera</span>
             </a>
+            <a href="https://analogarchive.com" target="_blank" style="padding: 6px 12px; background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 4px;">
+                <span>🎞️</span><span>Analog</span>
+            </a>
+            <a href="https://marginalwayskateparkfoundation.org" target="_blank" style="padding: 6px 12px; background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 4px;">
+                <span>🛹</span><span>Marginal Way</span>
+            </a>
+            <a href="https://skatecreteordie.com" target="_blank" style="padding: 6px 12px; background: linear-gradient(135deg, #f39c12 0%, #d68910 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 4px;">
+                <span>🏗️</span><span>Skate Crete</span>
+            </a>
         </div>
         <script>
             (function() {
@@ -983,23 +992,21 @@
             const METERED_API_KEY  = '{{METERED_API_KEY}}';
 
             let iceServers = {
-                iceServers: [
-                    { urls: 'stun:stun.l.google.com:19302' },
-                    { urls: 'stun:stun1.l.google.com:19302' }
-                ],
+                iceServers: [],
                 iceCandidatePoolSize: 10
             };
 
-            // Fetch TURN credentials from Metered.ca (free tier: 500 MB/month)
+            // On offline LAN, rely on host candidates only (direct IP addresses on the network)
+            // Try to fetch TURN credentials if configured and internet is available
             (async function fetchTurnCredentials() {
                 if (!METERED_APP_NAME || METERED_APP_NAME.indexOf('{{') === 0) {
-                    console.warn('⚠️ No Metered.ca TURN credentials configured — phones behind NAT will fail to connect.');
-                    console.warn('   Sign up free at https://www.metered.ca/stun-turn');
+                    console.log('ℹ️ No Metered.ca TURN credentials configured — using local network only (host candidates).');
                     return;
                 }
                 try {
                     const resp = await fetch(
-                        'https://' + METERED_APP_NAME + '.metered.live/api/v1/turn/credentials?apiKey=' + METERED_API_KEY
+                        'https://' + METERED_APP_NAME + '.metered.live/api/v1/turn/credentials?apiKey=' + METERED_API_KEY,
+                        { timeout: 5000 }
                     );
                     const data = await resp.json();
                     console.log('TURN API response:', JSON.stringify(data).substring(0, 200));
@@ -1016,7 +1023,7 @@
                         console.warn('⚠️ TURN API returned no valid servers — check app name and API key');
                     }
                 } catch (err) {
-                    console.error('❌ Failed to fetch TURN credentials:', err);
+                    console.log('ℹ️ TURN credentials fetch failed (likely offline):', err.message, '— using host candidates only');
                 }
             })();
 
@@ -2656,6 +2663,15 @@
                 socket.on(endpoint + 'cameracamera' + 'reconnect', handlePeerReconnect);
                 socket.on(endpoint + 'cameracamera' + 'requestroster', handleRosterRequest);
                 socket.on(endpoint + 'cameracamera' + 'rosterresponse', handleRosterResponse);
+                socket.on(endpoint + 'cameracamera' + 'exists', handleCameraExists);
+            }
+
+            function handleCameraExists(data) {
+                console.log('🔍 Discovered existing camera:', data.userId);
+                // Request the roster to learn about all existing cameras
+                if (!peerConnections[data.userId]) {
+                    socket.emit(endpoint + 'cameracamera' + 'requestroster', { userId: socket.id });
+                }
             }
 
             function handleRosterResponse(data) {

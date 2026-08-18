@@ -104,5 +104,10 @@ public
 .env
 
 deploy*
-endpoints/xxx.json
-xxx.json
+
+# Thumbnail cache
+.thumbcache/
+
+songs/
+photos/
+videos/
