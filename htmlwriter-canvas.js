@@ -103,6 +103,7 @@ function writeStuffedAnimalWarForm(stuffedAnimalMediaObject){
     // Dropdown
     document.write("<select id=\"animals\" name=\"sawstyle\" size=1>");
     document.write("<option value=\"dot\" selected>BULLET</option>");
+    document.write("<option value=\"ninjaStar\">NINJA STAR</option>");
     document.write("<option value=\"line\">LINE</option>");
     document.write("<option value=\"custom\">CUSTOM URL</option>");
     //SPECIFIED ANIMALS

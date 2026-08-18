@@ -275,6 +275,9 @@ function updateAndDrawShapes(timestamp) {
         if (elapsed >= shape.speed) {
             // Update position based on movement type
             updateShapePosition(shape);
+            if (shape.type === 'ninjaStar') {
+                shape.rotation = (shape.rotation || 0) + 0.3;
+            }
             shape.lastUpdate = timestamp;
         }
 
@@ -290,12 +293,43 @@ function drawAnimal(animal) {
 }
 
 function drawShape(shape) {
+    if (shape.type === 'ninjaStar') {
+        drawNinjaStar(shape);
+        return;
+    }
     ctx.beginPath();
     ctx.arc(shape.x, shape.y, shape.radius, 0, 2 * Math.PI);
     ctx.fillStyle = shape.color;
     ctx.strokeStyle = shape.color;
     ctx.fill();
     ctx.stroke();
+}
+
+function drawNinjaStar(shape) {
+    const r = shape.radius;
+    const innerR = r * 0.45;
+    const points = 5;
+    ctx.save();
+    ctx.translate(shape.x, shape.y);
+    ctx.rotate(shape.rotation || 0);
+    ctx.beginPath();
+    for (let i = 0; i < points * 2; i++) {
+        const angle = (i * Math.PI) / points - Math.PI / 2;
+        const dist = i % 2 === 0 ? r : innerR;
+        if (i === 0) ctx.moveTo(Math.cos(angle) * dist, Math.sin(angle) * dist);
+        else ctx.lineTo(Math.cos(angle) * dist, Math.sin(angle) * dist);
+    }
+    ctx.closePath();
+    const grad = ctx.createRadialGradient(0, 0, innerR * 0.3, 0, 0, r);
+    grad.addColorStop(0, '#e8edf5');
+    grad.addColorStop(0.4, '#a8b8cc');
+    grad.addColorStop(1, '#6a7a8a');
+    ctx.fillStyle = grad;
+    ctx.strokeStyle = '#c0cad8';
+    ctx.lineWidth = 1;
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
 }
 
 // ============================================================================
@@ -500,6 +534,26 @@ function onBaseTapSocketEventDots(tapMsgObject) {
         movement: tapMsgObject.movement,
         speed: tapMsgObject.speed,
         amplitude: tapMsgObject.amplitude || 50,
+        lastUpdate: null,
+        user: tapMsgObject.CHATCLIENTUSER
+    };
+
+    shapeObjects.push(shape);
+}
+
+function onBaseTapSocketEventNinjaStars(tapMsgObject) {
+    const starRadius = tapMsgObject.lineWidth || radius;
+
+    const shape = {
+        id: 'ninjaStar' + Date.now() + Math.random(),
+        type: 'ninjaStar',
+        x: tapMsgObject.x,
+        y: tapMsgObject.y,
+        radius: starRadius,
+        movement: tapMsgObject.movement,
+        speed: tapMsgObject.speed,
+        amplitude: tapMsgObject.amplitude || 50,
+        rotation: 0,
         lastUpdate: null,
         user: tapMsgObject.CHATCLIENTUSER
     };
