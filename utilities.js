@@ -104,24 +104,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     console.log('Found', collapsibleHeaders.length, 'collapsible sections');
 
-    // Collapse all sections by default on page load, except Audio Player and Chat
-    const expandedByDefault = ['audio-content', 'chat-content'];
+    // Expand all sections by default on page load
     const allSectionsOnLoad = document.querySelectorAll('.section-content');
     allSectionsOnLoad.forEach(section => {
-        if (expandedByDefault.includes(section.id)) {
-            section.style.display = '';
-        } else {
-            section.style.display = 'none';
-        }
+        section.style.display = '';
     });
     collapsibleHeaders.forEach(header => {
-        const targetId = header.getAttribute('data-target');
         const indicator = header.querySelector('.collapse-indicator');
         if (indicator) {
-            indicator.textContent = expandedByDefault.includes(targetId) ? '▼' : '▶';
+            indicator.textContent = '▼';
         }
     });
-    console.log('All sections collapsed by default except Audio Player and Chat');
+    console.log('All sections expanded by default');
 
     // Focus on the Alias field in the Chat section (only if password modal is not showing)
     const passwordModal = document.getElementById('passwordModal');
@@ -136,8 +130,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Collapse All button functionality
     const collapseAllButton = document.getElementById('collapseAllButton');
     if (collapseAllButton) {
-        let allExpanded = false; // Start collapsed
-        collapseAllButton.textContent = 'Expand All Sections';
+        let allExpanded = true; // Start expanded
+        collapseAllButton.textContent = 'Collapse All Sections';
+        collapseAllButton.style.background = '#444';
 
         collapseAllButton.addEventListener('click', function() {
             const allSections = document.querySelectorAll('.section-content');
