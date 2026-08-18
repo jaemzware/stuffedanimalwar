@@ -66,9 +66,6 @@ function initializeSocketHandlers(){
             case "dot":
                 onBaseTapSocketEventDots(tapMsgObject);
                 break;
-            case "ninjaStar":
-                onBaseTapSocketEventNinjaStars(tapMsgObject);
-                break;
             case "line":
                 onBaseTapSocketEventLines(tapMsgObject);
                 break;
@@ -1276,12 +1273,6 @@ function updateAnimalPreview(value) {
             'font-size': '20px',
             'background': 'none',
             'color': '#1a1a2e'
-        });
-    } else if (value === 'ninjaStar') {
-        previewContent.html('✦').css({
-            'font-size': '20px',
-            'background': 'none',
-            'color': '#b0b8c8'
         });
     } else if (value === 'line') {
         // Show a line symbol

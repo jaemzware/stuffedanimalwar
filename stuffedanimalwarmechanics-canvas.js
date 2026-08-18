@@ -275,9 +275,6 @@ function updateAndDrawShapes(timestamp) {
         if (elapsed >= shape.speed) {
             // Update position based on movement type
             updateShapePosition(shape);
-            if (shape.type === 'ninjaStar') {
-                shape.rotation = (shape.rotation || 0) + 0.3;
-            }
             shape.lastUpdate = timestamp;
         }
 
@@ -293,12 +290,6 @@ function drawAnimal(animal) {
 }
 
 function drawShape(shape) {
-<<<<<<< HEAD
-    if (shape.type === 'ninjaStar') {
-        drawNinjaStar(shape);
-        return;
-    }
-=======
     if (shape.type === 'NINJASTAR') {
         drawNinjaStar(shape);
     } else {
@@ -307,7 +298,6 @@ function drawShape(shape) {
 }
 
 function drawBullet(shape) {
->>>>>>> main
     ctx.beginPath();
     ctx.arc(shape.x, shape.y, shape.radius, 0, 2 * Math.PI);
     ctx.fillStyle = shape.color;
@@ -317,32 +307,6 @@ function drawBullet(shape) {
 }
 
 function drawNinjaStar(shape) {
-<<<<<<< HEAD
-    const r = shape.radius;
-    const innerR = r * 0.45;
-    const points = 5;
-    ctx.save();
-    ctx.translate(shape.x, shape.y);
-    ctx.rotate(shape.rotation || 0);
-    ctx.beginPath();
-    for (let i = 0; i < points * 2; i++) {
-        const angle = (i * Math.PI) / points - Math.PI / 2;
-        const dist = i % 2 === 0 ? r : innerR;
-        if (i === 0) ctx.moveTo(Math.cos(angle) * dist, Math.sin(angle) * dist);
-        else ctx.lineTo(Math.cos(angle) * dist, Math.sin(angle) * dist);
-    }
-    ctx.closePath();
-    const grad = ctx.createRadialGradient(0, 0, innerR * 0.3, 0, 0, r);
-    grad.addColorStop(0, '#e8edf5');
-    grad.addColorStop(0.4, '#a8b8cc');
-    grad.addColorStop(1, '#6a7a8a');
-    ctx.fillStyle = grad;
-    ctx.strokeStyle = '#c0cad8';
-    ctx.lineWidth = 1;
-    ctx.fill();
-    ctx.stroke();
-    ctx.restore();
-=======
     ctx.beginPath();
     const spikes = 5;
     const outerRadius = shape.starLength;
@@ -366,7 +330,6 @@ function drawNinjaStar(shape) {
     ctx.strokeStyle = shape.color;
     ctx.fill();
     ctx.stroke();
->>>>>>> main
 }
 
 // ============================================================================
@@ -578,21 +541,6 @@ function onBaseTapSocketEventDots(tapMsgObject) {
     shapeObjects.push(shape);
 }
 
-<<<<<<< HEAD
-function onBaseTapSocketEventNinjaStars(tapMsgObject) {
-    const starRadius = tapMsgObject.lineWidth || radius;
-
-    const shape = {
-        id: 'ninjaStar' + Date.now() + Math.random(),
-        type: 'ninjaStar',
-        x: tapMsgObject.x,
-        y: tapMsgObject.y,
-        radius: starRadius,
-        movement: tapMsgObject.movement,
-        speed: tapMsgObject.speed,
-        amplitude: tapMsgObject.amplitude || 50,
-        rotation: 0,
-=======
 function onBaseTapSocketEventNinjaStar(tapMsgObject) {
     const rgbValue = tapMsgObject.red + ',' + tapMsgObject.green + ',' + tapMsgObject.blue;
     const color = 'rgb(' + rgbValue + ')';
@@ -607,7 +555,6 @@ function onBaseTapSocketEventNinjaStar(tapMsgObject) {
         movement: tapMsgObject.movement,
         speed: tapMsgObject.speed,
         amplitude: tapMsgObject.amplitude || 50,
->>>>>>> main
         lastUpdate: null,
         user: tapMsgObject.CHATCLIENTUSER
     };
