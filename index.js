@@ -114,22 +114,22 @@ const endpointHtmlCache = new Map();
 
 /**
  * Pre-load all valid endpoint configs at startup.
- * Falls back to denmark.json for any denmark### room without a custom config.
+ * Falls back to greenland.json for any greenland### room without a custom config.
  * Called once at boot; call again (e.g. after CRUD update) to refresh.
  */
 const endpointConfigs = new Map();
 function preloadEndpointConfigs() {
     endpointConfigs.clear();
     endpointHtmlCache.clear(); // invalidate rendered HTML too
-    const denmarkConfigPath = path.join(__dirname, 'endpoints', 'denmark.json');
-    const denmarkConfig = JSON.parse(fs.readFileSync(denmarkConfigPath, 'utf8'));
+    const greenlandConfigPath = path.join(__dirname, 'endpoints', 'greenland.json');
+    const greenlandConfig = JSON.parse(fs.readFileSync(greenlandConfigPath, 'utf8'));
 
     for (const name of stuffedAnimalWarEndpoints) {
         try {
             const cfg = JSON.parse(fs.readFileSync(path.join(__dirname, 'endpoints', name + '.json'), 'utf8'));
             endpointConfigs.set(name, cfg);
         } catch {
-            const fallback = { ...denmarkConfig, endpoint: name, masterAlias: name.toUpperCase() };
+            const fallback = { ...greenlandConfig, endpoint: name, masterAlias: name.toUpperCase() };
             endpointConfigs.set(name, fallback);
         }
     }
@@ -139,7 +139,7 @@ function preloadEndpointConfigs() {
             const cfg = JSON.parse(fs.readFileSync(path.join(__dirname, 'endpoints', name + '.json'), 'utf8'));
             endpointConfigs.set(name, cfg);
         } catch {
-            const fallback = { ...denmarkConfig, endpoint: name, masterAlias: name.toUpperCase() };
+            const fallback = { ...greenlandConfig, endpoint: name, masterAlias: name.toUpperCase() };
             endpointConfigs.set(name, fallback);
         }
     }
