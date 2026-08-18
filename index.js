@@ -133,8 +133,8 @@ function preloadEndpointConfigs() {
             endpointConfigs.set(name, fallback);
         }
     }
-    for (let i = 1; i <= MAX_DENMARK_ROOMS; i++) {
-        const name = `denmark${String(i).padStart(5, '0')}`;
+    for (let i = 1; i <= MAX_GREENLAND_ROOMS; i++) {
+        const name = `greenland${String(i).padStart(5, '0')}`;
         try {
             const cfg = JSON.parse(fs.readFileSync(path.join(__dirname, 'endpoints', name + '.json'), 'utf8'));
             endpointConfigs.set(name, cfg);
@@ -444,10 +444,10 @@ server.listen(listenPort, async () => {
 });
 
 /**
- * ENDPOINTS: Each endpoint uses the custom .json of the same name. if there is not a custom .json of the same name, the fallback is denmark.json]
+ * ENDPOINTS: Each endpoint uses the custom .json of the same name. if there is not a custom .json of the same name, the fallback is greenland.json]
  */
-const MAX_DENMARK_ROOMS = 888;
-const stuffedAnimalWarEndpoints = ['denmark','spain','greta','blackpanthers','iran','onboard'];
+const MAX_GREENLAND_ROOMS = 888;
+const stuffedAnimalWarEndpoints = ['greenland','spain','greta','blackpanthers','iran','onboard'];
 const stuffedAnimalWarChatSocketEvent = 'chatmessage';
 const stuffedAnimalWarTapSocketEvent = 'tapmessage';
 const stuffedAnimalWarPathSocketEvent = 'pathmessage';
@@ -469,14 +469,15 @@ const stuffedAnimalWarPageCounters = stuffedAnimalWarEndpoints.reduce((acc, page
 // Track active camera broadcasters (for /camera-broadcaster page)
 const activeBroadcasters = new Map();
 
-//add stuffedAnimalWarEndpoints denmark000 through denmark999
-// NOTE: We no longer push 100k entries into the array - use isValidEndpoint() regex instead
+//add stuffedAnimalWarEndpoints greenland000 through greenland999
+// NOTE: We no longer push 100k entries into the array - use isValidEn
+// dpoint() regex instead
 
 
 // Load canvas template HTML at startup (RIP SVG - we canvas-only now)
 let templateCanvasHtml = fs.readFileSync(path.join(__dirname, 'template-canvas.html'), 'utf8');
 
-// Preload all endpoint configs now that MAX_DENMARK_ROOMS and stuffedAnimalWarEndpoints are defined
+// Preload all endpoint configs now that MAX_GREENLAND_ROOMS and stuffedAnimalWarEndpoints are defined
 preloadEndpointConfigs();
 // Load camera template HTML
 let templateCameraHtml = fs.readFileSync(path.join(__dirname, 'template-camera.html'), 'utf8');
@@ -705,10 +706,10 @@ app.get('/rooms', function(req, res){
         `            <a class="room-button" href="/${endpoint}">${endpoint}</a>`
     ).join('\n');
 
-    // Generate enumerated denmark rooms
+    // Generate enumerated greenland rooms
     let enumeratedLinksHtml = '';
-    for (let i = 1; i <= MAX_DENMARK_ROOMS; i++) {
-        const roomName = `denmark${String(i).padStart(5, '0')}`;
+    for (let i = 1; i <= MAX_GREENLAND_ROOMS; i++) {
+        const roomName = `greenland${String(i).padStart(5, '0')}`;
         enumeratedLinksHtml += `            <a class="room-button" href="/${roomName}">${roomName}</a>\n`;
     }
 
@@ -856,7 +857,7 @@ app.get('/rooms', function(req, res){
 ${namedLinksHtml}
         </div>
 
-        <div class="section-title">Enumerated Rooms (denmark00001 - denmark${String(MAX_DENMARK_ROOMS).padStart(5, '0')})</div>
+        <div class="section-title">Enumerated Rooms (greenland00001 - greenland${String(MAX_GREENLAND_ROOMS).padStart(5, '0')})</div>
         <div class="room-grid">
 ${enumeratedLinksHtml}
         </div>
@@ -873,21 +874,21 @@ app.get('/camera-broadcaster', function(req, res){
 });
 
 /**
- * 1 - define endpoints to serve custom stuffedanimalwar pages (e.g. denmark.json)
+ * 1 - define endpoints to serve custom stuffedanimalwar pages (e.g. greenland.json)
  */
 /**
  * WILDCARD ROUTES - replaces 100,008-iteration forEach to prevent memory exhaustion
  */
 
-// Helper: check if a path segment is a valid endpoint (named or denmark000-denmarkMAX_DENMARK_ROOMS)
+// Helper: check if a path segment is a valid endpoint (named or greenland000-greenlandMAX_GREENLAND_ROOMS)
 function isValidEndpoint(name) {
     if (!name) return false;
     if (stuffedAnimalWarEndpoints.includes(name)) return true;
-    // Also accept denmark001 through denmarkMAX_DENMARK_ROOMS
-    const denmarkMatch = /^denmark(\d+)$/.test(name);
-    if (denmarkMatch) {
-        const roomNum = parseInt(name.substring(7));
-        return roomNum >= 1 && roomNum <= MAX_DENMARK_ROOMS;
+    // Also accept greenland001 through greenlandMAX_GREENLAND_ROOMS
+    const greenlandMatch = /^greenland(\d+)$/.test(name);
+    if (greenlandMatch) {
+        const roomNum = parseInt(name.substring('greenland'.length));
+        return roomNum >= 1 && roomNum <= MAX_GREENLAND_ROOMS;
     }
     return false;
 }
@@ -1736,7 +1737,7 @@ io.on('connection', function(socket){
 
     console.log(`[SERVER] 🔌 New connection - Socket ID: ${socket.id}, Endpoint: ${endpoint || 'NONE'}, IP: ${chatClientAddress}`);
 
-    // Initialize counter for dynamic endpoints (denmark001-denmark99999) that aren't pre-populated
+    // Initialize counter for dynamic endpoints (greenland001-greenland99999) that aren't pre-populated
     if (!(endpoint in stuffedAnimalWarPageCounters)) stuffedAnimalWarPageCounters[endpoint] = 0;
     stuffedAnimalWarPageCounters[endpoint]++;
     statsLogger.updateEndpoints(stuffedAnimalWarPageCounters);

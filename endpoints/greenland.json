@@ -1,8 +1,8 @@
 {
-    "endpoint": "denmark",
-    "password": "denmark",
-    "masterAlias": "DANE",
-    "unspecifiedAlias": "your moms secret",
+    "endpoint": "greenland",
+    "password": "greenland",
+    "masterAlias": "POLARBEAR",
+    "unspecifiedAlias": "pidgeon square random dresser",
     "stuffedAnimalMediaObject": {
         "backgroundimage": "photos/space.jpg",
         "animals": [
@@ -4194,13 +4194,16 @@
                 "response": "no, just no"
             },
             {
-                "response": "hygge"
+                "response": "Dont ask and ill offer later if you do good"
             },
             {
-                "response": "get hygge with it"
+                "response": "Look out for barky polar bear"
             },
             {
                 "response": "Joe and the juice has great wifi"
+            },
+            {
+                "response": "I saw 711 guy placing pink donut with no gloves then wiping his hair..."
             }
         ]
     }
