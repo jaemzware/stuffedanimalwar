@@ -1251,7 +1251,7 @@ app.get('/api/describe-image', async (req, res) => {
         }
 
         const requestBody = JSON.stringify({
-            model: "claude-sonnet-4-20250514",
+            model: "claude-sonnet-4-6",
             max_tokens: 256,
             messages: [
                 {
@@ -1363,7 +1363,7 @@ app.post('/api/describe-image-base64', async (req, res) => {
         }
 
         const requestBody = JSON.stringify({
-            model: "claude-sonnet-4-20250514",
+            model: "claude-sonnet-4-6",
             max_tokens: 256,
             messages: [
                 {
