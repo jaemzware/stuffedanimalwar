@@ -3,23 +3,28 @@
 //setup an express application and bind it to an https server
 require('dotenv').config();
 let fs = require('fs');
+const http = require('http');
+const https = require('https');
+
+const useHttps = process.env.USE_HTTPS === 'true';
 
 //SSL CERTS NEED TO BE CREATED LOCALLY IF YOU WANT TO RUN LOCALLY
 //openssl genrsa -out key.pem 4096
 //openssl req -x509 -new -sha256 -nodes -key key.pem -days 1095 -out certificate.pem -subj "/CN=jaemzwarellc/O=stuffedanimalwar/C=US"
-const options = {
-    key: fs.readFileSync(process.env.SSL_KEY_PATH || './sslcert/key.pem'),
-    cert: fs.readFileSync(process.env.SSL_CERT_PATH || './sslcert/certificate.pem')
-};
+const options = useHttps
+    ? {
+        key: fs.readFileSync(process.env.SSL_KEY_PATH || './sslcert/key.pem'),
+        cert: fs.readFileSync(process.env.SSL_CERT_PATH || './sslcert/certificate.pem')
+    }
+    : null;
 
 //CREATE EXPRESS AND SOCKET.IO SERVERS
 const express = require('express');
 const NodeID3 = require('node-id3');
 const app = express();
-const https = require('https');
 const multer = require('multer');
 const upload = multer({ storage: multer.memoryStorage() });
-const server = https.createServer(options, app);
+const server = useHttps ? https.createServer(options, app) : http.createServer(app);
 const { Server } = require("socket.io");
 const io = new Server(server, {
     pingTimeout: 60000,     // 60 seconds (default is 20000)
@@ -447,7 +452,7 @@ server.listen(listenPort, async () => {
  * ENDPOINTS: Each endpoint uses the custom .json of the same name. if there is not a custom .json of the same name, the fallback is greenland.json]
  */
 const MAX_GREENLAND_ROOMS = 888;
-const stuffedAnimalWarEndpoints = ['greenland','spain','greta','blackpanthers','iran','onboard'];
+const stuffedAnimalWarEndpoints = ['greenland','spain','greta','blackpanthers','onboard'];
 const stuffedAnimalWarChatSocketEvent = 'chatmessage';
 const stuffedAnimalWarTapSocketEvent = 'tapmessage';
 const stuffedAnimalWarPathSocketEvent = 'pathmessage';
@@ -670,7 +675,7 @@ app.get('/', function(req, res){
         <div class="container">
             <h2>Try It Right Now</h2>
             <p class="subtitle">No signup. No email. Just pick a room and start.</p>
-            <p class="password-hint">Default password is the room name all lowercase one word (the same name as the first hit of my band just the tip. now here's JUST THE TIP WITH THEIR FIRST SONG "alllowercaseoneword").</p> 
+            <p class="password-hint">Default password is the room name all lowercase one word.</p> 
             <p class="password-hint">Change it anytime at <a href="/crud">/crud</a>.</p>
 
             <div class="rooms-preview">
