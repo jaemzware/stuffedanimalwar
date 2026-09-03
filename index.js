@@ -970,15 +970,16 @@ app.get('/:endpointcamera', ipBlockMiddleware, function(req, res, next){
 });
 
 // UPLOAD IMAGE: /:endpointuploadchatimage
-app.post('/:endpointupload', upload.single('image'), (req, res, next) => {
+app.post('/:endpointupload', upload.any(), (req, res, next) => {
     const full = req.params.endpointupload;
     if (!full.endsWith(stuffedAnimalWarChatImageSocketEvent)) return next();
     const endpoint = full.slice(0, -stuffedAnimalWarChatImageSocketEvent.length);
     if (!isValidEndpoint(endpoint)) return next();
-    if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded.' });
+    const file = (req.files || []).find(f => f.fieldname === 'image');
+    if (!file) return res.status(400).json({ success: false, message: 'No file uploaded.' });
     const clientIp = req.ip;
     const chatPstString = new Date().toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
-    const imageData = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+    const imageData = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
     const sizeInBytes = Buffer.from(imageData.split(';base64,').pop(), 'base64').length;
     const chatImageMsgObject = {
         CHATCLIENTIMAGE: imageData,
@@ -995,15 +996,16 @@ app.post('/:endpointupload', upload.single('image'), (req, res, next) => {
 });
 
 // UPLOAD VIDEO: /:endpointuploadchatvideo
-app.post('/:endpointuploadvideo', upload.single('video'), (req, res, next) => {
+app.post('/:endpointuploadvideo', upload.any(), (req, res, next) => {
     const full = req.params.endpointuploadvideo;
     if (!full.endsWith(stuffedAnimalWarChatVideoSocketEvent)) return next();
     const endpoint = full.slice(0, -stuffedAnimalWarChatVideoSocketEvent.length);
     if (!isValidEndpoint(endpoint)) return next();
-    if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded.' });
+    const file = (req.files || []).find(f => f.fieldname === 'video');
+    if (!file) return res.status(400).json({ success: false, message: 'No file uploaded.' });
     const clientIp = req.ip;
     const chatPstString = new Date().toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
-    const videoData = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+    const videoData = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
     const sizeInBytes = Buffer.from(videoData.split(';base64,').pop(), 'base64').length;
     const chatVideoMsgObject = {
         CHATCLIENTVIDEO: videoData,
