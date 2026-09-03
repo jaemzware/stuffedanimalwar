@@ -1,6 +1,6 @@
 {
     "endpoint": "onboard",
-    "password": "",
+    "password": "onboard",
     "masterAlias": "ONBOARD",
     "unspecifiedAlias": "samsquanch",
     "stuffedAnimalMediaObject": {

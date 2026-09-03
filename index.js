@@ -675,7 +675,7 @@ app.get('/', function(req, res){
         <div class="container">
             <h2>Try It Right Now</h2>
             <p class="subtitle">No signup. No email. Just pick a room and start.</p>
-            <p class="password-hint">Default password is the room name all lowercase one word (the same name as the first hit of my band just the tip. now here's JUST THE TIP WITH THEIR FIRST SONG "alllowercaseoneword").</p> 
+            <p class="password-hint">Default password is the room name all lowercase one word.</p> 
             <p class="password-hint">Change it anytime at <a href="/crud">/crud</a>.</p>
 
             <div class="rooms-preview">
