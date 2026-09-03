@@ -969,56 +969,59 @@ app.get('/:endpointcamera', ipBlockMiddleware, function(req, res, next){
     }
 });
 
-// UPLOAD IMAGE: /:endpointuploadchatimage
-app.post('/:endpointupload', upload.any(), (req, res, next) => {
+// UPLOAD IMAGE/VIDEO: /:endpointuploadchatimage or /:endpointuploadchatvideo
+// Single multer pass for both suffixes - two separate app.post handlers on the
+// same path pattern would each run their own upload.any(), and the second one
+// would try to re-read a request body the first already drained, causing
+// busboy to throw "Unexpected end of form".
+app.post('/:endpointupload', upload.any(), (req, res) => {
     const full = req.params.endpointupload;
-    if (!full.endsWith(stuffedAnimalWarChatImageSocketEvent)) return next();
-    const endpoint = full.slice(0, -stuffedAnimalWarChatImageSocketEvent.length);
-    if (!isValidEndpoint(endpoint)) return next();
-    const file = (req.files || []).find(f => f.fieldname === 'image');
-    if (!file) return res.status(400).json({ success: false, message: 'No file uploaded.' });
     const clientIp = req.ip;
     const chatPstString = new Date().toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
-    const imageData = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
-    const sizeInBytes = Buffer.from(imageData.split(';base64,').pop(), 'base64').length;
-    const chatImageMsgObject = {
-        CHATCLIENTIMAGE: imageData,
-        CHATCLIENTUSER: '',
-        CHATSERVERUSER: clientIp,
-        CHATSERVERDATE: chatPstString,
-        CHATUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
-        CHATSERVERENDPOINT: endpoint,
-        CHATSERVERPORT: listenPort
-    };
-    console.log(`CHATSERVERENDPOINT:${endpoint} CHATSERVERPORT: ${listenPort} CHATSERVERUSER: ${clientIp} CHATSERVERDATE: ${chatPstString} RAW IMAGE UPLOAD ${sizeInBytes} BYTES`);
-    io.emit(endpoint + stuffedAnimalWarChatImageSocketEvent, chatImageMsgObject);
-    res.status(200).json({ success: true, message: 'Image uploaded and broadcasted.' });
-});
 
-// UPLOAD VIDEO: /:endpointuploadchatvideo
-app.post('/:endpointuploadvideo', upload.any(), (req, res, next) => {
-    const full = req.params.endpointuploadvideo;
-    if (!full.endsWith(stuffedAnimalWarChatVideoSocketEvent)) return next();
-    const endpoint = full.slice(0, -stuffedAnimalWarChatVideoSocketEvent.length);
-    if (!isValidEndpoint(endpoint)) return next();
-    const file = (req.files || []).find(f => f.fieldname === 'video');
-    if (!file) return res.status(400).json({ success: false, message: 'No file uploaded.' });
-    const clientIp = req.ip;
-    const chatPstString = new Date().toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
-    const videoData = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
-    const sizeInBytes = Buffer.from(videoData.split(';base64,').pop(), 'base64').length;
-    const chatVideoMsgObject = {
-        CHATCLIENTVIDEO: videoData,
-        CHATCLIENTUSER: '',
-        CHATSERVERUSER: clientIp,
-        CHATSERVERDATE: chatPstString,
-        CHATUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
-        CHATSERVERENDPOINT: endpoint,
-        CHATSERVERPORT: listenPort
-    };
-    console.log(`CHATSERVERENDPOINT:${endpoint} CHATSERVERPORT: ${listenPort} CHATSERVERUSER: ${clientIp} CHATSERVERDATE: ${chatPstString} RAW VIDEO UPLOAD ${sizeInBytes} BYTES`);
-    io.emit(endpoint + stuffedAnimalWarChatVideoSocketEvent, chatVideoMsgObject);
-    res.status(200).json({ success: true, message: 'Video uploaded and broadcasted.' });
+    if (full.endsWith(stuffedAnimalWarChatImageSocketEvent)) {
+        const endpoint = full.slice(0, -stuffedAnimalWarChatImageSocketEvent.length);
+        if (!isValidEndpoint(endpoint)) return res.status(404).json({ success: false, message: 'Invalid endpoint.' });
+        const file = (req.files || []).find(f => f.fieldname === 'image');
+        if (!file) return res.status(400).json({ success: false, message: 'No file uploaded.' });
+        const imageData = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
+        const sizeInBytes = Buffer.from(imageData.split(';base64,').pop(), 'base64').length;
+        const chatImageMsgObject = {
+            CHATCLIENTIMAGE: imageData,
+            CHATCLIENTUSER: '',
+            CHATSERVERUSER: clientIp,
+            CHATSERVERDATE: chatPstString,
+            CHATUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
+            CHATSERVERENDPOINT: endpoint,
+            CHATSERVERPORT: listenPort
+        };
+        console.log(`CHATSERVERENDPOINT:${endpoint} CHATSERVERPORT: ${listenPort} CHATSERVERUSER: ${clientIp} CHATSERVERDATE: ${chatPstString} RAW IMAGE UPLOAD ${sizeInBytes} BYTES`);
+        io.emit(endpoint + stuffedAnimalWarChatImageSocketEvent, chatImageMsgObject);
+        return res.status(200).json({ success: true, message: 'Image uploaded and broadcasted.' });
+    }
+
+    if (full.endsWith(stuffedAnimalWarChatVideoSocketEvent)) {
+        const endpoint = full.slice(0, -stuffedAnimalWarChatVideoSocketEvent.length);
+        if (!isValidEndpoint(endpoint)) return res.status(404).json({ success: false, message: 'Invalid endpoint.' });
+        const file = (req.files || []).find(f => f.fieldname === 'video');
+        if (!file) return res.status(400).json({ success: false, message: 'No file uploaded.' });
+        const videoData = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
+        const sizeInBytes = Buffer.from(videoData.split(';base64,').pop(), 'base64').length;
+        const chatVideoMsgObject = {
+            CHATCLIENTVIDEO: videoData,
+            CHATCLIENTUSER: '',
+            CHATSERVERUSER: clientIp,
+            CHATSERVERDATE: chatPstString,
+            CHATUSERCOUNT: stuffedAnimalWarPageCounters[endpoint],
+            CHATSERVERENDPOINT: endpoint,
+            CHATSERVERPORT: listenPort
+        };
+        console.log(`CHATSERVERENDPOINT:${endpoint} CHATSERVERPORT: ${listenPort} CHATSERVERUSER: ${clientIp} CHATSERVERDATE: ${chatPstString} RAW VIDEO UPLOAD ${sizeInBytes} BYTES`);
+        io.emit(endpoint + stuffedAnimalWarChatVideoSocketEvent, chatVideoMsgObject);
+        return res.status(200).json({ success: true, message: 'Video uploaded and broadcasted.' });
+    }
+
+    return res.status(404).json({ success: false, message: 'Unknown upload endpoint.' });
 });
 
 /**
