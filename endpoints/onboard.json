@@ -98,9 +98,13 @@
     },
     "mediaObject": {
         "songspath": "songs/",
-        "videospath": "https://analogarchive.com/",
+        "videospath": "videos/",
         "photospath": "photos/",
         "songs": [
+            {
+                "file": "ahha-takeonme-bw-loveisreason.mp3",
+                "title": "Aha - Take on Me B/W Love is Reason"
+            },
             {
                 "file": "pixies-imamazed-brokenface-demo.mp3",
                 "title": "Pixies - I'm Amazed / Broken Face"
@@ -112,13 +116,32 @@
         ],
         "photos": [
             {
+                "file": "boots.jpg",
+                "title": "Boots"
+            },{
                 "file": "bootsmurderedout.PNG",
                 "title": "BOOTS MURDRED OUT"
+            },{
+                "file": "IMG_3512.JPG",
+                "title": "BOOTS MURDRED OUT"
+            },{
+                "file": "IMG_5269.JPG",
+                "title": "BOOTS MURDRED OUT"
+            },{
+                "file": "jim-boneless.JPG",
+                "title": "Jim Boneless"
+            },{
+                "file": "space.jpg",
+                "title": "Space"
             }
         ],
-        "videos": [],
-        "videosScanPath": "/home/jaemzware/analogarchive/music/",
-        "photosScanPath": "/home/jaemzware/analogarchive/music/"
+        "videos": [
+            {
+                "file": "jimskate.mp4",
+                "title": "jimskate.mp4",
+                "poster": "stuffedanimalmountain.jpg"
+            }
+        ]
     },
     "responsesObject": {
         "responses": [
