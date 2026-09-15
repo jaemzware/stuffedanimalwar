@@ -2797,10 +2797,21 @@
                     console.log('Should create offer:', shouldCreateOffer, '(my ID:', socket.id, 'vs their ID:', data.userId, ')');
 
                     if (shouldCreateOffer) {
-                        console.log('Creating new peer connection for reconnecting peer:', data.userId);
-
                         // Create peer connection (will add any enabled media tracks)
                         const pc = createPeerConnection(data.userId);
+
+                        // 'reconnect' and 'connect' can both be emitted for the same
+                        // userId (see refreshPeerConnections) and both land here /
+                        // in the 'connect' handler with the same glare check, so an
+                        // existing connection may already be negotiating. Creating a
+                        // second offer on the same pc mid-negotiation throws
+                        // InvalidStateError in Safari, so skip if we're not stable.
+                        if (pc.signalingState !== 'stable') {
+                            console.log('⏸️ Skipping offer for reconnecting peer:', data.userId, '- already negotiating (signalingState:', pc.signalingState + ')');
+                            return;
+                        }
+
+                        console.log('Creating new peer connection for reconnecting peer:', data.userId);
 
                         // Send offer to the reconnecting peer
                         pc.createOffer().then(offer => pc.setLocalDescription(offer))
@@ -3493,6 +3504,17 @@
                     if (shouldCreateOffer) {
                         // Create peer connection (will add any enabled media tracks)
                         const pc = createPeerConnection(data.userId);
+
+                        // 'connect' and 'reconnect' can both be emitted for the same
+                        // userId (see refreshPeerConnections) and both land here /
+                        // in handlePeerReconnect with the same glare check, so an
+                        // existing connection may already be negotiating. Creating a
+                        // second offer on the same pc mid-negotiation throws
+                        // InvalidStateError in Safari, so skip if we're not stable.
+                        if (pc.signalingState !== 'stable') {
+                            console.log('⏸️ Skipping offer for new peer:', data.userId, '- already negotiating (signalingState:', pc.signalingState + ')');
+                            return;
+                        }
 
                         // Always create and send offer, even if we don't have media yet
                         // This establishes the connection, and media can be added later
