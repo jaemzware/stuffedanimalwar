@@ -535,7 +535,7 @@ async function displayMetadata(audioUrl) {
     }
 
     // Reset metadata display
-    artist.textContent = 'Searching...';
+    artist.textContent = 'Reading ID3 tags...';
     album.textContent = '';
     title.textContent = '';
     albumArt.src = 'https://analogarchive.com/favicon.ico';
