@@ -326,7 +326,7 @@ function changeAudio(audioUrl, startPaused) {
     if (startPaused) {
         // Explicitly pause to stop any currently playing audio, cue up the new song
         audioPlayer.pause();
-        updateAudioSyncStatus('CUED: waiting for master to play');
+        updateAudioSyncStatus('CUED: waiting for Presentation Alias to play');
         console.log('Audio cued up and paused, waiting for master to play:', audioUrl);
     } else {
         audioPlayer.play().catch(function(err) {
@@ -471,7 +471,7 @@ function changeVideo(videoUrl, startPaused) {
     if (startPaused) {
         // Explicitly pause to stop any currently playing video, cue up the new video
         videoPlayer.pause();
-        updateVideoSyncStatus('CUED: waiting for master to play');
+        updateVideoSyncStatus('CUED: waiting for Presentation Alias to play');
         console.log('Video cued up and paused, waiting for master to play:', videoUrl);
     } else {
         videoPlayer.play().catch(function(err) {
@@ -569,12 +569,16 @@ async function displayMetadata(audioUrl) {
         if (metadata.artist) {
             artist.textContent = metadata.artist;
             artistAlbumSeparator.style.display = 'inline';
+        } else {
+            artist.textContent = '';
         }
 
         // Display album if available
         if (metadata.album) {
             album.textContent = metadata.album;
             albumTitleSeparator.style.display = 'inline';
+        } else {
+            album.textContent = '';
         }
 
         // Display artwork if available
@@ -671,6 +675,23 @@ function setupMetadataListeners() {
             if (audioSource && audioSource.src) {
                 displayMetadata(audioSource.src);
             }
+        });
+
+        // If the track fails to load, loadedmetadata never fires, so clear
+        // the 'Loading...' placeholder here instead of leaving it stuck.
+        audioPlayer.addEventListener('error', function() {
+            console.error('Audio player error event fired');
+            const artist = document.getElementById('track-artist');
+            const album = document.getElementById('track-album');
+            const title = document.getElementById('track-title');
+            const artistAlbumSeparator = document.getElementById('artist-album-separator');
+            const albumTitleSeparator = document.getElementById('album-title-separator');
+
+            if (artist) artist.textContent = 'Could not load track';
+            if (album) album.textContent = '';
+            if (title) title.textContent = '';
+            if (artistAlbumSeparator) artistAlbumSeparator.style.display = 'none';
+            if (albumTitleSeparator) albumTitleSeparator.style.display = 'none';
         });
     }
 

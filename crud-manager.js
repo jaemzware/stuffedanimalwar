@@ -392,7 +392,7 @@ async function validateForm() {
     const validations = [];
 
     // Validate basic fields
-    validations.push(validateRequired('masterAlias', 'Master Alias'));
+    validations.push(validateRequired('masterAlias', 'Presentation Alias'));
     validations.push(validateRequired('unspecifiedAlias', 'Unspecified Alias'));
 
     // Validate background image
