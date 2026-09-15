@@ -126,6 +126,37 @@
             document.getElementById('endpointDisplay').textContent = endpoint || 'none';
             document.getElementById('masterAliasDisplay').textContent = masterAlias || 'none';
             document.getElementById('unspecifiedAliasDisplay').textContent = unspecifiedAlias || 'none';
+
+            const copyMasterAliasBtn = document.getElementById('copyMasterAliasBtn');
+            if (copyMasterAliasBtn) {
+                copyMasterAliasBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const text = masterAlias || '';
+                    const showCopied = function() {
+                        copyMasterAliasBtn.textContent = '✓';
+                        setTimeout(() => copyMasterAliasBtn.textContent = '📋', 1500);
+                    };
+                    if (navigator.clipboard) {
+                        navigator.clipboard.writeText(text).then(showCopied).catch(function() {
+                            const ta = document.createElement('textarea');
+                            ta.value = text;
+                            document.body.appendChild(ta);
+                            ta.select();
+                            document.execCommand('copy');
+                            document.body.removeChild(ta);
+                            showCopied();
+                        });
+                    } else {
+                        const ta = document.createElement('textarea');
+                        ta.value = text;
+                        document.body.appendChild(ta);
+                        ta.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(ta);
+                        showCopied();
+                    }
+                });
+            }
         });
     } else {
         // Readonly mode: set up mute button functionality and autoplay
