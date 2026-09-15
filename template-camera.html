@@ -2271,6 +2271,23 @@
             async function attemptIceRestart(pc, peerId) {
                 if (!pc || pc.connectionState === 'closed') return;
 
+                // Multiple independent monitors (connection state, quality
+                // monitor, visibility change, manual refresh) can all decide
+                // to restart around the same time. Overlapping ICE-restart
+                // offers on the same connection corrupt the DTLS transport
+                // role in Safari/WebKit ("Failed to set SSL role for the
+                // transport"), so only allow one restart at a time per peer.
+                if (pc.signalingState !== 'stable') {
+                    console.log('⏸️ Skipping ICE restart for peer:', peerId, '- negotiation already in progress (signalingState:', pc.signalingState + ')');
+                    return;
+                }
+                const now = Date.now();
+                if (pc._lastIceRestartAt && (now - pc._lastIceRestartAt) < 5000) {
+                    console.log('⏸️ ICE restart attempted too recently for peer:', peerId, '- skipping duplicate');
+                    return;
+                }
+                pc._lastIceRestartAt = now;
+
                 console.log('🔄 Attempting ICE restart for peer:', peerId);
 
                 try {
@@ -3299,6 +3316,23 @@
                 const pc = createPeerConnection(data.from);
 
                 try {
+                    // Perfect-negotiation glare handling: if we've already sent our
+                    // own offer and are waiting on an answer, don't blindly overwrite
+                    // it with the incoming one — resolve the collision deterministically
+                    // (same lower-ID-offers convention used elsewhere) so crossed offers
+                    // (e.g. simultaneous ICE restarts) can't corrupt the DTLS transport.
+                    const offerCollision = pc.signalingState === 'have-local-offer';
+                    const polite = socket.id > data.from;
+
+                    if (offerCollision) {
+                        if (!polite) {
+                            console.log('⏸️ Ignoring colliding offer from (impolite, keeping our own offer):', data.from);
+                            return;
+                        }
+                        console.log('↩️ Rolling back our pending offer to accept incoming offer (polite) from:', data.from);
+                        await pc.setLocalDescription({ type: 'rollback' });
+                    }
+
                     await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
                     console.log('✅ Set remote description for offer from:', data.from);
 
