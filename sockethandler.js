@@ -1109,18 +1109,26 @@ $('#nextaudiotrack').click(function(){
 $('#enableaudiosync').click(function(){
     let audioPlayer = document.getElementById('jaemzwaredynamicaudioplayer');
     if(audioPlayer) {
-        // Save current volume, mute, play briefly, pause, restore volume - completely silent unlock
+        // Save current volume/mute, mute, play briefly, pause, restore - completely silent unlock.
+        // Safari's audio sink can keep draining already-buffered audio for a moment after pause()
+        // even with volume 0 (a WebKit quirk Chrome doesn't have) - muted takes effect at the sink
+        // level and closes that gap. iOS Safari also ignores JS volume changes entirely, so muted
+        // is required there regardless.
         let savedVolume = audioPlayer.volume;
+        let savedMuted = audioPlayer.muted;
+        audioPlayer.muted = true;
         audioPlayer.volume = 0;
         audioPlayer.play().then(function() {
             audioPlayer.pause();
             audioPlayer.currentTime = 0;
             audioPlayer.volume = savedVolume;
+            audioPlayer.muted = savedMuted;
             audioSyncEnabled = true; // Mark sync as enabled - non-master won't auto-advance
             updateAudioSyncStatus('READY: audio sync enabled');
             $('#enableaudiosync').text('Audio Sync Enabled').attr('disabled', true).addClass('disabled-button');
         }).catch(function(err) {
             audioPlayer.volume = savedVolume;
+            audioPlayer.muted = savedMuted;
             updateAudioSyncStatus('FAILED: ' + err.message);
             console.log('Failed to enable audio sync:', err.message);
         });
