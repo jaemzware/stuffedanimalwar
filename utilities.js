@@ -326,7 +326,7 @@ function changeAudio(audioUrl, startPaused) {
     if (startPaused) {
         // Explicitly pause to stop any currently playing audio, cue up the new song
         audioPlayer.pause();
-        updateAudioSyncStatus('CUED: waiting for master to play');
+        updateAudioSyncStatus('CUED: waiting for Presentation Alias to play');
         console.log('Audio cued up and paused, waiting for master to play:', audioUrl);
     } else {
         audioPlayer.play().catch(function(err) {
@@ -471,7 +471,7 @@ function changeVideo(videoUrl, startPaused) {
     if (startPaused) {
         // Explicitly pause to stop any currently playing video, cue up the new video
         videoPlayer.pause();
-        updateVideoSyncStatus('CUED: waiting for master to play');
+        updateVideoSyncStatus('CUED: waiting for Presentation Alias to play');
         console.log('Video cued up and paused, waiting for master to play:', videoUrl);
     } else {
         videoPlayer.play().catch(function(err) {

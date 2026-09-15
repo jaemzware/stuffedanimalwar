@@ -266,7 +266,7 @@ function initializeSocketHandlers(){
                         updateAudioSyncStatus('LOADING: syncing song...');
                         changeAudio(masterSongUrl, false); // Load and play immediately
                     } else {
-                        updateAudioSyncStatus('PLAYING: master started');
+                        updateAudioSyncStatus('PLAYING: Presentation Alias started');
                         audioPlayer.play().catch(function(err) {
                             updateAudioSyncStatus('BLOCKED: needs interaction');
                             console.log('Autoplay blocked - user interaction required:', err.message);
@@ -274,7 +274,7 @@ function initializeSocketHandlers(){
                     }
                     break;
                 case 'pause':
-                    updateAudioSyncStatus('PAUSED: master paused');
+                    updateAudioSyncStatus('PAUSED: Presentation Alias paused');
                     audioPlayer.pause();
                     break;
                 case 'seek':
@@ -324,7 +324,7 @@ function initializeSocketHandlers(){
                         updateVideoSyncStatus('LOADING: syncing video...');
                         changeVideo(masterVideoUrl, false); // Load and play immediately
                     } else {
-                        updateVideoSyncStatus('PLAYING: master started');
+                        updateVideoSyncStatus('PLAYING: Presentation Alias started');
                         videoPlayer.play().catch(function(err) {
                             updateVideoSyncStatus('BLOCKED: needs interaction');
                             console.log('Autoplay blocked - user interaction required:', err.message);
@@ -332,7 +332,7 @@ function initializeSocketHandlers(){
                     }
                     break;
                 case 'pause':
-                    updateVideoSyncStatus('PAUSED: master paused');
+                    updateVideoSyncStatus('PAUSED: Presentation Alias paused');
                     videoPlayer.pause();
                     break;
                 case 'seek':
