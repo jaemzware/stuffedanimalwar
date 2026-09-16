@@ -3363,6 +3363,20 @@
                 } catch (error) {
                     console.error('❌ Error handling offer from:', data.from, error.message);
                     console.debug('Offer data:', data.offer);
+
+                    // Some failures (e.g. "the order of m-lines...doesn't match
+                    // order from previous offer/answer") mean this connection's
+                    // negotiated state is permanently out of sync with what the
+                    // peer is now sending — usually because the peer rebuilt its
+                    // RTCPeerConnection from scratch while we kept our old,
+                    // already-negotiated one. There's no way to recover that pc,
+                    // so tear it down and let both sides reconnect clean instead
+                    // of leaving a permanently stalled connection behind.
+                    console.warn('🔄 Rebuilding connection from scratch for peer:', data.from);
+                    cleanupPeerConnection(data.from);
+                    socket.emit(endpoint + 'cameracamera' + 'requestroster', {
+                        userId: socket.id
+                    });
                 }
             }
 
