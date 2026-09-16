@@ -2271,6 +2271,23 @@
             async function attemptIceRestart(pc, peerId) {
                 if (!pc || pc.connectionState === 'closed') return;
 
+                // Multiple independent monitors (connection state, quality
+                // monitor, visibility change, manual refresh) can all decide
+                // to restart around the same time. Overlapping ICE-restart
+                // offers on the same connection corrupt the DTLS transport
+                // role in Safari/WebKit ("Failed to set SSL role for the
+                // transport"), so only allow one restart at a time per peer.
+                if (pc.signalingState !== 'stable') {
+                    console.log('⏸️ Skipping ICE restart for peer:', peerId, '- negotiation already in progress (signalingState:', pc.signalingState + ')');
+                    return;
+                }
+                const now = Date.now();
+                if (pc._lastIceRestartAt && (now - pc._lastIceRestartAt) < 5000) {
+                    console.log('⏸️ ICE restart attempted too recently for peer:', peerId, '- skipping duplicate');
+                    return;
+                }
+                pc._lastIceRestartAt = now;
+
                 console.log('🔄 Attempting ICE restart for peer:', peerId);
 
                 try {
@@ -2780,10 +2797,21 @@
                     console.log('Should create offer:', shouldCreateOffer, '(my ID:', socket.id, 'vs their ID:', data.userId, ')');
 
                     if (shouldCreateOffer) {
-                        console.log('Creating new peer connection for reconnecting peer:', data.userId);
-
                         // Create peer connection (will add any enabled media tracks)
                         const pc = createPeerConnection(data.userId);
+
+                        // 'reconnect' and 'connect' can both be emitted for the same
+                        // userId (see refreshPeerConnections) and both land here /
+                        // in the 'connect' handler with the same glare check, so an
+                        // existing connection may already be negotiating. Creating a
+                        // second offer on the same pc mid-negotiation throws
+                        // InvalidStateError in Safari, so skip if we're not stable.
+                        if (pc.signalingState !== 'stable') {
+                            console.log('⏸️ Skipping offer for reconnecting peer:', data.userId, '- already negotiating (signalingState:', pc.signalingState + ')');
+                            return;
+                        }
+
+                        console.log('Creating new peer connection for reconnecting peer:', data.userId);
 
                         // Send offer to the reconnecting peer
                         pc.createOffer().then(offer => pc.setLocalDescription(offer))
@@ -3299,6 +3327,23 @@
                 const pc = createPeerConnection(data.from);
 
                 try {
+                    // Perfect-negotiation glare handling: if we've already sent our
+                    // own offer and are waiting on an answer, don't blindly overwrite
+                    // it with the incoming one — resolve the collision deterministically
+                    // (same lower-ID-offers convention used elsewhere) so crossed offers
+                    // (e.g. simultaneous ICE restarts) can't corrupt the DTLS transport.
+                    const offerCollision = pc.signalingState === 'have-local-offer';
+                    const polite = socket.id > data.from;
+
+                    if (offerCollision) {
+                        if (!polite) {
+                            console.log('⏸️ Ignoring colliding offer from (impolite, keeping our own offer):', data.from);
+                            return;
+                        }
+                        console.log('↩️ Rolling back our pending offer to accept incoming offer (polite) from:', data.from);
+                        await pc.setLocalDescription({ type: 'rollback' });
+                    }
+
                     await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
                     console.log('✅ Set remote description for offer from:', data.from);
 
@@ -3318,6 +3363,20 @@
                 } catch (error) {
                     console.error('❌ Error handling offer from:', data.from, error.message);
                     console.debug('Offer data:', data.offer);
+
+                    // Some failures (e.g. "the order of m-lines...doesn't match
+                    // order from previous offer/answer") mean this connection's
+                    // negotiated state is permanently out of sync with what the
+                    // peer is now sending — usually because the peer rebuilt its
+                    // RTCPeerConnection from scratch while we kept our old,
+                    // already-negotiated one. There's no way to recover that pc,
+                    // so tear it down and let both sides reconnect clean instead
+                    // of leaving a permanently stalled connection behind.
+                    console.warn('🔄 Rebuilding connection from scratch for peer:', data.from);
+                    cleanupPeerConnection(data.from);
+                    socket.emit(endpoint + 'cameracamera' + 'requestroster', {
+                        userId: socket.id
+                    });
                 }
             }
 
@@ -3459,6 +3518,17 @@
                     if (shouldCreateOffer) {
                         // Create peer connection (will add any enabled media tracks)
                         const pc = createPeerConnection(data.userId);
+
+                        // 'connect' and 'reconnect' can both be emitted for the same
+                        // userId (see refreshPeerConnections) and both land here /
+                        // in handlePeerReconnect with the same glare check, so an
+                        // existing connection may already be negotiating. Creating a
+                        // second offer on the same pc mid-negotiation throws
+                        // InvalidStateError in Safari, so skip if we're not stable.
+                        if (pc.signalingState !== 'stable') {
+                            console.log('⏸️ Skipping offer for new peer:', data.userId, '- already negotiating (signalingState:', pc.signalingState + ')');
+                            return;
+                        }
 
                         // Always create and send offer, even if we don't have media yet
                         // This establishes the connection, and media can be added later
