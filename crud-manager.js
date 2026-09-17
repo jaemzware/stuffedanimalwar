@@ -3,6 +3,7 @@ let currentEndpoint = null;
 let validationPassed = false;
 let validationErrors = [];
 let authToken = null;
+let activityPollInterval = null;
 
 // Initialize on page load
 window.addEventListener('DOMContentLoaded', function() {
@@ -66,6 +67,56 @@ async function login() {
 function showCrudInterface() {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('crudInterface').style.display = 'block';
+    startActivityPolling();
+}
+
+// Poll the live activity snapshot without being intrusive (no page reload, just a quiet refresh)
+function startActivityPolling() {
+    if (activityPollInterval) return;
+    refreshActivity();
+    activityPollInterval = setInterval(refreshActivity, 5000);
+}
+
+async function refreshActivity() {
+    try {
+        const response = await authenticatedFetch('/api/activity');
+        const result = await response.json();
+        if (result.success) {
+            renderActivity(result);
+        }
+    } catch (error) {
+        // Stay quiet - activity panel is a convenience, not core functionality
+        console.warn('Activity refresh failed:', error.message);
+    }
+}
+
+function renderActivity(data) {
+    const summary = document.getElementById('activitySummary');
+    const body = document.getElementById('activityTableBody');
+    const updated = document.getElementById('activityUpdated');
+
+    summary.textContent = `(${data.totalConnections} connection${data.totalConnections === 1 ? '' : 's'}, ${data.rooms.length} room${data.rooms.length === 1 ? '' : 's'})`;
+
+    if (data.rooms.length === 0) {
+        body.innerHTML = '<tr><td colspan="3" style="padding:5px; color:#999;">No active connections</td></tr>';
+    } else {
+        body.innerHTML = data.rooms.map(room => `
+            <tr>
+                <td style="padding:5px;">${escapeHtml(room.endpoint)}</td>
+                <td style="padding:5px;">${room.connections}</td>
+                <td style="padding:5px;">${room.eventsLastMinute}</td>
+            </tr>
+        `).join('');
+    }
+
+    const serverTime = new Date(data.serverTime);
+    updated.textContent = 'Last updated: ' + serverTime.toLocaleTimeString();
+}
+
+function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
 }
 
 // Helper function to make authenticated API calls

@@ -48,6 +48,14 @@ class StatsLogger {
         }
     }
 
+    getSnapshot() {
+        return {
+            events: { ...this.stats.events },
+            endpoints: JSON.parse(JSON.stringify(this.stats.endpoints)),
+            startTime: this.stats.startTime
+        };
+    }
+
     reset() {
         for (const key in this.stats.events) {
             this.stats.events[key] = 0;

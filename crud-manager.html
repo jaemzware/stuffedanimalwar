@@ -298,6 +298,14 @@
             background: #ff4444;
             color: #fff;
         }
+
+        #activityTable td, #activityTable th {
+            border-bottom: 1px solid #444;
+        }
+
+        #activityTable tbody tr:hover {
+            background: #333;
+        }
     </style>
 </head>
 <body>
@@ -321,6 +329,28 @@
                 <option value="">-- Select Endpoint --</option>
             </select>
             <button onclick="loadEndpoint()">Load</button>
+        </div>
+
+        <div class="form-section" id="activityPanel">
+            <div class="array-header" onclick="toggleCollapse('activityContent')">
+                <h3>📊 Live Activity <span id="activitySummary" style="color:#0ff; font-weight:normal; font-size:13px;"></span></h3>
+                <span class="collapse-indicator" id="activityContent-indicator">▼</span>
+            </div>
+            <div id="activityContent" class="array-content">
+                <table id="activityTable" style="width:100%; border-collapse: collapse; margin-top:10px;">
+                    <thead>
+                        <tr style="text-align:left; color:#0ff;">
+                            <th style="padding:5px;">Room / Endpoint</th>
+                            <th style="padding:5px;">Connections</th>
+                            <th style="padding:5px;">Events (last min)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="activityTableBody">
+                        <tr><td colspan="3" style="padding:5px; color:#999;">Loading...</td></tr>
+                    </tbody>
+                </table>
+                <div style="color:#999; font-size:12px; margin-top:8px;" id="activityUpdated"></div>
+            </div>
         </div>
 
         <div id="statusMessage" class="status-message"></div>

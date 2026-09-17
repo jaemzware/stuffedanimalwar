@@ -1124,6 +1124,41 @@ app.get('/api/endpoints', checkCrudAuth, function(req, res){
     }
 });
 
+// LIVE ACTIVITY - rooms/endpoints currently in use and their connection counts
+app.get('/api/activity', checkCrudAuth, function(req, res){
+    try {
+        const roomCounts = {};
+        io.sockets.sockets.forEach((sock) => {
+            const ep = sock.handshake.query.endpoint || '(none)';
+            roomCounts[ep] = (roomCounts[ep] || 0) + 1;
+        });
+
+        const snapshot = statsLogger.getSnapshot();
+
+        const rooms = Object.keys(roomCounts)
+            .map(endpoint => ({
+                endpoint,
+                connections: roomCounts[endpoint],
+                eventsLastMinute: snapshot.endpoints[endpoint]?.events || 0
+            }))
+            .sort((a, b) => b.connections - a.connections);
+
+        res.json({
+            success: true,
+            totalConnections: io.sockets.sockets.size,
+            rooms,
+            eventTotals: snapshot.events,
+            serverTime: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('Error building activity snapshot:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
 // UPDATE endpoint configuration (UPDATE)
 app.post('/api/endpoint/:name', checkCrudAuth, function(req, res){
     try {
