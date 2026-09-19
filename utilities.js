@@ -123,7 +123,8 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!isPasswordModalVisible) {
         const aliasField = document.getElementById('chatClientUser');
         if (aliasField) {
-            aliasField.focus();
+            // preventScroll so focusing this field doesn't jump the page down to it
+            aliasField.focus({ preventScroll: true });
         }
     }
 
