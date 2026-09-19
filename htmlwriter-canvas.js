@@ -5,7 +5,7 @@ function writeStuffedAnimalWar(stuffedAnimalMediaObject, readonly = false){
     } else {
         // Normal mode: show everything with flexbox layout
         // Navigation links and Collapse All button row
-        document.write("<div style='margin-top: 15px; display: flex; justify-content: space-between; align-items: center;'>");
+        document.write("<div id='canvasNavToolbar' style='margin-top: 15px; display: flex; justify-content: space-between; align-items: center;'>");
         // Left side: Canvas and Camera links
         document.write("<div style='display: flex; gap: 10px;'>");
         document.write("<a id='canvasLink' href='#' target='stuffedanimalwar_canvas_tab' style='padding: 8px 16px; background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); color: white; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 6px;'><span>🎨</span><span>Canvas</span></a>");

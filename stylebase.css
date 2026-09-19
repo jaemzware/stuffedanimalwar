@@ -1331,6 +1331,32 @@ a.jaemzwarelogo:active, .skateparkdetail a:active {
     #stuffedanimalwarresizehandle {
         display: none;
     }
+    /* The canvas blocks touch-scrolling (so drawing works), so the nav/action
+       buttons need to stay reachable without ever scrolling past them: pin the
+       toolbar to the top, and let it scroll horizontally so buttons that don't
+       fit the screen width are a swipe away instead of simply cut off. */
+    #canvasNavToolbar,
+    #cameraNavToolbar {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        background: #16213e;
+        flex-wrap: nowrap !important;
+        justify-content: flex-start !important;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 8px 4px;
+    }
+    #canvasNavToolbar > div {
+        flex-wrap: nowrap !important;
+        flex-shrink: 0;
+    }
+    #canvasNavToolbar a,
+    #canvasNavToolbar button,
+    #cameraNavToolbar a {
+        flex-shrink: 0;
+        white-space: nowrap;
+    }
     /* Stack directional buttons and color picker vertically on mobile */
     #stuffedanimalwarformtable .direction-color-container {
         grid-template-columns: 1fr !important;
