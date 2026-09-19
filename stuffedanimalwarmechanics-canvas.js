@@ -105,6 +105,16 @@ document.addEventListener('DOMContentLoaded', function() {
             }, { passive: false });
         }
 
+        // "Hide Controls" toggle: let the canvas take the full width, form panel hidden
+        const toggleFormButton = document.getElementById('toggleFormButton');
+        const sawFlexDiv = document.getElementById('sawflexdiv');
+        if (toggleFormButton && sawFlexDiv) {
+            toggleFormButton.addEventListener('click', function() {
+                const hidden = sawFlexDiv.classList.toggle('form-hidden');
+                toggleFormButton.textContent = hidden ? 'Show Controls' : 'Hide Controls';
+            });
+        }
+
         // Use requestAnimationFrame to ensure browser has completed layout
         // This fixes the race condition where CSS styles aren't fully applied yet
         function initializeWhenReady() {

@@ -1071,6 +1071,13 @@ body:has(.readonly) #audioform {
     width: 100%;
     max-width: 100%;
 }
+/* "Hide Controls" toggle: let the canvas take the full width when the form is hidden */
+#sawflexdiv.form-hidden #stuffedanimalwarform {
+    display: none;
+}
+#sawflexdiv.form-hidden #stuffedanimalwardiv {
+    width: 100%;
+}
 /*AUDIOVIDEOPHOTOS//////////////////////////////////////////////AUDIOVIDEOPHOTOS//////////////////////////////////////////////////AUDIOVIDEOPHOTOS*/
 /* Ensure #audiotable and its children are responsive */
 #audiotable {
