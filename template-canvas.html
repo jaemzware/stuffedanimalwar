@@ -6,11 +6,18 @@
 <!--        FOR MOBILE-->
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
         <script type="text/javascript" src="/htmlwriter-canvas.js"></script>
+        <script type="text/javascript" src="/tabsync.js"></script>
         <script src="/jquery-3.7.1.min.js"></script>
         <script src="/socket.io/socket.io.js"></script>
     </head>
 <body>
 <script>
+    // Name this tab so that a "Canvas" link clicked from ANY tab (including ones
+    // this tab never opened, e.g. this one was typed/bookmarked directly) will find
+    // and reuse it instead of opening a duplicate. Named-target lookup only works if
+    // the tab has this name, which normally only happens for tabs THIS mechanism opened.
+    window.name = 'stuffedanimalwar_canvas_tab';
+
     // Always open at the top of the page, regardless of prior scroll position
     // or any later focus() call that would otherwise scroll an input into view.
     if ('scrollRestoration' in history) {
@@ -209,8 +216,22 @@
         const cameraUrl = window.location.origin + '/' + endpoint + 'camera';
         const canvasLink = document.getElementById('canvasLink');
         const cameraLink = document.getElementById('cameraLink');
-        if (canvasLink) canvasLink.href = canvasUrl;
+        if (canvasLink) {
+            // Already on the Canvas page, so disable this to avoid opening a duplicate tab
+            canvasLink.removeAttribute('href');
+            canvasLink.removeAttribute('target');
+            canvasLink.style.opacity = '0.5';
+            canvasLink.style.pointerEvents = 'none';
+            canvasLink.style.cursor = 'default';
+            canvasLink.title = 'You are on the Canvas page';
+        }
         if (cameraLink) cameraLink.href = cameraUrl;
+
+        // Clicking Camera focuses an already-open camera tab instead of reloading it
+        // (which would drop the camera stream). Only opens/navigates if none is open.
+        if (window.stuffedAnimalWarTabSync) {
+            window.stuffedAnimalWarTabSync.wireSmartLink('cameraLink');
+        }
     });
 </script>
 

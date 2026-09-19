@@ -4,6 +4,7 @@
         <title>{{ENDPOINT}} Camera Room</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
         <script src="/socket.io/socket.io.js"></script>
+        <script type="text/javascript" src="/tabsync.js"></script>
         <style>
             @keyframes pulse {
                 0%, 100% { transform: translateX(-50%) scale(1); }
@@ -556,6 +557,12 @@
         </style>
     </head>
     <body>
+        <script>
+            // Name this tab so that a "Camera" link clicked from ANY tab (including ones
+            // this tab never opened, e.g. this one was typed/bookmarked directly) will find
+            // and reuse it instead of opening a duplicate.
+            window.name = 'stuffedanimalwar_camera_tab';
+        </script>
         <!-- PASSWORD MODAL -->
         <div id="passwordModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 99999; justify-content: center; align-items: center;">
             <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 40px; border-radius: 12px; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.5); max-width: 400px; width: 90%;">
@@ -589,20 +596,14 @@
         </script>
         <!-- Navigation Links -->
         <div style="margin-bottom: 10px; display: flex; gap: 8px;">
-            <a id="canvasLink" href="#" style="padding: 6px 12px; background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 4px;">
+            <a id="canvasLink" href="#" target="stuffedanimalwar_canvas_tab" style="padding: 6px 12px; background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 4px;">
                 <span>🎨</span><span>Canvas</span>
             </a>
-            <a id="cameraLink" href="#" style="padding: 6px 12px; background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 4px;">
+            <a id="cameraLink" href="#" target="stuffedanimalwar_camera_tab" style="padding: 6px 12px; background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 4px;">
                 <span>📹</span><span>Camera</span>
             </a>
             <a href="https://analogarchive.com" target="_blank" style="padding: 6px 12px; background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 4px;">
-                <span>🎞️</span><span>Analog</span>
-            </a>
-            <a href="https://marginalwayskateparkfoundation.org" target="_blank" style="padding: 6px 12px; background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 4px;">
-                <span>🛹</span><span>Marginal Way</span>
-            </a>
-            <a href="https://skatecreteordie.com" target="_blank" style="padding: 6px 12px; background: linear-gradient(135deg, #f39c12 0%, #d68910 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 4px;">
-                <span>🏗️</span><span>Skate Crete</span>
+                <span>🎞️</span><span>analogarchive.com</span>
             </a>
         </div>
         <script>
@@ -610,7 +611,21 @@
                 const endpoint = "{{ENDPOINT}}";
                 const baseUrl = window.location.origin;
                 document.getElementById('canvasLink').href = baseUrl + '/' + endpoint;
-                document.getElementById('cameraLink').href = baseUrl + '/' + endpoint + 'camera';
+                const cameraLink = document.getElementById('cameraLink');
+                // Already on the Camera page, so disable this to avoid opening a duplicate tab
+                cameraLink.removeAttribute('href');
+                cameraLink.removeAttribute('target');
+                cameraLink.style.opacity = '0.5';
+                cameraLink.style.pointerEvents = 'none';
+                cameraLink.style.cursor = 'default';
+                cameraLink.title = 'You are on the Camera page';
+
+                // Clicking Canvas focuses an already-open canvas tab instead of reloading
+                // it (which would wipe an in-progress drawing). Only opens/navigates if
+                // none is open.
+                if (window.stuffedAnimalWarTabSync) {
+                    window.stuffedAnimalWarTabSync.wireSmartLink('canvasLink');
+                }
             })();
         </script>
 
