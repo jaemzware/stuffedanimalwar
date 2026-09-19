@@ -190,6 +190,8 @@ function drawBackgroundImage() {
         drawY = 0;
     }
 
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(backgroundImage, drawX, drawY, drawWidth, drawHeight);
 }
 
