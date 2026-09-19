@@ -1346,6 +1346,7 @@ a.jaemzwarelogo:active, .skateparkdetail a:active {
         background: #16213e;
         flex-wrap: nowrap !important;
         justify-content: flex-start !important;
+        gap: 10px;
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
         padding: 8px 4px;
@@ -1686,11 +1687,6 @@ a.jaemzwarelogo:active, .skateparkdetail a:active {
 
     .upload-container {
         margin-bottom: 15px;
-    }
-
-    /* Hide endpoint info on narrow portrait screens to save space */
-    .endpoint-info {
-        display: none;
     }
 }
 
