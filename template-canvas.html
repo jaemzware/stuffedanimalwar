@@ -209,7 +209,15 @@
         const cameraUrl = window.location.origin + '/' + endpoint + 'camera';
         const canvasLink = document.getElementById('canvasLink');
         const cameraLink = document.getElementById('cameraLink');
-        if (canvasLink) canvasLink.href = canvasUrl;
+        if (canvasLink) {
+            // Already on the Canvas page, so disable this to avoid opening a duplicate tab
+            canvasLink.removeAttribute('href');
+            canvasLink.removeAttribute('target');
+            canvasLink.style.opacity = '0.5';
+            canvasLink.style.pointerEvents = 'none';
+            canvasLink.style.cursor = 'default';
+            canvasLink.title = 'You are on the Canvas page';
+        }
         if (cameraLink) cameraLink.href = cameraUrl;
     });
 </script>
