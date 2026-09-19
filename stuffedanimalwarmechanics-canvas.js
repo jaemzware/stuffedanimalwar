@@ -36,6 +36,21 @@ document.addEventListener('DOMContentLoaded', function() {
         ctx = canvas.getContext('2d');
         window.addEventListener('resize', resizeCanvas);
 
+        // The CSS `resize: vertical` drag handle on #stuffedanimalwardiv changes the
+        // container's box size without firing window's resize event, so watch it directly.
+        const resizableContainer = document.getElementById('stuffedanimalwardiv');
+        if (resizableContainer && window.ResizeObserver) {
+            let pendingResizeFrame = null;
+            const containerResizeObserver = new ResizeObserver(function() {
+                if (pendingResizeFrame) return;
+                pendingResizeFrame = requestAnimationFrame(function() {
+                    pendingResizeFrame = null;
+                    resizeCanvas();
+                });
+            });
+            containerResizeObserver.observe(resizableContainer);
+        }
+
         // Use requestAnimationFrame to ensure browser has completed layout
         // This fixes the race condition where CSS styles aren't fully applied yet
         function initializeWhenReady() {

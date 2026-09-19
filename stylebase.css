@@ -814,6 +814,9 @@ div.seattlenativelinks{
     display: flex;
     align-items: stretch;
     min-height: 500px; /* Ensure minimum height matches canvas */
+    max-height: 90vh;
+    resize: vertical; /* Drag the bottom-right handle to resize height only */
+    overflow: hidden;
 }
 
 #stuffedanimalwarform{
@@ -875,6 +878,7 @@ div.seattlenativelinks{
     align-items: center;
     justify-content: center;
     background-color: black;
+    resize: none;
     z-index: 9999;
 }
 
@@ -1288,6 +1292,7 @@ a.jaemzwarelogo:active, .skateparkdetail a:active {
         bottom: 0px;
         left: 0px;
         width: 100%;
+        resize: none;
     }
     /* Stack directional buttons and color picker vertically on mobile */
     #stuffedanimalwarformtable .direction-color-container {
