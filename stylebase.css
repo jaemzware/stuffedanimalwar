@@ -812,8 +812,39 @@ div.seattlenativelinks{
     left: 0px;
     width: 67%;
     display: flex;
-    align-items: stretch;
+    align-items: stretch; /* Fills the row height on load, matching the form panel */
+    position: relative; /* anchor for #stuffedanimalwarresizehandle */
     min-height: 500px; /* Ensure minimum height matches canvas */
+    max-height: 108vh; /* ~20% more headroom than the previous 90vh cap */
+    overflow: hidden;
+}
+
+/* Custom vertical-only drag handle for resizing the canvas */
+#stuffedanimalwarresizehandle {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 14px;
+    cursor: ns-resize;
+    background: rgba(255, 255, 255, 0.15);
+    touch-action: none;
+    z-index: 20;
+}
+#stuffedanimalwarresizehandle::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 48px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.65);
+    border-radius: 2px;
+    transform: translate(-50%, -50%);
+}
+#stuffedanimalwarresizehandle:hover,
+#stuffedanimalwarresizehandle.dragging {
+    background: rgba(255, 255, 255, 0.35);
 }
 
 #stuffedanimalwarform{
@@ -1039,6 +1070,13 @@ body:has(.readonly) #audioform {
     flex-wrap: wrap;
     width: 100%;
     max-width: 100%;
+}
+/* "Hide Controls" toggle: let the canvas take the full width when the form is hidden */
+#sawflexdiv.form-hidden #stuffedanimalwarform {
+    display: none;
+}
+#sawflexdiv.form-hidden #stuffedanimalwardiv {
+    width: 100%;
 }
 /*AUDIOVIDEOPHOTOS//////////////////////////////////////////////AUDIOVIDEOPHOTOS//////////////////////////////////////////////////AUDIOVIDEOPHOTOS*/
 /* Ensure #audiotable and its children are responsive */
@@ -1288,6 +1326,10 @@ a.jaemzwarelogo:active, .skateparkdetail a:active {
         bottom: 0px;
         left: 0px;
         width: 100%;
+    }
+    /* Canvas height is fixed on mobile; hide the resize handle so it doesn't look draggable */
+    #stuffedanimalwarresizehandle {
+        display: none;
     }
     /* Stack directional buttons and color picker vertically on mobile */
     #stuffedanimalwarformtable .direction-color-container {

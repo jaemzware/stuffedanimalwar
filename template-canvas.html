@@ -10,6 +10,14 @@
         <script src="/socket.io/socket.io.js"></script>
     </head>
 <body>
+<script>
+    // Always open at the top of the page, regardless of prior scroll position
+    // or any later focus() call that would otherwise scroll an input into view.
+    if ('scrollRestoration' in history) {
+        history.scrollRestoration = 'manual';
+    }
+    window.scrollTo(0, 0);
+</script>
 <!-- PASSWORD MODAL -->
 <div id="passwordModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 99999; justify-content: center; align-items: center;">
     <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 40px; border-radius: 12px; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.5); max-width: 400px; width: 90%;">
@@ -32,7 +40,7 @@
             // Focus on the Alias field after successful password entry
             const aliasField = document.getElementById('chatClientUser');
             if (aliasField) {
-                aliasField.focus();
+                aliasField.focus({ preventScroll: true });
             }
         } else {
             document.getElementById('passwordError').style.display = 'block';

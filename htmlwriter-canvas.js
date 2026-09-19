@@ -14,8 +14,12 @@ function writeStuffedAnimalWar(stuffedAnimalMediaObject, readonly = false){
         document.write("<a href='https://marginalwayskateparkfoundation.org' target='_blank' style='padding: 8px 16px; background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); color: white; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 6px;'><span>🛹</span><span>Marginal Way</span></a>");
         document.write("<a href='https://skatecreteordie.com' target='_blank' style='padding: 8px 16px; background: linear-gradient(135deg, #f39c12 0%, #d68910 100%); color: white; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 6px;'><span>🏗️</span><span>Skate Crete</span></a>");
         document.write("</div>");
-        // Right side: Collapse All button
+        // Right side: Collapse All and Full Width buttons
+        document.write("<div style='display: flex; gap: 10px;'>");
+        document.write("<button id='saveCanvasImageButton' style='padding: 8px 16px; background: #444; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px;'>Save Image</button>");
+        document.write("<button id='toggleFormButton' style='padding: 8px 16px; background: #444; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px;'>Hide Controls</button>");
         document.write("<button id='collapseAllButton' style='padding: 8px 16px; background: #444; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px;'>Collapse All Sections</button>");
+        document.write("</div>");
         document.write("</div>");
 
         // Collapsible header for entire canvas section (drawing area + controls)
@@ -85,6 +89,9 @@ function writeStuffedAnimalWarDiv(stuffedAnimalMediaObject, readonly = false) {
     }
 
     document.write("</canvas>");
+    if (!readonly) {
+        document.write("<div id=\"stuffedanimalwarresizehandle\" title=\"Drag to resize canvas height\"></div>");
+    }
     document.write("</div>");
 }
 function writeStuffedAnimalWarForm(stuffedAnimalMediaObject){

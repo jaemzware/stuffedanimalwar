@@ -36,6 +36,104 @@ document.addEventListener('DOMContentLoaded', function() {
         ctx = canvas.getContext('2d');
         window.addEventListener('resize', resizeCanvas);
 
+        // Dragging #stuffedanimalwarresizehandle sets an explicit inline height on the
+        // container, which changes its box size without firing window's resize event,
+        // so watch it directly and re-sync the canvas backing store.
+        const resizableContainer = document.getElementById('stuffedanimalwardiv');
+        if (resizableContainer && window.ResizeObserver) {
+            let pendingResizeFrame = null;
+            const containerResizeObserver = new ResizeObserver(function() {
+                if (pendingResizeFrame) return;
+                pendingResizeFrame = requestAnimationFrame(function() {
+                    pendingResizeFrame = null;
+                    resizeCanvas();
+                });
+            });
+            containerResizeObserver.observe(resizableContainer);
+        }
+
+        // Custom vertical-only drag handle (more reliable across browsers than native CSS `resize`)
+        const resizeHandle = document.getElementById('stuffedanimalwarresizehandle');
+        if (resizeHandle && resizableContainer) {
+            let dragStartY = 0;
+            let dragStartHeight = 0;
+
+            function clampContainerHeight(h) {
+                const minHeight = 500;
+                const maxHeight = window.innerHeight * 1.08; // matches CSS max-height: 108vh
+                return Math.min(Math.max(h, minHeight), maxHeight);
+            }
+
+            function applyDrag(clientY) {
+                const newHeight = clampContainerHeight(dragStartHeight + (clientY - dragStartY));
+                resizableContainer.style.height = newHeight + 'px';
+            }
+
+            function onMouseMove(e) {
+                applyDrag(e.clientY);
+            }
+
+            function onTouchMove(e) {
+                if (e.cancelable) e.preventDefault();
+                applyDrag(e.touches[0].clientY);
+            }
+
+            function stopDrag() {
+                resizeHandle.classList.remove('dragging');
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', stopDrag);
+                document.removeEventListener('touchmove', onTouchMove);
+                document.removeEventListener('touchend', stopDrag);
+            }
+
+            resizeHandle.addEventListener('mousedown', function(e) {
+                e.preventDefault();
+                dragStartY = e.clientY;
+                dragStartHeight = resizableContainer.getBoundingClientRect().height;
+                resizeHandle.classList.add('dragging');
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', stopDrag);
+            });
+
+            resizeHandle.addEventListener('touchstart', function(e) {
+                if (e.cancelable) e.preventDefault();
+                dragStartY = e.touches[0].clientY;
+                dragStartHeight = resizableContainer.getBoundingClientRect().height;
+                resizeHandle.classList.add('dragging');
+                document.addEventListener('touchmove', onTouchMove, { passive: false });
+                document.addEventListener('touchend', stopDrag);
+            }, { passive: false });
+        }
+
+        // "Hide Controls" toggle: let the canvas take the full width, form panel hidden
+        const toggleFormButton = document.getElementById('toggleFormButton');
+        const sawFlexDiv = document.getElementById('sawflexdiv');
+        if (toggleFormButton && sawFlexDiv) {
+            toggleFormButton.addEventListener('click', function() {
+                const hidden = sawFlexDiv.classList.toggle('form-hidden');
+                toggleFormButton.textContent = hidden ? 'Show Controls' : 'Hide Controls';
+            });
+        }
+
+        // Save the current canvas frame (background + drawings + animals) as a PNG
+        const saveCanvasImageButton = document.getElementById('saveCanvasImageButton');
+        if (saveCanvasImageButton) {
+            saveCanvasImageButton.addEventListener('click', function() {
+                canvas.toBlob(function(blob) {
+                    if (!blob) {
+                        console.error('Could not export canvas as an image.');
+                        return;
+                    }
+                    const link = document.createElement('a');
+                    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                    link.download = `stuffedanimalwar-${timestamp}.png`;
+                    link.href = URL.createObjectURL(blob);
+                    link.click();
+                    URL.revokeObjectURL(link.href);
+                }, 'image/png');
+            });
+        }
+
         // Use requestAnimationFrame to ensure browser has completed layout
         // This fixes the race condition where CSS styles aren't fully applied yet
         function initializeWhenReady() {
@@ -190,6 +288,8 @@ function drawBackgroundImage() {
         drawY = 0;
     }
 
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(backgroundImage, drawX, drawY, drawWidth, drawHeight);
 }
 
@@ -201,6 +301,9 @@ function setBackgroundImage(imageUrl) {
     }
 
     const img = new Image();
+    // Avoids tainting the canvas (which would block exporting it as an image)
+    // if the image is ever loaded from a different origin than this page.
+    img.crossOrigin = 'anonymous';
     img.onload = function() {
         backgroundImage = img;
         backgroundImageLoaded = true;
