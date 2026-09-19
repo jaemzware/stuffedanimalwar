@@ -11,6 +11,12 @@
     </head>
 <body>
 <script>
+    // Name this tab so that a "Canvas" link clicked from ANY tab (including ones
+    // this tab never opened, e.g. this one was typed/bookmarked directly) will find
+    // and reuse it instead of opening a duplicate. Named-target lookup only works if
+    // the tab has this name, which normally only happens for tabs THIS mechanism opened.
+    window.name = 'stuffedanimalwar_canvas_tab';
+
     // Always open at the top of the page, regardless of prior scroll position
     // or any later focus() call that would otherwise scroll an input into view.
     if ('scrollRestoration' in history) {
