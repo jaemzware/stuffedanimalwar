@@ -9,7 +9,9 @@
 html {
     width: 100%;
     max-width: 100%;
-    overflow-x: hidden;
+    /* clip, not hidden: hidden promotes overflow-y to auto per spec, turning html
+       into its own nested scroll container and breaking position: sticky */
+    overflow-x: clip;
     -webkit-text-size-adjust: 100%;
     box-sizing: border-box;
 }
@@ -23,7 +25,7 @@ body {
     background-repeat:no-repeat;
     background-position:top left;
     text-align: left;
-    overflow-x: hidden; /* Prevent horizontal scrolling */
+    overflow-x: clip; /* Prevent horizontal scrolling without breaking position: sticky */
     width: 100%;
     max-width: 100%;
     -webkit-text-size-adjust: 100%;
@@ -1334,9 +1336,10 @@ a.jaemzwarelogo:active, .skateparkdetail a:active {
     /* The canvas blocks touch-scrolling (so drawing works), so the nav/action
        buttons need to stay reachable without ever scrolling past them: pin the
        toolbar to the top, and let it scroll horizontally so buttons that don't
-       fit the screen width are a swipe away instead of simply cut off. */
-    #canvasNavToolbar,
-    #cameraNavToolbar {
+       fit the screen width are a swipe away instead of simply cut off.
+       (template-camera.html has its own equivalent rule for #cameraNavToolbar,
+       since that page doesn't link this stylesheet.) */
+    #canvasNavToolbar {
         position: sticky;
         top: 0;
         z-index: 50;
@@ -1352,8 +1355,7 @@ a.jaemzwarelogo:active, .skateparkdetail a:active {
         flex-shrink: 0;
     }
     #canvasNavToolbar a,
-    #canvasNavToolbar button,
-    #cameraNavToolbar a {
+    #canvasNavToolbar button {
         flex-shrink: 0;
         white-space: nowrap;
     }
