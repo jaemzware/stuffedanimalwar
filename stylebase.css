@@ -812,11 +812,10 @@ div.seattlenativelinks{
     left: 0px;
     width: 67%;
     display: flex;
-    align-items: stretch;
-    align-self: flex-start; /* Own height, not stretched by the parent row */
+    align-items: stretch; /* Fills the row height on load, matching the form panel */
     position: relative; /* anchor for #stuffedanimalwarresizehandle */
     min-height: 500px; /* Ensure minimum height matches canvas */
-    max-height: 90vh;
+    max-height: 108vh; /* ~20% more headroom than the previous 90vh cap */
     overflow: hidden;
 }
 

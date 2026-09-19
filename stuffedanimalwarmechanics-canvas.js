@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             function clampContainerHeight(h) {
                 const minHeight = 500;
-                const maxHeight = window.innerHeight * 0.9;
+                const maxHeight = window.innerHeight * 1.08; // matches CSS max-height: 108vh
                 return Math.min(Math.max(h, minHeight), maxHeight);
             }
 
