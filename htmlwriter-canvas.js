@@ -16,6 +16,7 @@ function writeStuffedAnimalWar(stuffedAnimalMediaObject, readonly = false){
         document.write("</div>");
         // Right side: Collapse All and Full Width buttons
         document.write("<div style='display: flex; gap: 10px;'>");
+        document.write("<button id='saveCanvasImageButton' style='padding: 8px 16px; background: #444; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px;'>Save Image</button>");
         document.write("<button id='toggleFormButton' style='padding: 8px 16px; background: #444; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px;'>Hide Controls</button>");
         document.write("<button id='collapseAllButton' style='padding: 8px 16px; background: #444; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px;'>Collapse All Sections</button>");
         document.write("</div>");

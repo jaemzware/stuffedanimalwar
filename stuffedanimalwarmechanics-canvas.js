@@ -115,6 +115,25 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
+        // Save the current canvas frame (background + drawings + animals) as a PNG
+        const saveCanvasImageButton = document.getElementById('saveCanvasImageButton');
+        if (saveCanvasImageButton) {
+            saveCanvasImageButton.addEventListener('click', function() {
+                canvas.toBlob(function(blob) {
+                    if (!blob) {
+                        console.error('Could not export canvas as an image.');
+                        return;
+                    }
+                    const link = document.createElement('a');
+                    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                    link.download = `stuffedanimalwar-${timestamp}.png`;
+                    link.href = URL.createObjectURL(blob);
+                    link.click();
+                    URL.revokeObjectURL(link.href);
+                }, 'image/png');
+            });
+        }
+
         // Use requestAnimationFrame to ensure browser has completed layout
         // This fixes the race condition where CSS styles aren't fully applied yet
         function initializeWhenReady() {
@@ -282,6 +301,9 @@ function setBackgroundImage(imageUrl) {
     }
 
     const img = new Image();
+    // Avoids tainting the canvas (which would block exporting it as an image)
+    // if the image is ever loaded from a different origin than this page.
+    img.crossOrigin = 'anonymous';
     img.onload = function() {
         backgroundImage = img;
         backgroundImageLoaded = true;
