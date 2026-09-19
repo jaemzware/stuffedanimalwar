@@ -36,8 +36,9 @@ document.addEventListener('DOMContentLoaded', function() {
         ctx = canvas.getContext('2d');
         window.addEventListener('resize', resizeCanvas);
 
-        // The CSS `resize: vertical` drag handle on #stuffedanimalwardiv changes the
-        // container's box size without firing window's resize event, so watch it directly.
+        // Dragging #stuffedanimalwarresizehandle sets an explicit inline height on the
+        // container, which changes its box size without firing window's resize event,
+        // so watch it directly and re-sync the canvas backing store.
         const resizableContainer = document.getElementById('stuffedanimalwardiv');
         if (resizableContainer && window.ResizeObserver) {
             let pendingResizeFrame = null;
@@ -49,6 +50,59 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             });
             containerResizeObserver.observe(resizableContainer);
+        }
+
+        // Custom vertical-only drag handle (more reliable across browsers than native CSS `resize`)
+        const resizeHandle = document.getElementById('stuffedanimalwarresizehandle');
+        if (resizeHandle && resizableContainer) {
+            let dragStartY = 0;
+            let dragStartHeight = 0;
+
+            function clampContainerHeight(h) {
+                const minHeight = 500;
+                const maxHeight = window.innerHeight * 0.9;
+                return Math.min(Math.max(h, minHeight), maxHeight);
+            }
+
+            function applyDrag(clientY) {
+                const newHeight = clampContainerHeight(dragStartHeight + (clientY - dragStartY));
+                resizableContainer.style.height = newHeight + 'px';
+            }
+
+            function onMouseMove(e) {
+                applyDrag(e.clientY);
+            }
+
+            function onTouchMove(e) {
+                if (e.cancelable) e.preventDefault();
+                applyDrag(e.touches[0].clientY);
+            }
+
+            function stopDrag() {
+                resizeHandle.classList.remove('dragging');
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', stopDrag);
+                document.removeEventListener('touchmove', onTouchMove);
+                document.removeEventListener('touchend', stopDrag);
+            }
+
+            resizeHandle.addEventListener('mousedown', function(e) {
+                e.preventDefault();
+                dragStartY = e.clientY;
+                dragStartHeight = resizableContainer.getBoundingClientRect().height;
+                resizeHandle.classList.add('dragging');
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', stopDrag);
+            });
+
+            resizeHandle.addEventListener('touchstart', function(e) {
+                if (e.cancelable) e.preventDefault();
+                dragStartY = e.touches[0].clientY;
+                dragStartHeight = resizableContainer.getBoundingClientRect().height;
+                resizeHandle.classList.add('dragging');
+                document.addEventListener('touchmove', onTouchMove, { passive: false });
+                document.addEventListener('touchend', stopDrag);
+            }, { passive: false });
         }
 
         // Use requestAnimationFrame to ensure browser has completed layout

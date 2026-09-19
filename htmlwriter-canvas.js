@@ -85,6 +85,9 @@ function writeStuffedAnimalWarDiv(stuffedAnimalMediaObject, readonly = false) {
     }
 
     document.write("</canvas>");
+    if (!readonly) {
+        document.write("<div id=\"stuffedanimalwarresizehandle\" title=\"Drag to resize canvas height\"></div>");
+    }
     document.write("</div>");
 }
 function writeStuffedAnimalWarForm(stuffedAnimalMediaObject){
