@@ -9,7 +9,9 @@
 html {
     width: 100%;
     max-width: 100%;
-    overflow-x: hidden;
+    /* clip, not hidden: hidden promotes overflow-y to auto per spec, turning html
+       into its own nested scroll container and breaking position: sticky */
+    overflow-x: clip;
     -webkit-text-size-adjust: 100%;
     box-sizing: border-box;
 }
@@ -23,7 +25,7 @@ body {
     background-repeat:no-repeat;
     background-position:top left;
     text-align: left;
-    overflow-x: hidden; /* Prevent horizontal scrolling */
+    overflow-x: clip; /* Prevent horizontal scrolling without breaking position: sticky */
     width: 100%;
     max-width: 100%;
     -webkit-text-size-adjust: 100%;
@@ -1331,6 +1333,33 @@ a.jaemzwarelogo:active, .skateparkdetail a:active {
     #stuffedanimalwarresizehandle {
         display: none;
     }
+    /* The canvas blocks touch-scrolling (so drawing works), so the nav/action
+       buttons need to stay reachable without ever scrolling past them: pin the
+       toolbar to the top, and let it scroll horizontally so buttons that don't
+       fit the screen width are a swipe away instead of simply cut off.
+       (template-camera.html has its own equivalent rule for #cameraNavToolbar,
+       since that page doesn't link this stylesheet.) */
+    #canvasNavToolbar {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        background: #16213e;
+        flex-wrap: nowrap !important;
+        justify-content: flex-start !important;
+        gap: 10px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 8px 4px;
+    }
+    #canvasNavToolbar > div {
+        flex-wrap: nowrap !important;
+        flex-shrink: 0;
+    }
+    #canvasNavToolbar a,
+    #canvasNavToolbar button {
+        flex-shrink: 0;
+        white-space: nowrap;
+    }
     /* Stack directional buttons and color picker vertically on mobile */
     #stuffedanimalwarformtable .direction-color-container {
         grid-template-columns: 1fr !important;
@@ -1658,11 +1687,6 @@ a.jaemzwarelogo:active, .skateparkdetail a:active {
 
     .upload-container {
         margin-bottom: 15px;
-    }
-
-    /* Hide endpoint info on narrow portrait screens to save space */
-    .endpoint-info {
-        display: none;
     }
 }
 

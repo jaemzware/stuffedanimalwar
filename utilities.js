@@ -104,23 +104,30 @@ document.addEventListener('DOMContentLoaded', function() {
 
     console.log('Found', collapsibleHeaders.length, 'collapsible sections');
 
-    // Expand all sections by default on page load
+    // On mobile, the top button bar sits above the canvas, which can only be reached
+    // by scrolling past the canvas itself - but the canvas intercepts drag gestures
+    // for drawing, so it can't be swiped past. Starting all sections collapsed keeps
+    // the button bar reachable on page load instead of hidden below an open canvas.
+    const isMobileViewport = window.matchMedia('(max-width: 768px)').matches;
+
     const allSectionsOnLoad = document.querySelectorAll('.section-content');
     allSectionsOnLoad.forEach(section => {
-        section.style.display = '';
+        section.style.display = isMobileViewport ? 'none' : '';
     });
     collapsibleHeaders.forEach(header => {
         const indicator = header.querySelector('.collapse-indicator');
         if (indicator) {
-            indicator.textContent = '▼';
+            indicator.textContent = isMobileViewport ? '▶' : '▼';
         }
     });
-    console.log('All sections expanded by default');
+    console.log(isMobileViewport ? 'All sections collapsed by default (mobile)' : 'All sections expanded by default');
 
-    // Focus on the Alias field in the Chat section (only if password modal is not showing)
+    // Focus on the Alias field in the Chat section (only if password modal is not showing).
+    // Skipped on mobile since the Chat section starts collapsed/hidden there, and focusing
+    // a hidden field would pop the keyboard without anything visible to type into.
     const passwordModal = document.getElementById('passwordModal');
     const isPasswordModalVisible = passwordModal && passwordModal.style.display === 'flex';
-    if (!isPasswordModalVisible) {
+    if (!isPasswordModalVisible && !isMobileViewport) {
         const aliasField = document.getElementById('chatClientUser');
         if (aliasField) {
             // preventScroll so focusing this field doesn't jump the page down to it
@@ -131,9 +138,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Collapse All button functionality
     const collapseAllButton = document.getElementById('collapseAllButton');
     if (collapseAllButton) {
-        let allExpanded = true; // Start expanded
-        collapseAllButton.textContent = 'Collapse All Sections';
-        collapseAllButton.style.background = '#444';
+        let allExpanded = !isMobileViewport; // Mobile starts collapsed, desktop starts expanded
+        collapseAllButton.textContent = allExpanded ? 'Collapse All Sections' : 'Expand All Sections';
+        collapseAllButton.style.background = allExpanded ? '#444' : '#28a745';
 
         collapseAllButton.addEventListener('click', function() {
             const allSections = document.querySelectorAll('.section-content');
