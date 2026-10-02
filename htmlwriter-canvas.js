@@ -508,7 +508,7 @@ function writePhotosFromJson(mediaObject){
             for (let i=0;i<SOLID_BACKGROUND_COLORS.length;i++){
                 let colorHex = SOLID_BACKGROUND_COLORS[i].hex;
                 let colorTitle = SOLID_BACKGROUND_COLORS[i].title;
-                document.write("<div class=\"photo-item\"><div class=\"photo-thumbnail photosformthumbnail\" style=\"background-color:"+colorHex+";\" data-fullsize=\""+solidColorBackgroundValue(colorHex)+"\" title=\""+colorTitle+"\"></div><span class=\"photo-title\">"+colorTitle+"</span></div>");
+                document.write("<div class=\"photo-item\"><div class=\"photo-thumbnail photosformthumbnail color-swatch\" style=\"background-color:"+colorHex+";\" data-fullsize=\""+solidColorBackgroundValue(colorHex)+"\" title=\""+colorTitle+"\"></div><span class=\"photo-title\">"+colorTitle+"</span></div>");
             }
             document.write("</div>");
         document.write("</div>");

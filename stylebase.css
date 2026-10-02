@@ -1044,6 +1044,11 @@ body:has(.readonly) #audioform {
     border: 1px solid #ccc; /* Optional: Add a border */
     cursor: pointer; /* Change cursor to indicate it's clickable */
 }
+/* Solid color background swatches in the photo gallery have no image to size them */
+.photosformthumbnail.color-swatch {
+    aspect-ratio: 1 / 1;
+    box-sizing: border-box;
+}
 
 /* Chat image container and AI description */
 .chat-image-container {
