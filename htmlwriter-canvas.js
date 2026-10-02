@@ -440,9 +440,32 @@ function writeVideoFromJson(mediaObject){
         document.write("</div>");
     }
 }
+// Solid color canvas backgrounds offered at the end of the photo gallery
+const SOLID_BACKGROUND_COLORS = [
+    { title: "Black",  hex: "#000000" },
+    { title: "White",  hex: "#FFFFFF" },
+    { title: "Gray",   hex: "#808080" },
+    { title: "Red",    hex: "#E53935" },
+    { title: "Orange", hex: "#FB8C00" },
+    { title: "Yellow", hex: "#FDD835" },
+    { title: "Green",  hex: "#43A047" },
+    { title: "Blue",   hex: "#1E88E5" },
+    { title: "Purple", hex: "#8E24AA" },
+    { title: "Pink",   hex: "#EC407A" }
+];
+// A solid color travels through the same background paths (thumbnail click,
+// presenter broadcast) as a photo, as the value "solidcolor:#RRGGBB"
+function solidColorBackgroundValue(hex) {
+    return "solidcolor:" + hex;
+}
+// Returns "#RRGGBB" if the value was made by solidColorBackgroundValue, otherwise null
+function parseSolidColorBackgroundValue(value) {
+    let match = typeof value === 'string' && value.match(/^solidcolor:(#[0-9A-Fa-f]{6})$/);
+    return match ? match[1] : null;
+}
 function writePhotosFromJson(mediaObject){
     //PHOTOS
-    if(mediaObject.photospath && mediaObject.photos && mediaObject.photos[0]){
+    let hasPhotos = mediaObject && mediaObject.photospath && mediaObject.photos && mediaObject.photos[0];
         document.write("<div id='photoGalleryContainer' class='section-container'>");
             document.write("<div class='section-header collapsible' data-target='photo-gallery' style='cursor: pointer; user-select: none;'>");
             document.write("<span class='section-icon'>🖼️</span>");
@@ -452,36 +475,43 @@ function writePhotosFromJson(mediaObject){
 
             document.write("<div class=\"photo-gallery section-content\" id='photo-gallery' style='display:none;'>");
             //paint the photos
-            let isExternalPath = mediaObject.photospath.startsWith("http://") || mediaObject.photospath.startsWith("https://");
-            let isAbsolutePath = mediaObject.photospath.startsWith("/");
-            for (let i=0;i<mediaObject.photos.length;i++){
-                let isExternalUrl = mediaObject.photos[i].file.startsWith("http://") || mediaObject.photos[i].file.startsWith("https://");
-                let filepath;
-                let thumbpath;
-                if (isExternalUrl) {
-                    // For external URLs, encode just the filename portion (after the last /)
-                    let url = mediaObject.photos[i].file;
-                    let lastSlash = url.lastIndexOf('/');
-                    let basePath = url.substring(0, lastSlash + 1);
-                    let filename = url.substring(lastSlash + 1);
-                    filepath = basePath + encodeURIComponent(filename);
-                    thumbpath = filepath; // External URLs don't use our thumb endpoint
-                } else if (isExternalPath || isAbsolutePath) {
-                    // photospath is external URL or absolute path - encode each path segment separately
-                    let encodedFile = mediaObject.photos[i].file.split('/').map(segment => encodeURIComponent(segment)).join('/');
-                    filepath = mediaObject.photospath + encodedFile;
-                    thumbpath = filepath; // Absolute/external paths served directly
-                } else {
-                    filepath = mediaObject.photospath + encodeURIComponent(mediaObject.photos[i].file);
-                    // Use /thumb/ endpoint for local relative images to get auto-generated thumbnails
-                    thumbpath = "/thumb/" + mediaObject.photospath + encodeURIComponent(mediaObject.photos[i].file);
+            if (hasPhotos) {
+                let isExternalPath = mediaObject.photospath.startsWith("http://") || mediaObject.photospath.startsWith("https://");
+                let isAbsolutePath = mediaObject.photospath.startsWith("/");
+                for (let i=0;i<mediaObject.photos.length;i++){
+                    let isExternalUrl = mediaObject.photos[i].file.startsWith("http://") || mediaObject.photos[i].file.startsWith("https://");
+                    let filepath;
+                    let thumbpath;
+                    if (isExternalUrl) {
+                        // For external URLs, encode just the filename portion (after the last /)
+                        let url = mediaObject.photos[i].file;
+                        let lastSlash = url.lastIndexOf('/');
+                        let basePath = url.substring(0, lastSlash + 1);
+                        let filename = url.substring(lastSlash + 1);
+                        filepath = basePath + encodeURIComponent(filename);
+                        thumbpath = filepath; // External URLs don't use our thumb endpoint
+                    } else if (isExternalPath || isAbsolutePath) {
+                        // photospath is external URL or absolute path - encode each path segment separately
+                        let encodedFile = mediaObject.photos[i].file.split('/').map(segment => encodeURIComponent(segment)).join('/');
+                        filepath = mediaObject.photospath + encodedFile;
+                        thumbpath = filepath; // Absolute/external paths served directly
+                    } else {
+                        filepath = mediaObject.photospath + encodeURIComponent(mediaObject.photos[i].file);
+                        // Use /thumb/ endpoint for local relative images to get auto-generated thumbnails
+                        thumbpath = "/thumb/" + mediaObject.photospath + encodeURIComponent(mediaObject.photos[i].file);
+                    }
+                    let filetitle=mediaObject.photos[i].title;
+                    document.write("<div class=\"photo-item\"><img class=\"photo-thumbnail photosformthumbnail\" src=\""+thumbpath+"\" data-fullsize=\""+filepath+"\" alt=\""+filetitle+"\" loading=\"lazy\" /><span class=\"photo-title\">"+filetitle+"</span></div>");
                 }
-                let filetitle=mediaObject.photos[i].title;
-                document.write("<div class=\"photo-item\"><img class=\"photo-thumbnail photosformthumbnail\" src=\""+thumbpath+"\" data-fullsize=\""+filepath+"\" alt=\""+filetitle+"\" loading=\"lazy\" /><span class=\"photo-title\">"+filetitle+"</span></div>");
+            }
+            //paint the solid color backgrounds
+            for (let i=0;i<SOLID_BACKGROUND_COLORS.length;i++){
+                let colorHex = SOLID_BACKGROUND_COLORS[i].hex;
+                let colorTitle = SOLID_BACKGROUND_COLORS[i].title;
+                document.write("<div class=\"photo-item\"><div class=\"photo-thumbnail photosformthumbnail\" style=\"background-color:"+colorHex+";\" data-fullsize=\""+solidColorBackgroundValue(colorHex)+"\" title=\""+colorTitle+"\"></div><span class=\"photo-title\">"+colorTitle+"</span></div>");
             }
             document.write("</div>");
         document.write("</div>");
-    }
 }
 //AUDIOVIDEOPHOTOS//////////////////////////////////////////////AUDIOVIDEOPHOTOS//////////////////////////////////////////////////AUDIOVIDEOPHOTOS
 //CHAT//////////////////////////////////////////////CHAT//////////////////////////////////////////////////CHAT
