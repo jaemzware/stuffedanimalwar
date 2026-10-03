@@ -147,6 +147,8 @@
                 copyMasterAliasBtn.addEventListener('click', function(e) {
                     e.stopPropagation();
                     const text = masterAlias || '';
+                    const chatAliasInput = document.getElementById('chatClientUser');
+                    if (chatAliasInput) chatAliasInput.value = text;
                     const showCopied = function() {
                         copyMasterAliasBtn.textContent = '✓';
                         setTimeout(() => copyMasterAliasBtn.textContent = '📋', 1500);
