@@ -1258,8 +1258,8 @@ $('#sendchatbutton').click(function () {
         chatTextBox.val('');
 });
 $('.photosformthumbnail').on("click", function() {
-    // Get the src from the clicked thumbnail
-    let imageSrc = $(this).attr('src');
+    // Use the full-size image, not the (possibly 200px) thumbnail src
+    let imageSrc = $(this).attr('data-fullsize') || $(this).attr('src');
 
     // Canvas-only (RIP SVG)
     let drawSurface = $('#stuffedanimalwarcanvas');

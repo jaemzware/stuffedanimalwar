@@ -28,6 +28,7 @@ let ctx = null;
 let animationFrameId = null;
 let backgroundImage = null;
 let backgroundImageLoaded = false;
+let backgroundFillColor = null; // Solid color background chosen from the photo gallery
 
 // Initialize canvas after DOM loads
 document.addEventListener('DOMContentLoaded', function() {
@@ -225,8 +226,11 @@ function startGameLoop() {
         if (ctx && canvas) {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Draw background image if loaded
-            if (backgroundImageLoaded && backgroundImage) {
+            // Draw solid color background, or background image if loaded
+            if (backgroundFillColor) {
+                ctx.fillStyle = backgroundFillColor;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            } else if (backgroundImageLoaded && backgroundImage) {
                 drawBackgroundImage();
             }
 
@@ -294,6 +298,20 @@ function drawBackgroundImage() {
 }
 
 function setBackgroundImage(imageUrl) {
+    // Solid color swatches fill the whole canvas instead of being letterboxed like a photo
+    backgroundFillColor = parseSolidColorBackgroundValue(imageUrl);
+    if (canvas) {
+        $(canvas).css('background-color', backgroundFillColor || '');
+        if (backgroundFillColor) {
+            $(canvas).css('background-image', 'none');
+        }
+    }
+    if (backgroundFillColor) {
+        backgroundImage = null;
+        backgroundImageLoaded = false;
+        return;
+    }
+
     if (!imageUrl) {
         backgroundImage = null;
         backgroundImageLoaded = false;

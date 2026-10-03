@@ -602,6 +602,7 @@
                 if (input === roomPassword) {
                     sessionStorage.setItem(storageKey, 'true');
                     document.getElementById('passwordModal').style.display = 'none';
+                    if (typeof socket !== 'undefined' && !socket.connected) socket.connect();
                 } else {
                     document.getElementById('passwordError').style.display = 'block';
                     document.getElementById('passwordInput').value = '';
@@ -999,8 +1000,12 @@
                 reconnection: true,
                 reconnectionDelay: 1000,
                 reconnectionDelayMax: 5000,
-                reconnectionAttempts: 5
+                reconnectionAttempts: 5,
+                autoConnect: false // wait for the password so page loads alone don't open sockets
             });
+            if (!roomPassword || sessionStorage.getItem(storageKey) === 'true') {
+                socket.connect();
+            }
 
             // Camera and mic state
             let localCameraStreams = new Map(); // deviceId -> { stream: MediaStream, name: string }

@@ -6,18 +6,11 @@ const STATS_INTERVAL = 60 * 1000; // Log stats every 60 seconds
 
 class StatsLogger {
     constructor() {
+        // events/endpoints[].events are per-interval (written to output.log, reset every minute)
+        // totals/endpoints[].totalEvents are cumulative since the service started
         this.stats = {
-            events: {
-                chat: 0,
-                tap: 0,
-                path: 0,
-                presentImage: 0,
-                audioControl: 0,
-                videoControl: 0,
-                voiceOffer: 0,
-                voiceAnswer: 0,
-                voiceIceCandidate: 0
-            },
+            events: {},
+            totals: {},
             endpoints: {},
             startTime: new Date()
         };
@@ -25,45 +18,41 @@ class StatsLogger {
     }
 
     recordEvent(eventType, endpoint) {
-        if (this.stats.events[eventType]) {
-            this.stats.events[eventType]++;
-        }
+        this.stats.events[eventType] = (this.stats.events[eventType] || 0) + 1;
+        this.stats.totals[eventType] = (this.stats.totals[eventType] || 0) + 1;
         if (endpoint) {
             if (!this.stats.endpoints[endpoint]) {
-                this.stats.endpoints[endpoint] = { connections: 0, events: 0 };
+                this.stats.endpoints[endpoint] = { connections: 0, events: 0, totalEvents: 0 };
             }
             this.stats.endpoints[endpoint].events++;
+            this.stats.endpoints[endpoint].totalEvents++;
         }
     }
 
     updateEndpoints(pageCounters) {
-        this.stats.endpoints = {};
+        // Update connection counts in place so event counts survive connects/disconnects
         for (const [endpoint, count] of Object.entries(pageCounters)) {
-            if (count > 0) {
-                this.stats.endpoints[endpoint] = {
-                    connections: count,
-                    events: this.stats.endpoints[endpoint]?.events || 0
-                };
+            if (!this.stats.endpoints[endpoint]) {
+                if (count <= 0) continue;
+                this.stats.endpoints[endpoint] = { connections: 0, events: 0, totalEvents: 0 };
             }
+            this.stats.endpoints[endpoint].connections = Math.max(count, 0);
         }
     }
 
     getSnapshot() {
         return {
             events: { ...this.stats.events },
+            totals: { ...this.stats.totals },
             endpoints: JSON.parse(JSON.stringify(this.stats.endpoints)),
             startTime: this.stats.startTime
         };
     }
 
     reset() {
-        for (const key in this.stats.events) {
-            this.stats.events[key] = 0;
-        }
+        this.stats.events = {};
         for (const endpoint in this.stats.endpoints) {
-            if (this.stats.endpoints[endpoint]) {
-                this.stats.endpoints[endpoint].events = 0;
-            }
+            this.stats.endpoints[endpoint].events = 0;
         }
     }
 

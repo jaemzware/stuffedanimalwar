@@ -114,41 +114,48 @@ function loadBlockedIps() {
 loadBlockedIps();
 
 // ─── ENDPOINT HTML CACHE ────────────────────────────────────────────────────
-// Pre-rendered HTML per endpoint so bot floods never hit the filesystem
+// Pre-rendered HTML per endpoint so bot floods never hit the filesystem.
+// Numbered rooms without their own .json all share one cached page (see sharedRoomHtml).
 const endpointHtmlCache = new Map();
+let sharedRoomHtml = null;
 
 /**
- * Pre-load all valid endpoint configs at startup.
- * Falls back to greenland.json for any greenland### room without a custom config.
+ * Pre-load endpoint configs at startup.
+ * Only named endpoints and greenland##### rooms with their own .json are stored;
+ * every other numbered room shares greenlandConfig (see getEndpointConfig).
  * Called once at boot; call again (e.g. after CRUD update) to refresh.
  */
 const endpointConfigs = new Map();
+let greenlandConfig = null;
 function preloadEndpointConfigs() {
     endpointConfigs.clear();
     endpointHtmlCache.clear(); // invalidate rendered HTML too
+    sharedRoomHtml = null;
     const greenlandConfigPath = path.join(__dirname, 'endpoints', 'greenland.json');
-    const greenlandConfig = JSON.parse(fs.readFileSync(greenlandConfigPath, 'utf8'));
+    greenlandConfig = JSON.parse(fs.readFileSync(greenlandConfigPath, 'utf8'));
 
-    for (const name of stuffedAnimalWarEndpoints) {
+    const customRooms = fs.readdirSync(path.join(__dirname, 'endpoints'))
+        .map(file => file.replace(/\.json$/, ''))
+        .filter(name => /^greenland\d+$/.test(name) && isValidEndpoint(name));
+
+    for (const name of [...stuffedAnimalWarEndpoints, ...customRooms]) {
         try {
             const cfg = JSON.parse(fs.readFileSync(path.join(__dirname, 'endpoints', name + '.json'), 'utf8'));
             endpointConfigs.set(name, cfg);
         } catch {
-            const fallback = { ...greenlandConfig, endpoint: name, masterAlias: name.toUpperCase() };
-            endpointConfigs.set(name, fallback);
+            endpointConfigs.set(name, fallbackConfig(name));
         }
     }
-    for (let i = 1; i <= MAX_GREENLAND_ROOMS; i++) {
-        const name = `greenland${String(i).padStart(5, '0')}`;
-        try {
-            const cfg = JSON.parse(fs.readFileSync(path.join(__dirname, 'endpoints', name + '.json'), 'utf8'));
-            endpointConfigs.set(name, cfg);
-        } catch {
-            const fallback = { ...greenlandConfig, endpoint: name, masterAlias: name.toUpperCase() };
-            endpointConfigs.set(name, fallback);
-        }
-    }
-    console.log(`[CONFIG] Preloaded ${endpointConfigs.size} endpoint configs`);
+    console.log(`[CONFIG] Preloaded ${endpointConfigs.size} endpoint configs (other numbered rooms share greenland.json)`);
+}
+
+function fallbackConfig(name) {
+    return { ...greenlandConfig, endpoint: name, masterAlias: name.toUpperCase() };
+}
+
+// Config for a valid endpoint: its own preloaded config, or the shared greenland fallback
+function getEndpointConfig(name) {
+    return endpointConfigs.get(name) || (isValidEndpoint(name) ? fallbackConfig(name) : undefined);
 }
 
 // Watch for changes to blocked-ips.json (hot-reload)
@@ -451,7 +458,7 @@ server.listen(listenPort, async () => {
 /**
  * ENDPOINTS: Each endpoint uses the custom .json of the same name. if there is not a custom .json of the same name, the fallback is greenland.json]
  */
-const MAX_GREENLAND_ROOMS = 9999;
+const MAX_GREENLAND_ROOMS = 99999;
 const stuffedAnimalWarEndpoints = ['greenland','spain','denmark','norway','greta','blackpanthers','onboard'];
 const stuffedAnimalWarChatSocketEvent = 'chatmessage';
 const stuffedAnimalWarTapSocketEvent = 'tapmessage';
@@ -711,13 +718,6 @@ app.get('/rooms', function(req, res){
         `            <a class="room-button" href="/${endpoint}">${endpoint}</a>`
     ).join('\n');
 
-    // Generate enumerated greenland rooms
-    let enumeratedLinksHtml = '';
-    for (let i = 1; i <= MAX_GREENLAND_ROOMS; i++) {
-        const roomName = `greenland${String(i).padStart(5, '0')}`;
-        enumeratedLinksHtml += `            <a class="room-button" href="/${roomName}">${roomName}</a>\n`;
-    }
-
     const html = `<!--STUFFED ANIMAL WAR - jaemzware.org - 20150611 -->
 <!--STUFFED ANIMAL WAR - stuffedanimalwar.com - 20211128 -->
 
@@ -813,6 +813,39 @@ app.get('/rooms', function(req, res){
                 box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
             }
 
+            .room-picker {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                align-items: center;
+                gap: 12px;
+                max-width: 600px;
+                margin: 0 auto;
+            }
+
+            .room-picker input {
+                width: 140px;
+                padding: 13px 15px;
+                font-size: 1em;
+                border-radius: 8px;
+                border: 2px solid #667eea;
+                background: #111;
+                color: #fff;
+                text-align: center;
+            }
+
+            .room-picker button {
+                cursor: pointer;
+                font-family: inherit;
+            }
+
+            .room-picker-error {
+                width: 100%;
+                text-align: center;
+                color: #ff6b6b;
+                min-height: 1.2em;
+            }
+
             @media (max-width: 768px) {
                 .room-grid {
                     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
@@ -863,9 +896,35 @@ ${namedLinksHtml}
         </div>
 
         <div class="section-title">Enumerated Rooms (greenland00001 - greenland${String(MAX_GREENLAND_ROOMS).padStart(5, '0')})</div>
-        <div class="room-grid">
-${enumeratedLinksHtml}
+        <div class="room-picker">
+            <input id="roomNumber" type="number" inputmode="numeric" min="1" max="${MAX_GREENLAND_ROOMS}" placeholder="1 - ${MAX_GREENLAND_ROOMS}" />
+            <button type="button" class="room-button" id="goRoomBtn">Go</button>
+            <button type="button" class="room-button" id="randomRoomBtn">Random Room</button>
+            <div class="room-picker-error" id="roomError"></div>
         </div>
+        <script>
+            (function() {
+                const MAX = ${MAX_GREENLAND_ROOMS};
+                const input = document.getElementById('roomNumber');
+                const error = document.getElementById('roomError');
+                function goTo(n) {
+                    window.location.href = '/greenland' + String(n).padStart(5, '0');
+                }
+                function goTyped() {
+                    const n = parseInt(input.value, 10);
+                    if (!Number.isInteger(n) || n < 1 || n > MAX) {
+                        error.textContent = 'Enter a room number from 1 to ' + MAX;
+                        return;
+                    }
+                    goTo(n);
+                }
+                document.getElementById('goRoomBtn').addEventListener('click', goTyped);
+                input.addEventListener('keydown', function(e) { if (e.key === 'Enter') goTyped(); });
+                document.getElementById('randomRoomBtn').addEventListener('click', function() {
+                    goTo(Math.floor(Math.random() * MAX) + 1);
+                });
+            })();
+        </script>
     </body>
 </html>
 `;
@@ -906,6 +965,10 @@ function getPageCounter(endpoint) {
     return stuffedAnimalWarPageCounters[endpoint];
 }
 
+function fillRoomName(html, name) {
+    return html.replace(/{{ENDPOINT}}/g, name).replace('{{MASTER_ALIAS}}', name.toUpperCase());
+}
+
 // SERVE CANVAS PAGE: /:endpoint
 app.get('/:endpoint', ipBlockMiddleware, function(req, res, next){
     const endpoint = req.params.endpoint;
@@ -915,16 +978,18 @@ app.get('/:endpoint', ipBlockMiddleware, function(req, res, next){
     if (endpointHtmlCache.has(endpoint)) {
         return res.send(endpointHtmlCache.get(endpoint));
     }
+    const usesSharedConfig = !endpointConfigs.has(endpoint);
+    if (usesSharedConfig && sharedRoomHtml) {
+        return res.send(fillRoomName(sharedRoomHtml, endpoint));
+    }
 
     try {
-        const configData = endpointConfigs.get(endpoint);
+        const configData = getEndpointConfig(endpoint);
         if (!configData) return next();
 
         autoPopulateMedia(configData.mediaObject);
-        let html = templateCanvasHtml;
         console.log(`Serving ${endpoint} in CANVAS mode`);
-        html = html.replace(/{{ENDPOINT}}/g, configData.endpoint);
-        html = html.replace('{{MASTER_ALIAS}}', configData.masterAlias);
+        let html = templateCanvasHtml;
         html = html.replace('{{UNSPECIFIED_ALIAS}}', configData.unspecifiedAlias);
         html = html.replace('{{STUFFED_ANIMAL_MEDIA_OBJECT}}', JSON.stringify(configData.stuffedAnimalMediaObject, null, 2));
         html = html.replace('{{MEDIA_OBJECT}}', JSON.stringify(configData.mediaObject, null, 2));
@@ -932,7 +997,15 @@ app.get('/:endpoint', ipBlockMiddleware, function(req, res, next){
         html = html.replace('{{PASSWORD}}', configData.password || '');
         html = html.replace('{{SERVER_INSTANCE_ID}}', SERVER_INSTANCE_ID);
 
-        endpointHtmlCache.set(endpoint, html); // cache so next hit is instant
+        if (usesSharedConfig) {
+            // Cache once with the room name left as a placeholder, filled per request
+            sharedRoomHtml = html;
+            html = fillRoomName(html, endpoint);
+        } else {
+            html = html.replace(/{{ENDPOINT}}/g, configData.endpoint);
+            html = html.replace('{{MASTER_ALIAS}}', configData.masterAlias);
+            endpointHtmlCache.set(endpoint, html); // cache so next hit is instant
+        }
         res.send(html);
     } catch (error) {
         console.error(`Error generating page for endpoint ${endpoint}:`, error);
@@ -949,14 +1022,7 @@ app.get('/:endpointcamera', ipBlockMiddleware, function(req, res, next){
     try {
         let html = templateCameraHtml;
         console.log(`Serving camera endpoint for ${endpoint}`);
-        const configPath = path.join(__dirname, 'endpoints', endpoint + '.json');
-        let password = '';
-        try {
-            const configData = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-            password = configData.password || '';
-        } catch (fileError) {
-            console.log(`No config found for camera endpoint ${endpoint}`);
-        }
+        const password = getEndpointConfig(endpoint).password || '';
         html = html.replace(/{{ENDPOINT}}/g, endpoint);
         html = html.replace('{{PASSWORD}}', password);
         html = html.replace('{{SERVER_INSTANCE_ID}}', SERVER_INSTANCE_ID);
@@ -1139,7 +1205,7 @@ app.get('/api/activity', checkCrudAuth, function(req, res){
             .map(endpoint => ({
                 endpoint,
                 connections: roomCounts[endpoint],
-                eventsLastMinute: snapshot.endpoints[endpoint]?.events || 0
+                totalEvents: snapshot.endpoints[endpoint]?.totalEvents || 0
             }))
             .sort((a, b) => b.connections - a.connections);
 
@@ -1147,7 +1213,8 @@ app.get('/api/activity', checkCrudAuth, function(req, res){
             success: true,
             totalConnections: io.sockets.sockets.size,
             rooms,
-            eventTotals: snapshot.events,
+            eventTotals: snapshot.totals,
+            statsSince: snapshot.startTime,
             serverTime: new Date().toISOString()
         });
     } catch (error) {
@@ -1875,6 +1942,7 @@ io.on('connection', function(socket){
 
     // CAMERA BROADCASTER handlers
     socket.on('register-camera-broadcaster', function(data) {
+        statsLogger.recordEvent('broadcasterRegister', endpoint);
         console.log('[BROADCASTER] Registering camera broadcaster:', socket.id, 'label:', data.label);
         activeBroadcasters.set(socket.id, { label: data.label, socketId: socket.id });
         io.emit('camera-broadcaster-available', { broadcasterId: socket.id, label: data.label });
@@ -1886,6 +1954,7 @@ io.on('connection', function(socket){
     });
 
     socket.on('unregister-camera-broadcaster', function() {
+        statsLogger.recordEvent('broadcasterUnregister', endpoint);
         if (activeBroadcasters.has(socket.id)) {
             console.log('[BROADCASTER] Unregistering camera broadcaster:', socket.id);
             activeBroadcasters.delete(socket.id);
@@ -1894,21 +1963,25 @@ io.on('connection', function(socket){
     });
 
     socket.on('viewer-request-stream', function(data) {
+        statsLogger.recordEvent('viewerRequestStream', endpoint);
         console.log('[BROADCASTER] Viewer', socket.id, 'requesting stream from broadcaster:', data.broadcasterId);
         io.to(data.broadcasterId).emit('viewer-request-stream', { viewerId: socket.id });
     });
 
     socket.on('broadcaster-offer', function(data) {
+        statsLogger.recordEvent('broadcasterOffer', endpoint);
         console.log('[BROADCASTER] Offer from', socket.id, 'to viewer:', data.to);
         io.to(data.to).emit('broadcaster-offer', { offer: data.offer, from: socket.id });
     });
 
     socket.on('broadcaster-answer', function(data) {
+        statsLogger.recordEvent('broadcasterAnswer', endpoint);
         console.log('[BROADCASTER] Answer from', socket.id, 'to broadcaster:', data.to);
         io.to(data.to).emit('broadcaster-answer', { answer: data.answer, from: socket.id });
     });
 
     socket.on('broadcaster-ice-candidate', function(data) {
+        statsLogger.recordEvent('broadcasterIceCandidate', endpoint);
         io.to(data.to).emit('broadcaster-ice-candidate', { candidate: data.candidate, from: socket.id });
     });
 
@@ -1998,27 +2071,34 @@ io.on('connection', function(socket){
     });
 
     socket.on(endpoint + 'camera' + 'voiceoffer', (offerMsgObject) => {
+        statsLogger.recordEvent('cameraVoiceOffer', endpoint);
         const msg = { offer: offerMsgObject.offer, from: socket.id, to: offerMsgObject.to || 'broadcast', cameraName: offerMsgObject.cameraName };
         if (offerMsgObject.to) { io.to(offerMsgObject.to).emit(endpoint + 'camera' + 'voiceoffer', msg); } else { io.emit(endpoint + 'camera' + 'voiceoffer', msg); }
     });
     socket.on(endpoint + 'camera' + 'voiceanswer', (answerMsgObject) => {
+        statsLogger.recordEvent('cameraVoiceAnswer', endpoint);
         const msg = { answer: answerMsgObject.answer, from: socket.id, to: answerMsgObject.to, cameraName: answerMsgObject.cameraName };
         io.to(answerMsgObject.to).emit(endpoint + 'camera' + 'voiceanswer', msg);
     });
     socket.on(endpoint + 'camera' + 'voiceicecandidate', (iceMsgObject) => {
+        statsLogger.recordEvent('cameraVoiceIceCandidate', endpoint);
         const msg = { candidate: iceMsgObject.candidate, from: socket.id, to: iceMsgObject.to || 'broadcast' };
         if (iceMsgObject.to) { io.to(iceMsgObject.to).emit(endpoint + 'camera' + 'voiceicecandidate', msg); } else { io.emit(endpoint + 'camera' + 'voiceicecandidate', msg); }
     });
     socket.on(endpoint + 'camera' + 'nameupdate', (nameUpdateMsgObject) => {
+        statsLogger.recordEvent('cameraNameUpdate', endpoint);
         io.emit(endpoint + 'camera' + 'nameupdate', { cameraName: nameUpdateMsgObject.cameraName, userId: socket.id });
     });
     socket.on(endpoint + 'camera' + 'reconnect', () => {
+        statsLogger.recordEvent('cameraReconnect', endpoint);
         io.emit(endpoint + 'camera' + 'reconnect', { userId: socket.id });
     });
     socket.on(endpoint + 'camera' + 'requestroster', () => {
+        statsLogger.recordEvent('cameraRequestRoster', endpoint);
         io.emit(endpoint + 'camera' + 'requestroster', { userId: socket.id });
     });
     socket.on(endpoint + 'camera' + 'rosterresponse', (rosterResponseMsgObject) => {
+        statsLogger.recordEvent('cameraRosterResponse', endpoint);
         io.to(rosterResponseMsgObject.to).emit(endpoint + 'camera' + 'rosterresponse', {
             from: socket.id,
             cameraName: rosterResponseMsgObject.cameraName,
