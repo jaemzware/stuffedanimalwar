@@ -104,7 +104,7 @@ function renderActivity(data) {
             <tr>
                 <td style="padding:5px;">${escapeHtml(room.endpoint)}</td>
                 <td style="padding:5px;">${room.connections}</td>
-                <td style="padding:5px;">${room.eventsLastMinute}</td>
+                <td style="padding:5px;">${room.totalEvents}</td>
             </tr>
         `).join('');
     }

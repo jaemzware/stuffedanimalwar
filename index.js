@@ -1139,7 +1139,7 @@ app.get('/api/activity', checkCrudAuth, function(req, res){
             .map(endpoint => ({
                 endpoint,
                 connections: roomCounts[endpoint],
-                eventsLastMinute: snapshot.endpoints[endpoint]?.events || 0
+                totalEvents: snapshot.endpoints[endpoint]?.totalEvents || 0
             }))
             .sort((a, b) => b.connections - a.connections);
 
@@ -1147,7 +1147,8 @@ app.get('/api/activity', checkCrudAuth, function(req, res){
             success: true,
             totalConnections: io.sockets.sockets.size,
             rooms,
-            eventTotals: snapshot.events,
+            eventTotals: snapshot.totals,
+            statsSince: snapshot.startTime,
             serverTime: new Date().toISOString()
         });
     } catch (error) {
@@ -1875,6 +1876,7 @@ io.on('connection', function(socket){
 
     // CAMERA BROADCASTER handlers
     socket.on('register-camera-broadcaster', function(data) {
+        statsLogger.recordEvent('broadcasterRegister', endpoint);
         console.log('[BROADCASTER] Registering camera broadcaster:', socket.id, 'label:', data.label);
         activeBroadcasters.set(socket.id, { label: data.label, socketId: socket.id });
         io.emit('camera-broadcaster-available', { broadcasterId: socket.id, label: data.label });
@@ -1886,6 +1888,7 @@ io.on('connection', function(socket){
     });
 
     socket.on('unregister-camera-broadcaster', function() {
+        statsLogger.recordEvent('broadcasterUnregister', endpoint);
         if (activeBroadcasters.has(socket.id)) {
             console.log('[BROADCASTER] Unregistering camera broadcaster:', socket.id);
             activeBroadcasters.delete(socket.id);
@@ -1894,21 +1897,25 @@ io.on('connection', function(socket){
     });
 
     socket.on('viewer-request-stream', function(data) {
+        statsLogger.recordEvent('viewerRequestStream', endpoint);
         console.log('[BROADCASTER] Viewer', socket.id, 'requesting stream from broadcaster:', data.broadcasterId);
         io.to(data.broadcasterId).emit('viewer-request-stream', { viewerId: socket.id });
     });
 
     socket.on('broadcaster-offer', function(data) {
+        statsLogger.recordEvent('broadcasterOffer', endpoint);
         console.log('[BROADCASTER] Offer from', socket.id, 'to viewer:', data.to);
         io.to(data.to).emit('broadcaster-offer', { offer: data.offer, from: socket.id });
     });
 
     socket.on('broadcaster-answer', function(data) {
+        statsLogger.recordEvent('broadcasterAnswer', endpoint);
         console.log('[BROADCASTER] Answer from', socket.id, 'to broadcaster:', data.to);
         io.to(data.to).emit('broadcaster-answer', { answer: data.answer, from: socket.id });
     });
 
     socket.on('broadcaster-ice-candidate', function(data) {
+        statsLogger.recordEvent('broadcasterIceCandidate', endpoint);
         io.to(data.to).emit('broadcaster-ice-candidate', { candidate: data.candidate, from: socket.id });
     });
 
@@ -1998,27 +2005,34 @@ io.on('connection', function(socket){
     });
 
     socket.on(endpoint + 'camera' + 'voiceoffer', (offerMsgObject) => {
+        statsLogger.recordEvent('cameraVoiceOffer', endpoint);
         const msg = { offer: offerMsgObject.offer, from: socket.id, to: offerMsgObject.to || 'broadcast', cameraName: offerMsgObject.cameraName };
         if (offerMsgObject.to) { io.to(offerMsgObject.to).emit(endpoint + 'camera' + 'voiceoffer', msg); } else { io.emit(endpoint + 'camera' + 'voiceoffer', msg); }
     });
     socket.on(endpoint + 'camera' + 'voiceanswer', (answerMsgObject) => {
+        statsLogger.recordEvent('cameraVoiceAnswer', endpoint);
         const msg = { answer: answerMsgObject.answer, from: socket.id, to: answerMsgObject.to, cameraName: answerMsgObject.cameraName };
         io.to(answerMsgObject.to).emit(endpoint + 'camera' + 'voiceanswer', msg);
     });
     socket.on(endpoint + 'camera' + 'voiceicecandidate', (iceMsgObject) => {
+        statsLogger.recordEvent('cameraVoiceIceCandidate', endpoint);
         const msg = { candidate: iceMsgObject.candidate, from: socket.id, to: iceMsgObject.to || 'broadcast' };
         if (iceMsgObject.to) { io.to(iceMsgObject.to).emit(endpoint + 'camera' + 'voiceicecandidate', msg); } else { io.emit(endpoint + 'camera' + 'voiceicecandidate', msg); }
     });
     socket.on(endpoint + 'camera' + 'nameupdate', (nameUpdateMsgObject) => {
+        statsLogger.recordEvent('cameraNameUpdate', endpoint);
         io.emit(endpoint + 'camera' + 'nameupdate', { cameraName: nameUpdateMsgObject.cameraName, userId: socket.id });
     });
     socket.on(endpoint + 'camera' + 'reconnect', () => {
+        statsLogger.recordEvent('cameraReconnect', endpoint);
         io.emit(endpoint + 'camera' + 'reconnect', { userId: socket.id });
     });
     socket.on(endpoint + 'camera' + 'requestroster', () => {
+        statsLogger.recordEvent('cameraRequestRoster', endpoint);
         io.emit(endpoint + 'camera' + 'requestroster', { userId: socket.id });
     });
     socket.on(endpoint + 'camera' + 'rosterresponse', (rosterResponseMsgObject) => {
+        statsLogger.recordEvent('cameraRosterResponse', endpoint);
         io.to(rosterResponseMsgObject.to).emit(endpoint + 'camera' + 'rosterresponse', {
             from: socket.id,
             cameraName: rosterResponseMsgObject.cameraName,
