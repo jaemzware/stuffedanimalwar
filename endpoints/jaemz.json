@@ -120,7 +120,7 @@
                 "title": "Boots"
             },{
                 "file": "bootsmurderedout.png",
-                "title": "BOOTS MURDRED OUT"
+                "title": "Boots"
             },{
                 "file": "IMG_3512.JPG",
                 "title": "Space Needle"
@@ -129,10 +129,14 @@
                 "title": "Laptop"
             },{
                 "file": "jim-boneless.JPG",
-                "title": "Jim Boneless"
+                "title": "Boneless"
             },{
                 "file": "space.jpg",
                 "title": "Space"
+            },
+            {
+                "file": "stuffedanimalmountain.jpg",
+                "title": "Stuffed Animal Mountain"
             }
         ],
         "videos": [
