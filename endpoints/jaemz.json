@@ -1,6 +1,6 @@
 {
     "endpoint": "jaemz",
-    "password": "password",
+    "password": "jaemz",
     "masterAlias": "JAEMZ",
     "unspecifiedAlias": "syco",
     "stuffedAnimalMediaObject": {
@@ -138,8 +138,8 @@
         "videos": [
             {
                 "file": "jimskate.mp4",
-                "title": "jimskate.mp4",
-                "poster": "stuffedanimalmountain.jpg"
+                "title": "Ollie Air",
+                "poster": "jimskate.png"
             }
         ]
     },
