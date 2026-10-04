@@ -1,10 +1,10 @@
 {
-    "endpoint": "denmark",
-    "password": "denmark",
-    "masterAlias": "MERMAID",
-    "unspecifiedAlias": "noob",
+    "endpoint": "jaemz",
+    "password": "jaemz",
+    "masterAlias": "JAEMZ",
+    "unspecifiedAlias": "syco",
     "stuffedAnimalMediaObject": {
-        "backgroundimage": "photos/space.jpg",
+        "backgroundimage": "photos/IMG_3512.JPG",
         "animals": [
             {
                 "file": "animals/badger.png",
@@ -120,7 +120,7 @@
                 "title": "Boots"
             },{
                 "file": "bootsmurderedout.png",
-                "title": "BOOTS MURDRED OUT"
+                "title": "Boots"
             },{
                 "file": "IMG_3512.JPG",
                 "title": "Space Needle"
@@ -129,25 +129,26 @@
                 "title": "Laptop"
             },{
                 "file": "jim-boneless.JPG",
-                "title": "Jim Boneless"
+                "title": "Boneless"
             },{
                 "file": "space.jpg",
                 "title": "Space"
+            },
+            {
+                "file": "stuffedanimalmountain.jpg",
+                "title": "Stuffed Animal Mountain"
             }
         ],
         "videos": [
             {
                 "file": "jimskate.mp4",
-                "title": "jimskate.mp4",
-                "poster": "stuffedanimalmountain.jpg"
+                "title": "Ollie Air",
+                "poster": "jimskate.png"
             }
         ]
     },
     "responsesObject": {
         "responses": [
-            {
-                "response": "Your Mother's a terrible cook."
-            },
             {
                 "response": "check out this spot"
             },
@@ -288,21 +289,6 @@
             },
             {
                 "response": "youre wrong"
-            },
-            {
-                "response": "get a life"
-            },
-            {
-                "response": "no, just no"
-            },
-            {
-                "response": "hygge"
-            },
-            {
-                "response": "get hygge with it"
-            },
-            {
-                "response": "Joe and the juice has great wifi"
             }
         ]
     }

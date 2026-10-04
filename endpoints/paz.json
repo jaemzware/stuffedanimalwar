@@ -1,11 +1,27 @@
 {
-    "endpoint": "greta",
-    "password": "greta",
-    "masterAlias": "GRETA",
-    "unspecifiedAlias": "sus",
+    "endpoint": "paz",
+    "password": "paz",
+    "masterAlias": "PAZ",
+    "unspecifiedAlias": "lurker",
     "stuffedAnimalMediaObject": {
-        "backgroundimage": "photos/space.jpg",
+        "backgroundimage": "photos/paz/gallerymuralprojectcover.png",
         "animals": [
+            {
+                "file": "animals/paz/animalbluemouseheartsign.png",
+                "title": "Blue Mouse (paz)"
+            },
+            {
+                "file": "animals/paz/animalgreenmouse.png",
+                "title": "Green Mouse (paz)"
+            },
+            {
+                "file": "animals/paz/animalhuggingbear.png",
+                "title": "Hugging Bear (paz)"
+            },
+            {
+                "file": "animals/paz/animalorangecroc.png",
+                "title": "Orange Croc (paz)"
+            },
             {
                 "file": "animals/badger.png",
                 "title": "Badger"
@@ -98,8 +114,8 @@
     },
     "mediaObject": {
         "songspath": "songs/",
-        "videospath": "videos/",
-        "photospath": "photos/",
+        "videospath": "videos/paz/",
+        "photospath": "photos/paz/",
         "songs": [
             {
                 "file": "ahha-takeonme-bw-loveisreason.mp3",
@@ -116,30 +132,33 @@
         ],
         "photos": [
             {
-                "file": "boots.jpg",
-                "title": "Boots"
+                "file": "gallerysummary.png",
+                "title": "Mural Summary"
             },{
-                "file": "bootsmurderedout.png",
-                "title": "BOOTS MURDRED OUT"
+                "file": "gallerymuralprojectcover.png",
+                "title": "Mural Project Cover"
             },{
-                "file": "IMG_3512.JPG",
-                "title": "Space Needle"
+                "file": "galleryorangecroc.png",
+                "title": "Orange Croc"
             },{
-                "file": "IMG_5269.JPG",
-                "title": "Laptop"
+                "file": "gallerymermaid.png",
+                "title": "Mermaid"
             },{
-                "file": "jim-boneless.JPG",
-                "title": "Jim Boneless"
+                "file": "galleryhuggingbear.png",
+                "title": "Hugging Bear"
             },{
-                "file": "space.jpg",
-                "title": "Space"
+                "file": "gallerygirl.png",
+                "title": "Girl"
+            },{
+                "file": "gallerybluemouseheartsign.png",
+                "title": "Blue Mouse with Heart Sign"
             }
         ],
         "videos": [
             {
-                "file": "jimskate.mp4",
-                "title": "jimskate.mp4",
-                "poster": "stuffedanimalmountain.jpg"
+                "file": "pazvideobluefence.mp4",
+                "title": "Mural Footage",
+                "poster": "pazvideobluefence.png"
             }
         ]
     },
@@ -239,9 +258,6 @@
                 "response": "thats cool"
             },
             {
-                "response": "these boots were made for walkin"
-            },
-            {
                 "response": "thats what she said"
             },
             {
@@ -288,9 +304,6 @@
             },
             {
                 "response": "youre wrong"
-            },
-            {
-                "response": "youre complicit"
             }
         ]
     }
