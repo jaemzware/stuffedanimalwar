@@ -459,7 +459,7 @@ server.listen(listenPort, async () => {
  * ENDPOINTS: Each endpoint uses the custom .json of the same name. if there is not a custom .json of the same name, the fallback is greenland.json]
  */
 const MAX_GREENLAND_ROOMS = 99999;
-const stuffedAnimalWarEndpoints = ['greenland','spain','denmark','norway','greta','blackpanthers','onboard'];
+const stuffedAnimalWarEndpoints = ['greenland','paz'];
 const stuffedAnimalWarChatSocketEvent = 'chatmessage';
 const stuffedAnimalWarTapSocketEvent = 'tapmessage';
 const stuffedAnimalWarPathSocketEvent = 'pathmessage';

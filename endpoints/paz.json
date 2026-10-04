@@ -1,10 +1,10 @@
 {
-    "endpoint": "greta",
-    "password": "greta",
-    "masterAlias": "GRETA",
-    "unspecifiedAlias": "sus",
+    "endpoint": "paz",
+    "password": "pazzword",
+    "masterAlias": "PAZ",
+    "unspecifiedAlias": "lurker",
     "stuffedAnimalMediaObject": {
-        "backgroundimage": "photos/space.jpg",
+        "backgroundimage": "photos/IMG_3512.JPG",
         "animals": [
             {
                 "file": "animals/badger.png",
@@ -239,9 +239,6 @@
                 "response": "thats cool"
             },
             {
-                "response": "these boots were made for walkin"
-            },
-            {
                 "response": "thats what she said"
             },
             {
@@ -288,9 +285,6 @@
             },
             {
                 "response": "youre wrong"
-            },
-            {
-                "response": "youre complicit"
             }
         ]
     }

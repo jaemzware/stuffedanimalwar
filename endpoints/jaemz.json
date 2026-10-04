@@ -1,10 +1,10 @@
 {
-    "endpoint": "denmark",
-    "password": "denmark",
-    "masterAlias": "MERMAID",
-    "unspecifiedAlias": "noob",
+    "endpoint": "jaemz",
+    "password": "password",
+    "masterAlias": "JAEMZ",
+    "unspecifiedAlias": "syco",
     "stuffedAnimalMediaObject": {
-        "backgroundimage": "photos/space.jpg",
+        "backgroundimage": "photos/IMG_3512.JPG",
         "animals": [
             {
                 "file": "animals/badger.png",
@@ -146,9 +146,6 @@
     "responsesObject": {
         "responses": [
             {
-                "response": "Your Mother's a terrible cook."
-            },
-            {
                 "response": "check out this spot"
             },
             {
@@ -288,21 +285,6 @@
             },
             {
                 "response": "youre wrong"
-            },
-            {
-                "response": "get a life"
-            },
-            {
-                "response": "no, just no"
-            },
-            {
-                "response": "hygge"
-            },
-            {
-                "response": "get hygge with it"
-            },
-            {
-                "response": "Joe and the juice has great wifi"
             }
         ]
     }
