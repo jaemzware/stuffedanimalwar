@@ -5,9 +5,9 @@ A privacy-focused, real-time chat, game, and media sharing platform built with N
 ## ✨ Features
 
 ### Privacy & Security
-- **Zero Data Persistence**: No databases, no logs, no traces - all shared content is ephemeral
+- **No Database**: Shared content isn't stored in a database; text-only logs are generated for testing, and photos and videos are never saved
 - **Completely Offline**: Works on local networks without internet connectivity
-- **Privacy by Design**: No registration, no tracking, no data collection
+- **Privacy by Design**: No registration, no tracking, no third parties
 
 ### Platform & Deployment
 - **IoT Ready**: Perfect for Raspberry Pi deployment as a portable social hub
@@ -458,7 +458,7 @@ Users with the configured `masterAlias` can:
 - **No data persistence**: Messages and media exist only during active sessions
 - **Memory-only storage**: All game states and chat history cleared on server restart
 - **No user registration**: Access endpoints directly without accounts
-- **No logging**: No chat logs, user tracking, or analytics
+- **Text-only logging**: Text-only logs are generated for testing; photos and videos are never saved, and there's no user tracking or analytics
 
 ## 🔧 Use Cases
 

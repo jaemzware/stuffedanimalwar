@@ -508,16 +508,16 @@ app.get('/', function(req, res){
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stuffed Animal War - Ephemeral Chat | Privacy by Design</title>
-    <meta name="description" content="Real-time collaboration that's architecturally incapable of storing your data. Photos and videos exist only in browser memory. Close the browser, data gone forever.">
-    <meta name="keywords" content="ephemeral chat, privacy, self-hosted, raspberry pi, secure messaging, no data storage">
+    <title>Stuffed Animal War - Talk Freely, Even Off the Grid</title>
+    <meta name="description" content="Chat, voice, and cameras that work without cell service or the internet. A small server broadcasts its own WiFi so anyone nearby can join from a browser. You run the server, so you decide what's kept.">
+    <meta name="keywords" content="off-grid chat, no cell service, search and rescue, neighborhood communication, raspberry pi, local wifi, ephemeral chat, privacy">
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     
     <!-- Open Graph / Social -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://stuffedanimalwar.com/">
-    <meta property="og:title" content="Stuffed Animal War - Ephemeral Chat">
-    <meta property="og:description" content="Real-time collaboration that's architecturally incapable of storing your data.">
+    <meta property="og:title" content="Stuffed Animal War - Talk Freely, Even Off the Grid">
+    <meta property="og:description" content="Chat, voice, and cameras that work without cell service or the internet, on a server you own.">
     
     <link rel="stylesheet" href="/landing.css">
 </head>
@@ -527,7 +527,7 @@ app.get('/', function(req, res){
             <a href="/" class="logo">STUFFED<span>ANIMAL</span>WAR</a>
             <div class="nav-links">
                 <a href="#how-it-works">How It Works</a>
-                <a href="#pricing">Hardware</a>
+                <a href="#pricing">Get Set Up</a>
                 <a href="https://github.com/jaemzware" target="_blank">GitHub</a>
                 <a href="/rooms" class="nav-cta">Enter a Room →</a>
             </div>
@@ -536,34 +536,57 @@ app.get('/', function(req, res){
 
     <section class="hero">
         <div class="container">
-            <span class="hero-badge">🔒 Privacy by Design, Not Policy</span>
-            <h1>Real-time collaboration that <span class="highlight">can't store your data</span></h1>
-            <p class="subtitle">Photos and videos exist only in browser memory. No database. No logs. Close the browser, and your data is gone forever. Not because we promise—because it's architecturally impossible.</p>
+            <span class="hero-badge">📡 Works when the lines are down</span>
+            <h1>Talk like you're in the same room, <span class="highlight">even when there's no signal</span></h1>
+            <p class="subtitle">A small server broadcasts its own WiFi. Anyone nearby can join from the browser already on their phone to chat, talk, share photos, and watch live cameras. No cell service, no internet, and no app needed. It's your box, so you decide what gets kept.</p>
             <div class="hero-ctas">
                 <a href="/rooms" class="btn btn-primary">Try It Free →</a>
-                <a href="#pricing" class="btn btn-secondary">Get Your Own Server</a>
+                <a href="#pricing" class="btn btn-secondary">Set Up Your Own</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="solution">
+        <div class="container">
+            <span class="section-label">Proven in the Field · October 2026</span>
+            <h2>No internet. Four computers. One room.</h2>
+            <p class="section-description">Three MacBook Pros and a Mac mini joined a Linksys EA7500 WiFi router with nothing plugged into its internet port. Everything ran on that local network alone: no gateway, no cloud, no outside connection.</p>
+
+            <div class="guarantees">
+                <div class="guarantee">
+                    <h4>✓ Chat &amp; Canvas</h4>
+                    <p>Real-time chat and the shared drawing canvas worked across every machine.</p>
+                </div>
+                <div class="guarantee">
+                    <h4>✓ Live Camera</h4>
+                    <p>Camera feeds streamed between computers with no internet in the loop.</p>
+                </div>
+                <div class="guarantee">
+                    <h4>✓ Synchronized Music</h4>
+                    <p>Songs from AnalogArchiveJS, shared as links in chat, played in near-perfect sync on all four computers at once.</p>
+                </div>
             </div>
         </div>
     </section>
 
     <section class="problem">
         <div class="container">
-            <span class="section-label">The Problem</span>
-            <h2>Your data is the product.</h2>
-            <p class="section-description">Every "free" messaging app harvests your conversations, photos, and location. Your "deleted" messages live forever on corporate servers.</p>
+            <span class="section-label">Why It Exists</span>
+            <h2>The internet is great. It shouldn't be the only way to talk.</h2>
+            <p class="section-description">Free apps and online services are a fair deal for lots of people, the same way a free movie is worth a few commercials. But that should be a choice you make, not the only option you have. Sometimes the network isn't there. Sometimes you just want a conversation that stays in the room.</p>
             
             <div class="problem-grid">
                 <div class="problem-card">
-                    <div class="stat">$600B+</div>
-                    <p>Annual revenue from personal data harvesting</p>
+                    <div class="stat">🥾</div>
+                    <p><strong>Past the last cell tower.</strong> Trails, backcountry, and search areas where phones show no bars.</p>
                 </div>
                 <div class="problem-card">
-                    <div class="stat">Forever</div>
-                    <p>How long your "deleted" messages actually persist</p>
+                    <div class="stat">🌩️</div>
+                    <p><strong>When the lines go down.</strong> Storms, outages, and emergencies that take the network offline right when neighbors need each other.</p>
                 </div>
                 <div class="problem-card">
-                    <div class="stat">0%</div>
-                    <p>Control you have over corporate data policies</p>
+                    <div class="stat">🤫</div>
+                    <p><strong>When you'd rather keep it local.</strong> Talk the way you would face to face, without a company in the middle of the conversation.</p>
                 </div>
             </div>
         </div>
@@ -571,25 +594,51 @@ app.get('/', function(req, res){
 
     <section class="solution">
         <div class="container">
-            <span class="section-label">The Solution</span>
-            <h2>Ephemeral by architecture.</h2>
-            <p class="section-description">We didn't write a privacy policy. We wrote code that makes storing your data impossible.</p>
+            <span class="section-label">What It Is</span>
+            <h2>A room, not a platform.</h2>
+            <p class="section-description">A small box that turns the space around it into a shared room. People who are close by can see and hear each other through something everyone already knows how to use: a web browser.</p>
             
             <div class="solution-grid">
                 <div class="solution-card">
-                    <div class="icon">🔒</div>
-                    <h3>Zero Persistence</h3>
-                    <p>Data exists only in browser memory. Server restart = complete wipe. No database. No logs. Nothing to subpoena.</p>
+                    <div class="icon">📡</div>
+                    <h3>No Gateway Needed</h3>
+                    <p>The server makes its own WiFi network. Phones connect straight to it. No cell tower, no internet provider, and no outside connection in between.</p>
                 </div>
                 <div class="solution-card purple">
-                    <div class="icon">🏠</div>
-                    <h3>Self-Hostable</h3>
-                    <p>Run your own server on a Raspberry Pi. You own the hardware. You own the network. Complete control.</p>
+                    <div class="icon">🔑</div>
+                    <h3>Your Box, Your Rules</h3>
+                    <p>No cloud and no third party in the middle. Chat isn't saved to a database, and photos and videos are never saved at all. Text-only logs are generated for testing, on hardware you own, where you can read them, keep them, or wipe them.</p>
                 </div>
                 <div class="solution-card blue">
-                    <div class="icon">⚡</div>
-                    <h3>Full Featured</h3>
-                    <p>Collaborative canvas, WebRTC voice, custom rooms, media sharing, remote cameras, screen share. Everything ephemeral.</p>
+                    <div class="icon">🌐</div>
+                    <h3>Familiar for Everyone</h3>
+                    <p>Nothing to install and no account to make. Chat, voice, a shared drawing canvas, photo sharing, and live cameras, all in a normal browser.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="solution">
+        <div class="container">
+            <span class="section-label">Presentation Alias</span>
+            <h2>One person can lead the room.</h2>
+            <p class="section-description">Every room has a presentation alias. Join with it and what you do shows up on everyone's screen at the same time, like a teacher at the front of a class or a guide around a campfire.</p>
+
+            <div class="solution-grid">
+                <div class="solution-card">
+                    <div class="icon">🖼️</div>
+                    <h3>Present to Everyone</h3>
+                    <p>Pick an image from the gallery and it becomes the canvas background on every screen at once. Clear the board or the chat for everyone in one tap.</p>
+                </div>
+                <div class="solution-card purple">
+                    <div class="icon">⏯️</div>
+                    <h3>Control Playback</h3>
+                    <p>Play, pause, and seek audio and video, and every connected device follows along together.</p>
+                </div>
+                <div class="solution-card blue">
+                    <div class="icon">🎵</div>
+                    <h3>Share Music Live</h3>
+                    <p>Send a song link from AnalogArchiveJS in chat and it plays across the room, all from drives on your own network.</p>
                 </div>
             </div>
         </div>
@@ -597,46 +646,46 @@ app.get('/', function(req, res){
 
     <section class="how-it-works" id="how-it-works">
         <div class="container">
-            <h2>How Your Data Stays Private</h2>
+            <h2>How It Works</h2>
             
             <div class="flow">
                 <div class="flow-step">
-                    <div class="icon">📤</div>
-                    <div class="label">Upload</div>
-                    <div class="desc">Select photo/video</div>
+                    <div class="icon">🔌</div>
+                    <div class="label">Power On</div>
+                    <div class="desc">Battery or wall plug</div>
                 </div>
                 <span class="flow-arrow">→</span>
                 <div class="flow-step">
-                    <div class="icon">🔄</div>
-                    <div class="label">Convert</div>
-                    <div class="desc">Base64 encoding</div>
+                    <div class="icon">📶</div>
+                    <div class="label">Local WiFi</div>
+                    <div class="desc">Server broadcasts its own network</div>
                 </div>
                 <span class="flow-arrow">→</span>
                 <div class="flow-step">
-                    <div class="icon">📡</div>
-                    <div class="label">Broadcast</div>
-                    <div class="desc">WebSocket relay</div>
+                    <div class="icon">📱</div>
+                    <div class="label">Join</div>
+                    <div class="desc">Any phone or laptop browser</div>
                 </div>
                 <span class="flow-arrow">→</span>
                 <div class="flow-step">
-                    <div class="icon">🧠</div>
-                    <div class="label">Memory Only</div>
-                    <div class="desc">Browser RAM</div>
+                    <div class="icon">💬</div>
+                    <div class="label">Talk</div>
+                    <div class="desc">Chat, voice, photos, cameras</div>
                 </div>
             </div>
 
             <div class="guarantees">
                 <div class="guarantee">
-                    <h4>✓ No Server Storage</h4>
-                    <p>Server only relays data. Nothing touches disk.</p>
+                    <h4>⛺ Search &amp; Rescue</h4>
+                    <p>Set up a camera and chat station at a trailhead, basecamp, or command post. Anyone within WiFi range can check in and see the live feed, no bars needed.</p>
                 </div>
                 <div class="guarantee">
-                    <h4>✓ Browser Close = Gone</h4>
-                    <p>All browsers close, data ceases to exist anywhere.</p>
+                    <h4>🏘️ Neighborhoods</h4>
+                    <p>Keep the block connected during an outage, or just have a local place to talk that doesn't run through anyone else's servers.</p>
                 </div>
                 <div class="guarantee">
-                    <h4>✓ Impossible to Subpoena</h4>
-                    <p>Can't hand over data that doesn't exist.</p>
+                    <h4>🫂 Gatherings</h4>
+                    <p>Meetings, events, and groups that want to share freely on a server they run themselves, not someone else's.</p>
                 </div>
             </div>
         </div>
@@ -644,35 +693,34 @@ app.get('/', function(req, res){
 
     <section class="pricing" id="pricing">
         <div class="container">
-            <h2>Own Your Communication</h2>
-            <p class="subtitle">Pre-configured Raspberry Pi kits. Plug in and go.</p>
+            <h2>Bring Your Own Room</h2>
+            <p class="subtitle">You get the hardware. I'll help you set it up so it works on home WiFi or completely on its own.</p>
             
             <div class="pricing-grid">
                 <div class="pricing-card">
-                    <div class="tier">Starter</div>
-                    <div class="price">$100</div>
-                    <div class="hardware">Raspberry Pi Zero 2W Kit</div>
+                    <div class="tier">You Bring</div>
+                    <div class="price">Hardware</div>
+                    <div class="hardware">Your own device, bought wherever you like</div>
                     <ul>
-                        <li>StuffedAnimalWar</li>
-                        <li>AnalogArchiveJS music streaming</li>
-                        <li>Low power (~1W), silent</li>
-                        <li>Pre-configured, ready to run</li>
-                        <li>Setup guide included</li>
+                        <li>A Raspberry Pi (Zero 2W for low power, Pi 5 for more)</li>
+                        <li>Or a Mac you already own</li>
+                        <li>A camera module, if you want a live feed</li>
+                        <li>A WiFi router, if you want more range or more people</li>
+                        <li>A battery pack for use off the grid</li>
                     </ul>
-                    <a href="mailto:jaemzware@hotmail.com?subject=Starter Kit Inquiry" class="btn btn-secondary">Contact for Purchase</a>
                 </div>
                 <div class="pricing-card featured">
-                    <div class="tier">With Camera</div>
-                    <div class="price">$200</div>
-                    <div class="hardware">Raspberry Pi 5 Kit + Camera</div>
+                    <div class="tier">I Bring My Time</div>
+                    <div class="price">Let's Talk</div>
+                    <div class="hardware">Setup, configuration, and support</div>
                     <ul>
-                        <li>StuffedAnimalWar</li>
-                        <li>AnalogArchiveJS music streaming</li>
-                        <li>Camera module included</li>
-                        <li>Host your own camera feed</li>
-                        <li>Pre-configured, ready to run</li>
+                        <li>Help choosing the right hardware</li>
+                        <li>Installing StuffedAnimalWar on your device</li>
+                        <li>Setting up its own WiFi for use with no internet</li>
+                        <li>Custom rooms, cameras, and music</li>
+                        <li>Showing you how to run it yourself</li>
                     </ul>
-                    <a href="mailto:jaemzware@hotmail.com?subject=Camera Kit Inquiry" class="btn btn-primary">Contact for Purchase</a>
+                    <a href="mailto:jaemzware@hotmail.com?subject=StuffedAnimalWar Setup Help" class="btn btn-primary">Contact Me</a>
                 </div>
             </div>
         </div>
@@ -697,11 +745,11 @@ app.get('/', function(req, res){
         <div class="container">
             <div class="footer-links">
                 <a href="https://github.com/jaemzware" target="_blank">GitHub</a>
-                <a href="https://linkedin.com/in/jaemzware" target="_blank">LinkedIn</a>
+                <a href="https://www.linkedin.com/in/jimarasim/" target="_blank">LinkedIn</a>
                 <a href="mailto:jaemzware@hotmail.com">Contact</a>
             </div>
             <div class="footer-copy">
-                © ${new Date().getFullYear()} Jaemzware LLC — Privacy by design, not policy.
+                © ${new Date().getFullYear()} Jaemzware LLC — Talk freely, by choice.
             </div>
         </div>
     </footer>
