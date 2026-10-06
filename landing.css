@@ -99,7 +99,7 @@ nav .container {
     border-radius: 50px;
     font-size: 0.85rem;
     font-weight: 600;
-    margin-bottom: 24px;
+    margin: 0 6px 24px;
 }
 
 .hero h1 {
@@ -262,6 +262,11 @@ nav .container {
     font-size: 0.95rem;
 }
 
+.solution-card p a {
+    color: var(--teal);
+    text-decoration: underline;
+}
+
 /* How It Works */
 .how-it-works {
     padding: 80px 0;
@@ -353,6 +358,11 @@ nav .container {
     color: var(--text-muted);
     text-align: center;
     margin-bottom: 48px;
+}
+
+.pricing .subtitle a {
+    color: var(--teal);
+    text-decoration: underline;
 }
 
 .pricing-grid {

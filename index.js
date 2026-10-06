@@ -528,7 +528,7 @@ app.get('/', function(req, res){
             <div class="nav-links">
                 <a href="#how-it-works">How It Works</a>
                 <a href="#pricing">Get Set Up</a>
-                <a href="https://github.com/jaemzware" target="_blank">GitHub</a>
+                <a href="https://github.com/jaemzware/stuffedanimalwar" target="_blank">GitHub</a>
                 <a href="/rooms" class="nav-cta">Enter a Room →</a>
             </div>
         </div>
@@ -537,6 +537,7 @@ app.get('/', function(req, res){
     <section class="hero">
         <div class="container">
             <span class="hero-badge">📡 Works when the lines are down</span>
+            <span class="hero-badge">⭐ Open source · Apache 2.0</span>
             <h1>Talk like you're in the same room, <span class="highlight">even when there's no signal</span></h1>
             <p class="subtitle">A small server broadcasts its own WiFi. Anyone nearby can join from the browser already on their phone to chat, talk, share photos, and watch live cameras. No cell service, no internet, and no app needed. It's your box, so you decide what gets kept.</p>
             <div class="hero-ctas">
@@ -563,7 +564,7 @@ app.get('/', function(req, res){
                 </div>
                 <div class="guarantee">
                     <h4>✓ Synchronized Music</h4>
-                    <p>Songs from AnalogArchiveJS, shared as links in chat, played in near-perfect sync on all four computers at once.</p>
+                    <p>Songs from <a href="https://github.com/jaemzware/analogarchivejs" target="_blank">AnalogArchiveJS</a>, shared as links in chat, played in near-perfect sync on all four computers at once.</p>
                 </div>
             </div>
         </div>
@@ -607,7 +608,7 @@ app.get('/', function(req, res){
                 <div class="solution-card purple">
                     <div class="icon">🔑</div>
                     <h3>Your Box, Your Rules</h3>
-                    <p>No cloud and no third party in the middle. Chat isn't saved to a database, and photos and videos are never saved at all. Text-only logs are generated for testing, on hardware you own, where you can read them, keep them, or wipe them.</p>
+                    <p>No cloud and no third party in the middle. Chat isn't saved to a database, and photos and videos are never saved at all. Text-only logs are generated for testing, on hardware you own, where you can read them, keep them, or wipe them. The code is <a href="https://github.com/jaemzware/stuffedanimalwar" target="_blank">open source</a>, so you can read exactly what it does.</p>
                 </div>
                 <div class="solution-card blue">
                     <div class="icon">🌐</div>
@@ -638,7 +639,7 @@ app.get('/', function(req, res){
                 <div class="solution-card blue">
                     <div class="icon">🎵</div>
                     <h3>Share Music Live</h3>
-                    <p>Send a song link from AnalogArchiveJS in chat and it plays across the room, all from drives on your own network.</p>
+                    <p>Send a song link from <a href="https://github.com/jaemzware/analogarchivejs" target="_blank">AnalogArchiveJS</a> in chat and it plays across the room, all from drives on your own network.</p>
                 </div>
             </div>
         </div>
@@ -694,7 +695,7 @@ app.get('/', function(req, res){
     <section class="pricing" id="pricing">
         <div class="container">
             <h2>Bring Your Own Room</h2>
-            <p class="subtitle">You get the hardware. I'll help you set it up so it works on home WiFi or completely on its own.</p>
+            <p class="subtitle">The software is free and <a href="https://github.com/jaemzware/stuffedanimalwar" target="_blank">open source</a> under Apache 2.0, so self-hosting it costs nothing. You get the hardware. I'll help you set it up so it works on home WiFi or completely on its own.</p>
             
             <div class="pricing-grid">
                 <div class="pricing-card">
@@ -744,7 +745,7 @@ app.get('/', function(req, res){
     <footer>
         <div class="container">
             <div class="footer-links">
-                <a href="https://github.com/jaemzware" target="_blank">GitHub</a>
+                <a href="https://github.com/jaemzware/stuffedanimalwar" target="_blank">GitHub</a>
                 <a href="https://www.linkedin.com/in/jimarasim/" target="_blank">LinkedIn</a>
                 <a href="mailto:jaemzware@hotmail.com">Contact</a>
             </div>
