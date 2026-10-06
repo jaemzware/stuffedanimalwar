@@ -551,7 +551,7 @@ app.get('/', function(req, res){
         <div class="container">
             <span class="section-label">Proven in the Field · October 2026</span>
             <h2>No internet. Four computers. One room.</h2>
-            <p class="section-description">Three MacBook Pros and a Mac mini joined a Linksys EA7500 WiFi router with nothing plugged into its internet port. Everything ran on that local network alone: no gateway, no cloud, no outside connection.</p>
+            <p class="section-description">Three MacBook Pros and a Mac mini joined a Linksys EA7500 WiFi router with nothing plugged into its internet port. Everything ran on that local network alone: no gateway, no cloud, no outside connection. Macs just happened to be what was on hand: the server runs anywhere Node.js does, and any device with a web browser can join.</p>
 
             <div class="guarantees">
                 <div class="guarantee">
@@ -659,13 +659,13 @@ app.get('/', function(req, res){
                 <div class="flow-step">
                     <div class="icon">📶</div>
                     <div class="label">Local WiFi</div>
-                    <div class="desc">Server broadcasts its own network</div>
+                    <div class="desc">A Pi broadcasts its own; anything else joins a WiFi router</div>
                 </div>
                 <span class="flow-arrow">→</span>
                 <div class="flow-step">
                     <div class="icon">📱</div>
                     <div class="label">Join</div>
-                    <div class="desc">Any phone or laptop browser</div>
+                    <div class="desc">Any device with a web browser</div>
                 </div>
                 <span class="flow-arrow">→</span>
                 <div class="flow-step">
@@ -703,10 +703,10 @@ app.get('/', function(req, res){
                     <div class="price">Hardware</div>
                     <div class="hardware">Your own device, bought wherever you like</div>
                     <ul>
-                        <li>A Raspberry Pi (Zero 2W for low power, Pi 5 for more)</li>
-                        <li>Or a Mac you already own</li>
+                        <li>Any computer that runs Node.js: Mac, Windows, or Linux. Node.js is the only dependency</li>
+                        <li>Or a Raspberry Pi (Zero 2W for low power, Pi 5 for more)</li>
                         <li>A camera module, if you want a live feed</li>
-                        <li>A WiFi router, if you want more range or more people</li>
+                        <li>A WiFi router (no internet needed). Required unless you use a Pi, and it adds range and room for more people either way</li>
                         <li>A battery pack for use off the grid</li>
                     </ul>
                 </div>
@@ -717,7 +717,7 @@ app.get('/', function(req, res){
                     <ul>
                         <li>Help choosing the right hardware</li>
                         <li>Installing StuffedAnimalWar on your device</li>
-                        <li>Setting up its own WiFi for use with no internet</li>
+                        <li>Setting up a local network for use with no internet</li>
                         <li>Custom rooms, cameras, and music</li>
                         <li>Showing you how to run it yourself</li>
                     </ul>
