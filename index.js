@@ -721,7 +721,7 @@ app.get('/', function(req, res){
                         <li>Custom rooms, cameras, and music</li>
                         <li>Showing you how to run it yourself</li>
                     </ul>
-                    <a href="mailto:jaemzware@hotmail.com?subject=StuffedAnimalWar Setup Help" class="btn btn-primary">Contact Me</a>
+                    <a href="https://www.linkedin.com/in/jimarasim/" target="_blank" class="btn btn-primary">Contact Me</a>
                 </div>
             </div>
         </div>
@@ -747,7 +747,6 @@ app.get('/', function(req, res){
             <div class="footer-links">
                 <a href="https://github.com/jaemzware/stuffedanimalwar" target="_blank">GitHub</a>
                 <a href="https://www.linkedin.com/in/jimarasim/" target="_blank">LinkedIn</a>
-                <a href="mailto:jaemzware@hotmail.com">Contact</a>
             </div>
             <div class="footer-copy">
                 © ${new Date().getFullYear()} Jaemzware LLC — Talk freely, by choice.
