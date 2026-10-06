@@ -238,9 +238,22 @@ docker-compose logs -f
 3. **Generate SSL certificates (required for HTTPS)**
    ```bash
    mkdir sslcert
-   openssl genrsa -out sslcert/key.pem 4096
-   openssl req -x509 -new -sha256 -nodes -key sslcert/key.pem -days 1095 -out sslcert/cert.pem -subj "/CN=localhost/O=stuffedanimalwar/C=US"
+   # Replace mini.local with the hostname other devices will use (add more DNS:/IP: entries as needed)
+   openssl req -x509 -newkey rsa:4096 -sha256 -nodes -days 825 \
+     -keyout sslcert/key.pem -out sslcert/cert.pem \
+     -subj "/CN=mini.local/O=stuffedanimalwar/C=US" \
+     -addext "subjectAltName=DNS:mini.local,DNS:localhost,IP:127.0.0.1" \
+     -addext "extendedKeyUsage=serverAuth"
    ```
+   Then set `USE_HTTPS=true` in `.env` (see `.env.example`).
+
+   Apple devices only trust a self-signed cert that has a `subjectAltName` matching the hostname and is valid for **825 days or less**. That's why the command above includes both. Note the expiry date so you know when to regenerate.
+
+   **Trust the certificate on every device that connects.** Safari lets you click past the warning and load the page, but audio and video still fail with *"The certificate for this server is invalid"* because Safari's media playback ignores that exception. Chrome and Firefox are more forgiving, but trusting the cert is the real fix:
+   - **Mac:** open `sslcert/cert.pem` in Keychain Access, add it to the **System** keychain, expand **Trust**, and set it to **Always Trust**.
+   - **iPhone/iPad:** AirDrop or email `cert.pem` to the device, install it under Settings → General → VPN & Device Management, then turn it on under Settings → General → About → **Certificate Trust Settings** (easy to miss).
+
+   Why not plain HTTP? It avoids all of this, but browsers block camera and microphone access (`getUserMedia`) on HTTP for any host other than `localhost`, so camera rooms can't broadcast.
 
 4. **Start the server**
    ```bash

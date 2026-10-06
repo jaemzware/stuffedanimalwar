@@ -9,12 +9,12 @@ const https = require('https');
 const useHttps = process.env.USE_HTTPS === 'true';
 
 //SSL CERTS NEED TO BE CREATED LOCALLY IF YOU WANT TO RUN LOCALLY
-//openssl genrsa -out key.pem 4096
-//openssl req -x509 -new -sha256 -nodes -key key.pem -days 1095 -out certificate.pem -subj "/CN=jaemzwarellc/O=stuffedanimalwar/C=US"
+//APPLE DEVICES REQUIRE A subjectAltName MATCHING THE HOSTNAME AND <= 825 DAYS, AND THE CERT MUST BE TRUSTED ON EACH CLIENT (SEE README)
+//openssl req -x509 -newkey rsa:4096 -sha256 -nodes -days 825 -keyout key.pem -out cert.pem -subj "/CN=mini.local/O=stuffedanimalwar/C=US" -addext "subjectAltName=DNS:mini.local,DNS:localhost,IP:127.0.0.1" -addext "extendedKeyUsage=serverAuth"
 const options = useHttps
     ? {
         key: fs.readFileSync(process.env.SSL_KEY_PATH || './sslcert/key.pem'),
-        cert: fs.readFileSync(process.env.SSL_CERT_PATH || './sslcert/certificate.pem')
+        cert: fs.readFileSync(process.env.SSL_CERT_PATH || './sslcert/cert.pem')
     }
     : null;
 

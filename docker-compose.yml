@@ -1,6 +1,10 @@
 services:
   stuffedanimalwar:
-    build: .
+    build:
+      context: .
+      args:
+        # Hostname baked into the self-signed cert (e.g. CERT_HOST=mini.local docker-compose up -d --build)
+        - CERT_HOST=${CERT_HOST:-localhost}
     container_name: stuffedanimalwar
     ports:
       - "55556:55556"
