@@ -1,10 +1,16 @@
 services:
   stuffedanimalwar:
-    build: .
+    build:
+      context: .
+      args:
+        # Hostname baked into the self-signed cert (e.g. CERT_HOST=mini.local docker-compose up -d --build)
+        - CERT_HOST=${CERT_HOST:-localhost}
     container_name: stuffedanimalwar
     ports:
       - "55556:55556"
     environment:
+      # Serve over HTTPS using the cert generated in the image (set USE_HTTPS=false to serve plain HTTP)
+      - USE_HTTPS=${USE_HTTPS:-true}
       # SSL certificate paths (defaults to auto-generated certs in container)
       - SSL_KEY_PATH=${SSL_KEY_PATH:-/app/sslcert/key.pem}
       - SSL_CERT_PATH=${SSL_CERT_PATH:-/app/sslcert/cert.pem}

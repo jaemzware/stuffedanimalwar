@@ -9,12 +9,12 @@ const https = require('https');
 const useHttps = process.env.USE_HTTPS === 'true';
 
 //SSL CERTS NEED TO BE CREATED LOCALLY IF YOU WANT TO RUN LOCALLY
-//openssl genrsa -out key.pem 4096
-//openssl req -x509 -new -sha256 -nodes -key key.pem -days 1095 -out certificate.pem -subj "/CN=jaemzwarellc/O=stuffedanimalwar/C=US"
+//APPLE DEVICES REQUIRE A subjectAltName MATCHING THE HOSTNAME AND <= 825 DAYS, AND THE CERT MUST BE TRUSTED ON EACH CLIENT (SEE README)
+//openssl req -x509 -newkey rsa:4096 -sha256 -nodes -days 825 -keyout key.pem -out cert.pem -subj "/CN=mini.local/O=stuffedanimalwar/C=US" -addext "subjectAltName=DNS:mini.local,DNS:localhost,IP:127.0.0.1" -addext "extendedKeyUsage=serverAuth"
 const options = useHttps
     ? {
         key: fs.readFileSync(process.env.SSL_KEY_PATH || './sslcert/key.pem'),
-        cert: fs.readFileSync(process.env.SSL_CERT_PATH || './sslcert/certificate.pem')
+        cert: fs.readFileSync(process.env.SSL_CERT_PATH || './sslcert/cert.pem')
     }
     : null;
 
@@ -528,7 +528,7 @@ app.get('/', function(req, res){
             <div class="nav-links">
                 <a href="#how-it-works">How It Works</a>
                 <a href="#pricing">Get Set Up</a>
-                <a href="https://github.com/jaemzware" target="_blank">GitHub</a>
+                <a href="https://github.com/jaemzware/stuffedanimalwar" target="_blank">GitHub</a>
                 <a href="/rooms" class="nav-cta">Enter a Room →</a>
             </div>
         </div>
@@ -537,6 +537,7 @@ app.get('/', function(req, res){
     <section class="hero">
         <div class="container">
             <span class="hero-badge">📡 Works when the lines are down</span>
+            <span class="hero-badge">⭐ Open source · Apache 2.0</span>
             <h1>Talk like you're in the same room, <span class="highlight">even when there's no signal</span></h1>
             <p class="subtitle">A small server broadcasts its own WiFi. Anyone nearby can join from the browser already on their phone to chat, talk, share photos, and watch live cameras. No cell service, no internet, and no app needed. It's your box, so you decide what gets kept.</p>
             <div class="hero-ctas">
@@ -550,7 +551,7 @@ app.get('/', function(req, res){
         <div class="container">
             <span class="section-label">Proven in the Field · October 2026</span>
             <h2>No internet. Four computers. One room.</h2>
-            <p class="section-description">Three MacBook Pros and a Mac mini joined a Linksys EA7500 WiFi router with nothing plugged into its internet port. Everything ran on that local network alone: no gateway, no cloud, no outside connection.</p>
+            <p class="section-description">Three MacBook Pros and a Mac mini joined a Linksys EA7500 WiFi router with nothing plugged into its internet port. Everything ran on that local network alone: no gateway, no cloud, no outside connection. Macs just happened to be what was on hand: the server runs anywhere Node.js does, and any device with a web browser can join.</p>
 
             <div class="guarantees">
                 <div class="guarantee">
@@ -563,7 +564,7 @@ app.get('/', function(req, res){
                 </div>
                 <div class="guarantee">
                     <h4>✓ Synchronized Music</h4>
-                    <p>Songs from AnalogArchiveJS, shared as links in chat, played in near-perfect sync on all four computers at once.</p>
+                    <p>Songs from <a href="https://github.com/jaemzware/analogarchivejs" target="_blank">AnalogArchiveJS</a>, shared as links in chat, played in near-perfect sync on all four computers at once.</p>
                 </div>
             </div>
         </div>
@@ -607,7 +608,7 @@ app.get('/', function(req, res){
                 <div class="solution-card purple">
                     <div class="icon">🔑</div>
                     <h3>Your Box, Your Rules</h3>
-                    <p>No cloud and no third party in the middle. Chat isn't saved to a database, and photos and videos are never saved at all. Text-only logs are generated for testing, on hardware you own, where you can read them, keep them, or wipe them.</p>
+                    <p>No cloud and no third party in the middle. Chat isn't saved to a database, and photos and videos are never saved at all. Text-only logs are generated for testing, on hardware you own, where you can read them, keep them, or wipe them. The code is <a href="https://github.com/jaemzware/stuffedanimalwar" target="_blank">open source</a>, so you can read exactly what it does.</p>
                 </div>
                 <div class="solution-card blue">
                     <div class="icon">🌐</div>
@@ -638,7 +639,7 @@ app.get('/', function(req, res){
                 <div class="solution-card blue">
                     <div class="icon">🎵</div>
                     <h3>Share Music Live</h3>
-                    <p>Send a song link from AnalogArchiveJS in chat and it plays across the room, all from drives on your own network.</p>
+                    <p>Send a song link from <a href="https://github.com/jaemzware/analogarchivejs" target="_blank">AnalogArchiveJS</a> in chat and it plays across the room, all from drives on your own network.</p>
                 </div>
             </div>
         </div>
@@ -658,13 +659,13 @@ app.get('/', function(req, res){
                 <div class="flow-step">
                     <div class="icon">📶</div>
                     <div class="label">Local WiFi</div>
-                    <div class="desc">Server broadcasts its own network</div>
+                    <div class="desc">A Pi broadcasts its own; anything else joins a WiFi router</div>
                 </div>
                 <span class="flow-arrow">→</span>
                 <div class="flow-step">
                     <div class="icon">📱</div>
                     <div class="label">Join</div>
-                    <div class="desc">Any phone or laptop browser</div>
+                    <div class="desc">Any device with a web browser</div>
                 </div>
                 <span class="flow-arrow">→</span>
                 <div class="flow-step">
@@ -694,7 +695,7 @@ app.get('/', function(req, res){
     <section class="pricing" id="pricing">
         <div class="container">
             <h2>Bring Your Own Room</h2>
-            <p class="subtitle">You get the hardware. I'll help you set it up so it works on home WiFi or completely on its own.</p>
+            <p class="subtitle">The software is free and <a href="https://github.com/jaemzware/stuffedanimalwar" target="_blank">open source</a> under Apache 2.0, so self-hosting it costs nothing. You get the hardware. I'll help you set it up so it works on home WiFi or completely on its own.</p>
             
             <div class="pricing-grid">
                 <div class="pricing-card">
@@ -702,10 +703,10 @@ app.get('/', function(req, res){
                     <div class="price">Hardware</div>
                     <div class="hardware">Your own device, bought wherever you like</div>
                     <ul>
-                        <li>A Raspberry Pi (Zero 2W for low power, Pi 5 for more)</li>
-                        <li>Or a Mac you already own</li>
+                        <li>Any computer that runs Node.js: Mac, Windows, or Linux. Node.js is the only dependency</li>
+                        <li>Or a Raspberry Pi (Zero 2W for low power, Pi 5 for more)</li>
                         <li>A camera module, if you want a live feed</li>
-                        <li>A WiFi router, if you want more range or more people</li>
+                        <li>A WiFi router (no internet needed). Required unless you use a Pi, and it adds range and room for more people either way</li>
                         <li>A battery pack for use off the grid</li>
                     </ul>
                 </div>
@@ -716,11 +717,11 @@ app.get('/', function(req, res){
                     <ul>
                         <li>Help choosing the right hardware</li>
                         <li>Installing StuffedAnimalWar on your device</li>
-                        <li>Setting up its own WiFi for use with no internet</li>
+                        <li>Setting up a local network for use with no internet</li>
                         <li>Custom rooms, cameras, and music</li>
                         <li>Showing you how to run it yourself</li>
                     </ul>
-                    <a href="mailto:jaemzware@hotmail.com?subject=StuffedAnimalWar Setup Help" class="btn btn-primary">Contact Me</a>
+                    <a href="https://www.linkedin.com/in/jimarasim/" target="_blank" class="btn btn-primary">Contact Me</a>
                 </div>
             </div>
         </div>
@@ -744,9 +745,8 @@ app.get('/', function(req, res){
     <footer>
         <div class="container">
             <div class="footer-links">
-                <a href="https://github.com/jaemzware" target="_blank">GitHub</a>
+                <a href="https://github.com/jaemzware/stuffedanimalwar" target="_blank">GitHub</a>
                 <a href="https://www.linkedin.com/in/jimarasim/" target="_blank">LinkedIn</a>
-                <a href="mailto:jaemzware@hotmail.com">Contact</a>
             </div>
             <div class="footer-copy">
                 © ${new Date().getFullYear()} Jaemzware LLC — Talk freely, by choice.
