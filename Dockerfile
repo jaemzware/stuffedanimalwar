@@ -33,6 +33,7 @@ RUN apk add --no-cache openssl && \
 EXPOSE 55556
 
 # Set default environment variables
+ENV USE_HTTPS=true
 ENV SSL_KEY_PATH=/app/sslcert/key.pem
 ENV SSL_CERT_PATH=/app/sslcert/cert.pem
 
