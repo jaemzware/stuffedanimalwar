@@ -790,6 +790,12 @@ function setupCanvasDrawingEvents() {
 
     $(CANVAS).on("mousemove", function (e) {
         if (!isDrawing) return;
+        // Primary button no longer held (released somewhere we didn't hear about it):
+        // finish the stroke instead of continuing to draw
+        if ((e.buttons & 1) === 0) {
+            endMouseStroke();
+            return;
+        }
         // Scale coordinates to match canvas internal dimensions vs displayed size
         const canvasRect = CANVAS.getBoundingClientRect();
         const scaleX = CANVAS.width / canvasRect.width;
@@ -814,7 +820,9 @@ function setupCanvasDrawingEvents() {
 
     // Dragging off the canvas ends the stroke like a mouseup, so the stroke doesn't resume
     // when the mouse comes back over the canvas with the button already released
-    $(CANVAS).on("mouseup mouseleave", function (e) {
+    $(CANVAS).on("mouseup mouseleave", endMouseStroke);
+
+    function endMouseStroke() {
         if (!isDrawing) return;
         isDrawing = false;
 
@@ -828,7 +836,7 @@ function setupCanvasDrawingEvents() {
         } else {
             emitPathMessage();
         }
-    });
+    }
 
     // Touch events for canvas
     $(CANVAS).on("touchstart", function (e) {
