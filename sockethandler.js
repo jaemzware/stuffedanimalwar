@@ -745,14 +745,31 @@ function setupCanvasDrawingEvents() {
     let tempCtx = null;
     let currentDrawLineWidth = 2;
 
-    // Destroy tempCanvas on resize so it gets recreated with correct dimensions
-    window.addEventListener('resize', function() {
-        if (tempCanvas && tempCanvas.parentNode) {
-            tempCanvas.parentNode.removeChild(tempCanvas);
-            tempCanvas = null;
-            tempCtx = null;
+    // Create the temporary overlay canvas for real-time drawing, or re-sync it to the main
+    // canvas. Runs at the start of every stroke because the main canvas can change size
+    // without a window resize (Hide Controls toggle, vertical resize handle).
+    function syncTempCanvas() {
+        const canvasRect = CANVAS.getBoundingClientRect();
+        const parentRect = CANVAS.parentNode.getBoundingClientRect();
+        if (!tempCanvas) {
+            tempCanvas = document.createElement('canvas');
+            tempCanvas.style.position = 'absolute';
+            tempCanvas.style.pointerEvents = 'none';
+            tempCanvas.style.zIndex = '10';
+            // Make parent relative so absolute positioning works
+            CANVAS.parentNode.style.position = 'relative';
+            CANVAS.parentNode.appendChild(tempCanvas);
+            tempCtx = tempCanvas.getContext('2d');
         }
-    });
+        // Match internal dimensions (assigning width/height also clears the overlay)
+        tempCanvas.width = CANVAS.width;
+        tempCanvas.height = CANVAS.height;
+        // Match displayed size and position exactly
+        tempCanvas.style.top = (canvasRect.top - parentRect.top) + 'px';
+        tempCanvas.style.left = (canvasRect.left - parentRect.left) + 'px';
+        tempCanvas.style.width = canvasRect.width + 'px';
+        tempCanvas.style.height = canvasRect.height + 'px';
+    }
 
     $(CANVAS).on("mousedown", function (e) {
         let colorPickerButton = $("#colorPickerButton");
@@ -768,31 +785,17 @@ function setupCanvasDrawingEvents() {
         points = [[x, y]];
         currentDrawColor = color;
 
-        // Create temporary canvas overlay for real-time drawing
-        if (!tempCanvas) {
-            const canvasRect = CANVAS.getBoundingClientRect();
-            const parentRect = CANVAS.parentNode.getBoundingClientRect();
-            tempCanvas = document.createElement('canvas');
-            // Match internal dimensions
-            tempCanvas.width = CANVAS.width;
-            tempCanvas.height = CANVAS.height;
-            // Match displayed size and position exactly
-            tempCanvas.style.position = 'absolute';
-            tempCanvas.style.top = (canvasRect.top - parentRect.top) + 'px';
-            tempCanvas.style.left = (canvasRect.left - parentRect.left) + 'px';
-            tempCanvas.style.width = canvasRect.width + 'px';
-            tempCanvas.style.height = canvasRect.height + 'px';
-            tempCanvas.style.pointerEvents = 'none';
-            tempCanvas.style.zIndex = '10';
-            // Make parent relative so absolute positioning works
-            CANVAS.parentNode.style.position = 'relative';
-            CANVAS.parentNode.appendChild(tempCanvas);
-            tempCtx = tempCanvas.getContext('2d');
-        }
+        syncTempCanvas();
     });
 
     $(CANVAS).on("mousemove", function (e) {
         if (!isDrawing) return;
+        // Primary button no longer held (released somewhere we didn't hear about it):
+        // finish the stroke instead of continuing to draw
+        if ((e.buttons & 1) === 0) {
+            endMouseStroke();
+            return;
+        }
         // Scale coordinates to match canvas internal dimensions vs displayed size
         const canvasRect = CANVAS.getBoundingClientRect();
         const scaleX = CANVAS.width / canvasRect.width;
@@ -815,7 +818,11 @@ function setupCanvasDrawingEvents() {
         }
     });
 
-    $(CANVAS).on("mouseup", function (e) {
+    // Dragging off the canvas ends the stroke like a mouseup, so the stroke doesn't resume
+    // when the mouse comes back over the canvas with the button already released
+    $(CANVAS).on("mouseup mouseleave", endMouseStroke);
+
+    function endMouseStroke() {
         if (!isDrawing) return;
         isDrawing = false;
 
@@ -829,7 +836,7 @@ function setupCanvasDrawingEvents() {
         } else {
             emitPathMessage();
         }
-    });
+    }
 
     // Touch events for canvas
     $(CANVAS).on("touchstart", function (e) {
@@ -851,25 +858,7 @@ function setupCanvasDrawingEvents() {
         points = [[x, y]];
         currentDrawColor = color;
 
-        if (!tempCanvas) {
-            const parentRect = CANVAS.parentNode.getBoundingClientRect();
-            tempCanvas = document.createElement('canvas');
-            // Match internal dimensions
-            tempCanvas.width = CANVAS.width;
-            tempCanvas.height = CANVAS.height;
-            // Match displayed size and position exactly (canvasRect already defined above)
-            tempCanvas.style.position = 'absolute';
-            tempCanvas.style.top = (canvasRect.top - parentRect.top) + 'px';
-            tempCanvas.style.left = (canvasRect.left - parentRect.left) + 'px';
-            tempCanvas.style.width = canvasRect.width + 'px';
-            tempCanvas.style.height = canvasRect.height + 'px';
-            tempCanvas.style.pointerEvents = 'none';
-            tempCanvas.style.zIndex = '10';
-            // Make parent relative so absolute positioning works
-            CANVAS.parentNode.style.position = 'relative';
-            CANVAS.parentNode.appendChild(tempCanvas);
-            tempCtx = tempCanvas.getContext('2d');
-        }
+        syncTempCanvas();
     });
 
     $(CANVAS).on("touchmove", function (e) {
