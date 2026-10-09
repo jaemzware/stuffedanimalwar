@@ -10,7 +10,6 @@ function writeStuffedAnimalWar(stuffedAnimalMediaObject, readonly = false){
         document.write("<div style='display: flex; gap: 10px;'>");
         document.write("<a id='canvasLink' href='#' target='stuffedanimalwar_canvas_tab' style='padding: 8px 16px; background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); color: white; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 6px;'><span>🎨</span><span>Canvas</span></a>");
         document.write("<a id='cameraLink' href='#' target='stuffedanimalwar_camera_tab' style='padding: 8px 16px; background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 6px;'><span>📹</span><span>Camera</span></a>");
-        document.write("<a href='https://analogarchive.com' target='_blank' style='padding: 8px 16px; background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); color: white; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 6px;'><span>🎞️</span><span>Analog Archive</span></a>");
         document.write("</div>");
         // Right side: Collapse All and Full Width buttons
         document.write("<div style='display: flex; gap: 10px;'>");
