@@ -3006,6 +3006,14 @@
                             audioBtn.title = 'No audio from this peer';
                             audioBtn.disabled = true;
                             audioBtn.onclick = function(e) { e.stopPropagation(); togglePeerAudio(peerId); };
+                            // Audio track may have arrived before this card existed
+                            // (mic enabled before camera, or camera toggled off/on)
+                            if (document.getElementById('remoteAudio_' + peerId)) {
+                                const isMuted = peerAudioMuted[peerId];
+                                audioBtn.disabled = false;
+                                audioBtn.innerHTML = isMuted ? '🔇' : '🔊';
+                                audioBtn.title = isMuted ? 'Unmute this peer' : 'Mute this peer';
+                            }
 
                             actions.appendChild(refreshBtn);
                             actions.appendChild(diagBtn);
