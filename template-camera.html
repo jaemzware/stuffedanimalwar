@@ -812,6 +812,7 @@
                 const overlay = document.createElement('div');
                 overlay.className = 'video-maximized-overlay';
                 overlay.id = 'maximizeOverlay';
+                overlay.dataset.videoId = videoId;
 
                 // Header with title and close button
                 const header = document.createElement('div');
@@ -1160,6 +1161,22 @@
                     }
                 }, { passive: true });
 
+                // Leaving the page: hang up right away so peers get our
+                // disconnect immediately instead of after a socket timeout
+                // (which left our last frame frozen on their screens).
+                window.addEventListener('pagehide', function() {
+                    Object.keys(peerConnections).forEach(function(peerId) {
+                        peerConnections[peerId].close();
+                    });
+                    socket.disconnect();
+                });
+                // Restored from the back/forward cache with a dead socket: start fresh
+                window.addEventListener('pageshow', function(e) {
+                    if (e.persisted) {
+                        location.reload();
+                    }
+                });
+
                 // Handle page visibility changes (mobile backgrounding)
                 document.addEventListener('visibilitychange', function() {
                     if (document.hidden) {
@@ -1257,87 +1274,33 @@
                 refreshButton.innerHTML = '<span>⏳</span><span>Refreshing...</span>';
                 refreshButton.disabled = true;
 
-                // Close all existing peer connections and clean up
+                // Close all existing peer connections and clean up. Camera names
+                // are kept (cleanupPeerConnection doesn't clear them) so the
+                // rebuilt cards come back labelled instead of "Peer xxxx".
                 Object.keys(peerConnections).forEach(peerId => {
-                    const pc = peerConnections[peerId];
-                    if (pc) {
-                        // Clear quality monitor
-                        if (pc._qualityMonitor) {
-                            clearInterval(pc._qualityMonitor);
-                        }
-                        // Clear audio check interval
-                        if (pc._audioCheckInterval) {
-                            clearInterval(pc._audioCheckInterval);
-                        }
-                        pc.close();
-                    }
-
-                    // Remove all video elements for this peer (may have multiple cameras)
-                    document.querySelectorAll('[data-peer-id="' + peerId + '"]').forEach(function(wrapper) {
-                        const video = wrapper.querySelector('video');
-                        if (video) {
-                            if (video._renderMonitor) clearInterval(video._renderMonitor);
-                            if (video._diagInterval) clearInterval(video._diagInterval);
-                        }
-                        wrapper.remove();
-                    });
-
-                    // Remove audio element
-                    const audioElement = document.getElementById('remoteAudio_' + peerId);
-                    if (audioElement) {
-                        audioElement.remove();
-                    }
+                    cleanupPeerConnection(peerId);
                 });
-
-                // Clear all peer connection data structures
-                peerConnections = {};
-                remoteCameraStreams = {};
-                peerCameraNames = {};
-                pendingIceCandidates = {};
-
-                // Update UI
-                updatePeerCount();
-                updateEmptyState();
 
                 console.log('✅ Cleared all peer connections');
 
-                // Wait a moment, then request all peers to reconnect
+                // Ask every peer to announce itself AND drop its old connection
+                // to us (reset). Without the reset, peers keep their stale,
+                // already-negotiated connection and our fresh offer lands on it,
+                // which is what made refresh only sometimes bring cameras back.
+                // Each pair then rebuilds with exactly one offer (lower id offers).
                 setTimeout(() => {
-                    console.log('📢 Broadcasting reconnection request to room');
-                    console.log('Current camera name:', myCameraName || '(none)');
-
-                    // Store a list to track which peers respond
-                    window._refreshPeerList = new Set();
-
-                    // Request all peers to announce themselves
+                    console.log('📢 Broadcasting roster reset request to room');
                     socket.emit(endpoint + 'cameracamera' + 'requestroster', {
-                        userId: socket.id
+                        userId: socket.id,
+                        reset: true
                     });
-
-                    // Wait a bit for roster responses, then force reconnection
-                    setTimeout(() => {
-                        console.log('🔄 Forcing reconnection to all known peers');
-
-                        // Emit reconnect to tell others to connect to us
-                        socket.emit(endpoint + 'cameracamera' + 'reconnect', {
-                            userId: socket.id
-                        });
-
-                        // Also emit connect so we actively try to connect to them
-                        // This ensures bidirectional connection attempts
-                        socket.emit(connectSocketEvent, {
-                            userId: socket.id
-                        });
-
-                        console.log('🔄 Reconnection process initiated (emitted requestroster + reconnect + connect)');
-                    }, 500);
 
                     // Re-enable button after a delay
                     setTimeout(() => {
                         refreshButton.innerHTML = originalHTML;
                         refreshButton.disabled = false;
-                    }, 2500);
-                }, 500);
+                    }, 2000);
+                }, 300);
             }
 
             // Resume all videos function
@@ -2232,9 +2195,13 @@
 
                             // Auto-purge orphaned peer after 30 seconds (10 consecutive black screen detections)
                             if (noVideoCount >= 10) {
-                                console.warn(`🗑️ Auto-purging orphaned peer ${peerId} after ${noVideoCount * 3} seconds of black screen`);
+                                console.warn(`🗑️ Rebuilding peer ${peerId} after ${noVideoCount * 3} seconds of black screen`);
                                 clearInterval(renderMonitor);
-                                cleanupPeerConnection(peerId);
+                                // Rebuild rather than just purge: if the peer is
+                                // still here it comes back in seconds instead of
+                                // waiting for its next 30s heartbeat. If it's gone,
+                                // the connect timeout in createPeerConnection drops it.
+                                rebuildPeerConnection(peerId);
                                 return;
                             }
                         }
@@ -2659,37 +2626,47 @@
                 videoElement._diagInterval = diagInterval;
             }
 
-            // Clean up peer connection and all associated resources
-            function cleanupPeerConnection(peerId) {
+            // Remove one remote camera card (and close the maximized view if it's showing it)
+            function removeRemoteCard(wrapper) {
+                const video = wrapper.querySelector('video');
+                if (video) {
+                    if (video._renderMonitor) clearInterval(video._renderMonitor);
+                    if (video._diagInterval) clearInterval(video._diagInterval);
+                    const overlay = document.getElementById('maximizeOverlay');
+                    if (overlay && overlay.dataset.videoId === video.id) {
+                        closeMaximize();
+                    }
+                    video.srcObject = null;
+                }
+                wrapper.remove();
+            }
+
+            // Clean up peer connection and all associated resources.
+            // onlyIfPc: callbacks belonging to a specific RTCPeerConnection pass it
+            // so a late event from an old, replaced connection can't tear down the
+            // new one for the same peer.
+            // Camera names are intentionally kept (socket ids are never reused) so a
+            // rebuilt connection is labelled immediately; handlePeerDisconnect
+            // removes them when the peer actually leaves.
+            function cleanupPeerConnection(peerId, onlyIfPc) {
+                const pc = peerConnections[peerId];
+                if (onlyIfPc && pc !== onlyIfPc) {
+                    console.log('ℹ️ Ignoring cleanup from replaced connection for peer:', peerId);
+                    return;
+                }
                 console.log('🧹 Cleaning up peer connection:', peerId);
 
-                const pc = peerConnections[peerId];
                 if (pc) {
-                    // Clean up quality monitor
-                    if (pc._qualityMonitor) {
-                        clearInterval(pc._qualityMonitor);
-                    }
-
-                    // Close the connection
+                    if (pc._qualityMonitor) clearInterval(pc._qualityMonitor);
+                    if (pc._audioCheckInterval) clearInterval(pc._audioCheckInterval);
+                    if (pc._lostTimer) clearTimeout(pc._lostTimer);
+                    if (pc._connectTimer) clearTimeout(pc._connectTimer);
                     pc.close();
                     delete peerConnections[peerId];
                 }
 
-                // Clean up camera names
-                delete peerCameraNames[peerId];
-                delete peerCameraNames[peerId + '_cameras'];
-
                 // Clean up ALL video elements for this peer (may have multiple cameras)
-                const remoteCameraGrid = document.getElementById('remoteCameraGrid');
-                const wrappers = remoteCameraGrid.querySelectorAll('[data-peer-id="' + peerId + '"]');
-                wrappers.forEach(function(wrapper) {
-                    const video = wrapper.querySelector('video');
-                    if (video) {
-                        if (video._renderMonitor) clearInterval(video._renderMonitor);
-                        if (video._diagInterval) clearInterval(video._diagInterval);
-                    }
-                    wrapper.remove();
-                });
+                document.querySelectorAll('#remoteCameraGrid [data-peer-id="' + peerId + '"]').forEach(removeRemoteCard);
 
                 // Clean up audio element
                 const audioElement = document.getElementById('remoteAudio_' + peerId);
@@ -2705,6 +2682,94 @@
                 updatePeerCount();
                 updateEmptyState();
                 console.log('✅ Cleanup complete for peer:', peerId);
+            }
+
+            // Send the first offer on a brand-new connection
+            function sendInitialOffer(pc, peerId) {
+                pc._offerStarted = true;
+                pc.createOffer().then(offer => pc.setLocalDescription(offer))
+                    .then(() => {
+                        socket.emit(voiceOfferSocketEvent, {
+                            offer: pc.localDescription,
+                            to: peerId,
+                            cameraName: myCameraName,
+                            cameraNames: getCameraNames()
+                        });
+                        console.log('📤 Sent offer to:', peerId, 'with name:', myCameraName || '(default)');
+                    })
+                    .catch(err => {
+                        console.error('❌ Error creating offer for:', peerId, err);
+                    });
+            }
+
+            // Make sure we have a connection to peerId. Exactly one side of each
+            // pair sends the initial offer (the lower socket id); the other side
+            // just creates its connection and waits.
+            function ensurePeerConnection(peerId) {
+                const pc = createPeerConnection(peerId);
+                const untouched = !pc._offerStarted && !pc.remoteDescription && pc.signalingState === 'stable';
+                if (socket.id < peerId && untouched) {
+                    sendInitialOffer(pc, peerId);
+                } else if (untouched) {
+                    console.log('⏸️ Waiting for offer from:', peerId, '(they have lower ID)');
+                }
+                return pc;
+            }
+
+            // A connection we just created that hasn't finished connecting yet.
+            // Don't tear these down on a reset: when both sides reset at the same
+            // time, each would otherwise destroy the other's brand-new attempt.
+            function isFreshPeerConnection(pc) {
+                return pc && !pc._isEstablished && (Date.now() - pc._createdAt) < 5000;
+            }
+
+            // Drop our side for peerId and start clean, telling the peer to drop
+            // its side too (targeted 'reconnect'). Otherwise the peer keeps its old,
+            // already-negotiated connection and rejects or mangles our new offer.
+            // force: peer must rebuild even if its connection is brand new (used when
+            // its offer already landed on our stale connection and was lost).
+            function rebuildPeerConnection(peerId, force) {
+                console.log('🔁 Rebuilding connection with peer:', peerId, force ? '(forced)' : '');
+                cleanupPeerConnection(peerId);
+                socket.emit(endpoint + 'cameracamera' + 'reconnect', {
+                    userId: socket.id,
+                    to: peerId,
+                    force: !!force
+                });
+                ensurePeerConnection(peerId);
+            }
+
+            // Label for one remote camera card. Uses both the peer's name and the
+            // per-camera name when they differ, so every code path (roster, offer,
+            // heartbeat) produces the same text instead of flip-flopping.
+            function getRemoteCameraDisplayName(peerId, streamId) {
+                const peerName = peerCameraNames[peerId];
+                const camName = (peerCameraNames[peerId + '_cameras'] || {})[streamId];
+                if (peerName && camName && camName !== peerName) {
+                    return peerName + ' · ' + camName;
+                }
+                return peerName || camName || 'Peer ' + peerId.substring(0, 8);
+            }
+
+            // Store the names a peer sent with any signaling message and relabel its cards
+            function applyPeerNames(peerId, cameraName, cameraNames) {
+                if (cameraName !== undefined) {
+                    if (cameraName) {
+                        peerCameraNames[peerId] = cameraName;
+                    } else {
+                        delete peerCameraNames[peerId];
+                    }
+                }
+                if (cameraNames) {
+                    peerCameraNames[peerId + '_cameras'] = cameraNames;
+                }
+
+                document.querySelectorAll('#remoteCameraGrid [data-peer-id="' + peerId + '"]').forEach(function(wrapper) {
+                    const labelSpan = wrapper.querySelector('.camera-display-name');
+                    if (labelSpan) {
+                        labelSpan.textContent = '📹 ' + getRemoteCameraDisplayName(peerId, wrapper.dataset.streamId);
+                    }
+                });
             }
 
             // WebRTC functions
@@ -2730,146 +2795,46 @@
 
             function handleRosterResponse(data) {
                 console.log('📥 Received roster response from:', data.from, 'name:', data.cameraName || '(none)');
-
-                // Store camera names if provided
-                if (data.cameraName) {
-                    peerCameraNames[data.from] = data.cameraName;
-                }
-                if (data.cameraNames) {
-                    peerCameraNames[data.from + '_cameras'] = data.cameraNames;
-                }
-
-                // If we don't have a peer connection yet, create one
-                if (!peerConnections[data.from]) {
-                    console.log('🔗 Creating peer connection to roster responder:', data.from);
-                    const pc = createPeerConnection(data.from);
-
-                    // Always create offer as the refreshing peer
-                    // This ensures connection establishment works regardless of ID ordering
-                    pc.createOffer().then(offer => pc.setLocalDescription(offer))
-                        .then(() => {
-                            socket.emit(voiceOfferSocketEvent, {
-                                offer: pc.localDescription,
-                                to: data.from,
-                                cameraName: myCameraName,
-                                        cameraNames: getCameraNames()
-                            });
-                            console.log('📤 Sent offer to roster responder:', data.from);
-                        })
-                        .catch(err => {
-                            console.error('❌ Error creating offer for roster responder:', err);
-                        });
-                } else {
-                    console.log('ℹ️ Already connected to:', data.from);
-                }
+                applyPeerNames(data.from, data.cameraName, data.cameraNames);
+                ensurePeerConnection(data.from);
             }
 
             function handleRosterRequest(data) {
-                console.log('📋 Peer requesting roster:', data.userId, '(my ID:', socket.id, ')');
-
-                // Only respond if this is a different peer
-                if (data.userId !== socket.id) {
-                    console.log('📢 Announcing my presence to:', data.userId, 'with name:', myCameraName || '(none)');
-
-                    // Send a roster response so the requester knows we exist
-                    socket.emit(endpoint + 'cameracamera' + 'rosterresponse', {
-                        to: data.userId,
-                        cameraName: myCameraName || '',
-                        cameraNames: getCameraNames()
-                    });
-
-                    // Directly create peer connection if we don't already have one
-                    if (!peerConnections[data.userId]) {
-                        console.log('Creating peer connection for roster requester:', data.userId);
-
-                        const pc = createPeerConnection(data.userId);
-
-                        // Use glare resolution to decide who creates offer
-                        const shouldCreateOffer = socket.id < data.userId;
-                        console.log('Glare resolution - should I create offer?', shouldCreateOffer, '(my ID:', socket.id, 'vs their ID:', data.userId, ')');
-
-                        if (shouldCreateOffer) {
-                            // Create and send offer
-                            pc.createOffer().then(offer => pc.setLocalDescription(offer))
-                                .then(() => {
-                                    socket.emit(voiceOfferSocketEvent, {
-                                        offer: pc.localDescription,
-                                        to: data.userId,
-                                        cameraName: myCameraName,
-                                        cameraNames: getCameraNames()
-                                    });
-                                    console.log('📤 Sent offer to roster requester:', data.userId);
-                                })
-                                .catch(err => {
-                                    console.error('❌ Error creating offer for roster requester:', err);
-                                });
-                        } else {
-                            console.log('⏸️ Created peer connection, waiting for offer from:', data.userId);
-                        }
-                    } else {
-                        console.log('ℹ️ Already have peer connection for:', data.userId);
-                    }
-
-                    // Also send our camera name if we have one
-                    if (myCameraName) {
-                        socket.emit(cameraNameUpdateSocketEvent, {
-                            cameraName: myCameraName,
-                            cameraNames: getCameraNames()
-                        });
-                    }
-                } else {
+                if (data.userId === socket.id) {
                     console.log('ℹ️ Ignoring roster request from myself');
+                    return;
                 }
+                console.log('📋 Peer requesting roster:', data.userId, data.reset ? '(reset)' : '');
+
+                // A reset means the requester dropped all its connections (refresh
+                // button). Drop ours to it too so both sides start clean.
+                const existing = peerConnections[data.userId];
+                if (data.reset && existing && !isFreshPeerConnection(existing)) {
+                    cleanupPeerConnection(data.userId);
+                }
+
+                // Send a roster response so the requester knows we exist (and our names)
+                socket.emit(endpoint + 'cameracamera' + 'rosterresponse', {
+                    to: data.userId,
+                    cameraName: myCameraName || '',
+                    cameraNames: getCameraNames()
+                });
+
+                ensurePeerConnection(data.userId);
             }
 
             function handlePeerReconnect(data) {
-                console.log('🔔 Peer requesting reconnection:', data.userId);
+                if (data.userId === socket.id) return;
+                if (data.to && data.to !== 'broadcast' && data.to !== socket.id) return;
+                console.log('🔔 Peer requesting reconnection:', data.userId, data.force ? '(forced)' : '');
 
-                // Only respond if this is a different peer
-                if (data.userId !== socket.id) {
-                    // Glare resolution: only the peer with the lower ID creates the offer
-                    // This prevents both peers from sending offers simultaneously
-                    const shouldCreateOffer = socket.id < data.userId;
-
-                    console.log('Should create offer:', shouldCreateOffer, '(my ID:', socket.id, 'vs their ID:', data.userId, ')');
-
-                    if (shouldCreateOffer) {
-                        // Create peer connection (will add any enabled media tracks)
-                        const pc = createPeerConnection(data.userId);
-
-                        // 'reconnect' and 'connect' can both be emitted for the same
-                        // userId (see refreshPeerConnections) and both land here /
-                        // in the 'connect' handler with the same glare check, so an
-                        // existing connection may already be negotiating. Creating a
-                        // second offer on the same pc mid-negotiation throws
-                        // InvalidStateError in Safari, so skip if we're not stable.
-                        if (pc.signalingState !== 'stable') {
-                            console.log('⏸️ Skipping offer for reconnecting peer:', data.userId, '- already negotiating (signalingState:', pc.signalingState + ')');
-                            return;
-                        }
-
-                        console.log('Creating new peer connection for reconnecting peer:', data.userId);
-
-                        // Send offer to the reconnecting peer
-                        pc.createOffer().then(offer => pc.setLocalDescription(offer))
-                            .then(() => {
-                                socket.emit(voiceOfferSocketEvent, {
-                                    offer: pc.localDescription,
-                                    to: data.userId,
-                                    cameraName: myCameraName,
-                                        cameraNames: getCameraNames()
-                                });
-                                console.log('📤 Sent offer to reconnecting peer:', data.userId);
-                            })
-                            .catch(err => {
-                                console.error('❌ Error creating offer for reconnecting peer:', err);
-                            });
-                    } else {
-                        console.log('⏸️ Waiting for offer from peer:', data.userId, '(they have lower ID)');
-                        // Still create the peer connection so we're ready to receive their offer
-                        createPeerConnection(data.userId);
-                    }
+                // The sender dropped its connection to us; drop ours so the new
+                // offer/answer isn't applied to a stale, already-negotiated one.
+                const existing = peerConnections[data.userId];
+                if (existing && (data.force || !isFreshPeerConnection(existing))) {
+                    cleanupPeerConnection(data.userId);
                 }
+                ensurePeerConnection(data.userId);
             }
 
             function handleCameraNameUpdate(data) {
@@ -2880,68 +2845,14 @@
                     return;
                 }
 
-                // Store the peer name
-                if (data.cameraName) {
-                    peerCameraNames[data.userId] = data.cameraName;
-                } else {
-                    delete peerCameraNames[data.userId];
-                }
+                applyPeerNames(data.userId, data.cameraName, data.cameraNames);
 
-                // Store per-camera names if provided
-                if (data.cameraNames) {
-                    peerCameraNames[data.userId + '_cameras'] = data.cameraNames;
-                }
-
-                // Update all video labels for this peer
-                const wrappers = document.querySelectorAll('[data-peer-id="' + data.userId + '"]');
-                if (wrappers.length > 0) {
-                    wrappers.forEach(function(wrapper) {
-                        const labelSpan = wrapper.querySelector('.camera-display-name');
-                        if (labelSpan) {
-                            const streamId = wrapper.dataset.streamId;
-                            const camNames = data.cameraNames || {};
-                            const peerName = data.cameraName || 'Peer ' + data.userId.substring(0, 8);
-                            const displayName = camNames[streamId] || peerName;
-                            labelSpan.textContent = '📹 ' + displayName;
-                        }
-                    });
-                } else {
-                    console.log('⚠️ No video element found for peer:', data.userId);
-
-                    // IMPORTANT: If we received a name update but have no peer connection,
-                    // it means the peer exists but we're not connected. Try to establish connection!
-                    if (!peerConnections[data.userId]) {
-                        console.log('🔗 Attempting to establish connection with:', data.userId);
-
-                        const pc = createPeerConnection(data.userId);
-
-                        // Use glare resolution to decide who creates offer
-                        const shouldCreateOffer = socket.id < data.userId;
-                        console.log('Glare resolution:', shouldCreateOffer ? 'I create offer' : 'I wait for offer', '(my ID:', socket.id, 'vs their ID:', data.userId, ')');
-
-                        if (shouldCreateOffer) {
-                            // Create and send offer
-                            pc.createOffer().then(offer => pc.setLocalDescription(offer))
-                                .then(() => {
-                                    socket.emit(voiceOfferSocketEvent, {
-                                        offer: pc.localDescription,
-                                        to: data.userId,
-                                        cameraName: myCameraName,
-                                        cameraNames: getCameraNames()
-                                    });
-                                    console.log('📤 Sent offer to discovered peer:', data.userId);
-                                })
-                                .catch(err => {
-                                    console.error('❌ Error creating offer for discovered peer:', err);
-                                });
-                        } else {
-                            console.log('⏸️ Created peer connection, waiting for offer from discovered peer:', data.userId);
-                            // Request the peer to send us an offer
-                            socket.emit(endpoint + 'cameracamera' + 'reconnect', {
-                                userId: socket.id
-                            });
-                        }
-                    }
+                // A heartbeat from a peer we have no connection to means it's still in
+                // the room but we lost it (or never connected). Rebuild so its side
+                // drops any stale connection to us as well.
+                if (!peerConnections[data.userId]) {
+                    console.log('🔗 Heard from unconnected peer, establishing connection:', data.userId);
+                    rebuildPeerConnection(data.userId);
                 }
             }
 
@@ -2951,9 +2862,22 @@
                 }
 
                 const pc = new RTCPeerConnection(iceServers);
+                pc._createdAt = Date.now();
                 peerConnections[peerId] = pc;
 
                 console.log('Creating peer connection for:', peerId);
+
+                // Drop connections that never come up (e.g. the peer left before
+                // answering). If the peer is still around, its next heartbeat
+                // triggers a fresh attempt.
+                pc._connectTimer = setTimeout(function() {
+                    const up = pc._isEstablished || pc.connectionState === 'connected' ||
+                        pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed';
+                    if (!up) {
+                        console.warn('⌛ Connection to peer never came up, dropping:', peerId);
+                        cleanupPeerConnection(peerId, pc);
+                    }
+                }, 20000);
 
                 // Add all local camera tracks if enabled
                 if (localCameraStreams.size > 0) {
@@ -3017,9 +2941,7 @@
                                 var vt = oldVideo.srcObject.getVideoTracks();
                                 if (vt.length === 0 || vt.every(function(t) { return t.readyState === 'ended'; })) {
                                     console.log('Cleaning up old video element:', el.id);
-                                    if (oldVideo._renderMonitor) clearInterval(oldVideo._renderMonitor);
-                                    if (oldVideo._diagInterval) clearInterval(oldVideo._diagInterval);
-                                    el.remove();
+                                    removeRemoteCard(el);
                                 }
                             }
                         });
@@ -3035,22 +2957,13 @@
                             videoWrapper.dataset.peerId = peerId;
                             videoWrapper.dataset.streamId = streamId;
 
-                            // Determine display name - use per-camera name if available
-                            const peerName = peerCameraNames[peerId];
-                            let displayName;
-                            const peerCamNames = peerCameraNames[peerId + '_cameras'] || {};
                             const existingCount = remoteCameraGrid.querySelectorAll('[data-peer-id="' + peerId + '"]').length;
-                            if (peerCamNames[streamId]) {
-                                displayName = peerCamNames[streamId];
-                            } else if (peerName) {
-                                displayName = existingCount > 0 ? peerName + ' (Camera ' + (existingCount + 1) + ')' : peerName;
-                            } else {
-                                displayName = existingCount > 0 ? 'Peer ' + peerId.substring(0, 8) + ' (Camera ' + (existingCount + 1) + ')' : 'Peer ' + peerId.substring(0, 8);
-                            }
 
                             const label = document.createElement('div');
                             label.className = 'camera-label';
-                            label.innerHTML = '<span class="camera-display-name">📹 ' + displayName + '</span><span class="badge">LIVE</span>';
+                            label.innerHTML = '<span class="camera-display-name"></span><span class="badge">LIVE</span>';
+                            const displayNameSpan = label.querySelector('.camera-display-name');
+                            displayNameSpan.textContent = '📹 ' + getRemoteCameraDisplayName(peerId, streamId);
 
                             // Action buttons
                             const actions = document.createElement('div');
@@ -3083,7 +2996,7 @@
                             maxBtn.className = 'peer-action-btn';
                             maxBtn.innerHTML = '⛶';
                             maxBtn.title = 'Maximize video';
-                            maxBtn.onclick = function(e) { e.stopPropagation(); maximizeVideo('remoteVideoElement_' + peerId + '_' + streamId, displayName); };
+                            maxBtn.onclick = function(e) { e.stopPropagation(); maximizeVideo('remoteVideoElement_' + peerId + '_' + streamId, getRemoteCameraDisplayName(peerId, streamId)); };
 
                             // Audio mute button (only on first camera card for this peer)
                             const audioBtn = document.createElement('button');
@@ -3185,6 +3098,16 @@
                                 const badge = videoWrapper.querySelector('.badge');
                                 if (badge) { badge.textContent = 'INACTIVE'; badge.style.background = '#6c757d'; }
                             };
+                            // Peer turned this camera off (track removed on renegotiation):
+                            // drop the card instead of leaving its last frame on screen
+                            event.streams[0].onremovetrack = function() {
+                                if (remoteStream.getVideoTracks().length === 0 && videoWrapper.isConnected) {
+                                    console.log('📴 Peer removed camera, dropping card:', elementId);
+                                    removeRemoteCard(videoWrapper);
+                                    if (remoteCameraStreams[peerId]) delete remoteCameraStreams[peerId][streamId];
+                                    updateEmptyState();
+                                }
+                            };
                         }
 
                         updateEmptyState();
@@ -3228,8 +3151,26 @@
                     }
                 };
 
+                // When a connection drops, give recovery a short window; if it
+                // doesn't come back, remove the peer's cards rather than leaving
+                // a frozen last frame up until the socket finally times out.
+                function startLostTimer() {
+                    if (pc._lostTimer) return;
+                    pc._lostTimer = setTimeout(function() {
+                        pc._lostTimer = null;
+                        if (pc.connectionState !== 'connected') {
+                            console.warn('🗑️ Peer did not recover, removing:', peerId);
+                            cleanupPeerConnection(peerId, pc);
+                        }
+                    }, 15000);
+                }
+
                 pc.onconnectionstatechange = function() {
                     console.log('Peer', peerId, 'connection state:', pc.connectionState);
+
+                    if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
+                        startLostTimer();
+                    }
 
                     if (pc.connectionState === 'disconnected') {
                         console.warn('⚠️ Peer disconnected:', peerId, '- will attempt recovery');
@@ -3258,7 +3199,7 @@
                             }, 2000 * pc._recoveryAttempts); // Exponential backoff
                         } else {
                             console.error('❌ Max recovery attempts reached for peer:', peerId);
-                            cleanupPeerConnection(peerId);
+                            cleanupPeerConnection(peerId, pc);
                         }
 
                     } else if (pc.connectionState === 'failed') {
@@ -3267,9 +3208,13 @@
 
                     } else if (pc.connectionState === 'closed') {
                         console.log('🔒 Peer connection closed:', peerId);
-                        cleanupPeerConnection(peerId);
+                        cleanupPeerConnection(peerId, pc);
 
                     } else if (pc.connectionState === 'connected') {
+                        if (pc._lostTimer) {
+                            clearTimeout(pc._lostTimer);
+                            pc._lostTimer = null;
+                        }
                         // Reset recovery counter on successful connection
                         pc._recoveryAttempts = 0;
                         pc._isEstablished = true; // Mark as established for renegotiation
@@ -3353,13 +3298,7 @@
             async function handleOffer(data) {
                 console.log('Received offer from:', data.from);
 
-                // Store peer's camera name if provided
-                if (data.cameraName) {
-                    peerCameraNames[data.from] = data.cameraName;
-                }
-                if (data.cameraNames) {
-                    peerCameraNames[data.from + '_cameras'] = data.cameraNames;
-                }
+                applyPeerNames(data.from, data.cameraName, data.cameraNames);
 
                 const pc = createPeerConnection(data.from);
 
@@ -3409,24 +3348,18 @@
                     // already-negotiated one. There's no way to recover that pc,
                     // so tear it down and let both sides reconnect clean instead
                     // of leaving a permanently stalled connection behind.
+                    // Forced: the peer's connection is brand new (it just sent this
+                    // offer), but the offer was consumed by our stale one, so it
+                    // has to start over too.
                     console.warn('🔄 Rebuilding connection from scratch for peer:', data.from);
-                    cleanupPeerConnection(data.from);
-                    socket.emit(endpoint + 'cameracamera' + 'requestroster', {
-                        userId: socket.id
-                    });
+                    rebuildPeerConnection(data.from, true);
                 }
             }
 
             async function handleAnswer(data) {
                 console.log('Received answer from:', data.from);
 
-                // Store peer's camera name if provided
-                if (data.cameraName) {
-                    peerCameraNames[data.from] = data.cameraName;
-                }
-                if (data.cameraNames) {
-                    peerCameraNames[data.from + '_cameras'] = data.cameraNames;
-                }
+                applyPeerNames(data.from, data.cameraName, data.cameraNames);
 
                 const pc = peerConnections[data.from];
                 if (pc) {
@@ -3498,95 +3431,21 @@
 
             function handlePeerDisconnect(data) {
                 console.log('Peer disconnected:', data.userId);
+                cleanupPeerConnection(data.userId);
 
-                // Clean up all video elements for this peer (may have multiple cameras)
-                document.querySelectorAll('[data-peer-id="' + data.userId + '"]').forEach(function(wrapper) {
-                    const video = wrapper.querySelector('video');
-                    if (video) {
-                        if (video._renderMonitor) clearInterval(video._renderMonitor);
-                        if (video._diagInterval) clearInterval(video._diagInterval);
-                    }
-                    wrapper.remove();
-                });
-
-                // Clean up audio element
-                const audioElement = document.getElementById('remoteAudio_' + data.userId);
-                if (audioElement) {
-                    audioElement.remove();
-                }
-
-                // Close and remove peer connection
-                if (peerConnections[data.userId]) {
-                    peerConnections[data.userId].close();
-                    delete peerConnections[data.userId];
-                }
-
-                // Clean up pending ICE candidates
-                if (pendingIceCandidates[data.userId]) {
-                    delete pendingIceCandidates[data.userId];
-                }
-
-                // Clean up peer camera names
+                // The peer actually left, so its names go too
                 delete peerCameraNames[data.userId];
                 delete peerCameraNames[data.userId + '_cameras'];
-
-                // Clean up per-peer audio mute state
-                delete peerAudioMuted[data.userId];
-
-                delete remoteCameraStreams[data.userId];
-                updatePeerCount();
-                updateEmptyState();
             }
 
             // Broadcast offer when new peer joins (always establish connection)
             socket.on(endpoint + 'cameracamera' + 'connect', function(data) {
                 console.log('🔔 New peer joined:', data.userId);
 
-                // Only create connection if this is a different peer
+                // Only create connection if this is a different peer. Always
+                // establish it, even without local media; media is added later.
                 if (data.userId !== socket.id) {
-                    // Glare resolution: only the peer with the lower ID creates the offer
-                    // This prevents both peers from sending offers simultaneously when joining at the same time
-                    const shouldCreateOffer = socket.id < data.userId;
-
-                    console.log('Creating peer connection (camera:', isCameraEnabled, 'mic:', isMicEnabled, ')');
-                    console.log('My camera name:', myCameraName || '(not set)');
-                    console.log('Should create offer:', shouldCreateOffer, '(my ID:', socket.id, 'vs their ID:', data.userId, ')');
-
-                    if (shouldCreateOffer) {
-                        // Create peer connection (will add any enabled media tracks)
-                        const pc = createPeerConnection(data.userId);
-
-                        // 'connect' and 'reconnect' can both be emitted for the same
-                        // userId (see refreshPeerConnections) and both land here /
-                        // in handlePeerReconnect with the same glare check, so an
-                        // existing connection may already be negotiating. Creating a
-                        // second offer on the same pc mid-negotiation throws
-                        // InvalidStateError in Safari, so skip if we're not stable.
-                        if (pc.signalingState !== 'stable') {
-                            console.log('⏸️ Skipping offer for new peer:', data.userId, '- already negotiating (signalingState:', pc.signalingState + ')');
-                            return;
-                        }
-
-                        // Always create and send offer, even if we don't have media yet
-                        // This establishes the connection, and media can be added later
-                        pc.createOffer().then(offer => pc.setLocalDescription(offer))
-                            .then(() => {
-                                socket.emit(voiceOfferSocketEvent, {
-                                    offer: pc.localDescription,
-                                    to: data.userId,
-                                    cameraName: myCameraName,
-                                        cameraNames: getCameraNames()
-                                });
-                                console.log('📤 Sent offer to new peer:', data.userId, 'with name:', myCameraName || '(default)');
-                            })
-                            .catch(err => {
-                                console.error('❌ Error creating offer:', err);
-                            });
-                    } else {
-                        console.log('⏸️ Waiting for offer from peer:', data.userId, '(they have lower ID)');
-                        // Still create the peer connection so we're ready to receive their offer
-                        createPeerConnection(data.userId);
-                    }
+                    ensurePeerConnection(data.userId);
                 }
             });
         </script>

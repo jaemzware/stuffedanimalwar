@@ -94,8 +94,8 @@ function writeStuffedAnimalWarDiv(stuffedAnimalMediaObject, readonly = false) {
 function writeStuffedAnimalWarForm(stuffedAnimalMediaObject){
     document.write("<style>");
     document.write(".direction-radio { position: absolute; opacity: 0; width: 0; height: 0; }");
-    document.write(".direction-label { display: inline-block; padding: 8px 16px; background-color: #444; color: #fff; border-radius: 6px; cursor: pointer; user-select: none; transition: all 0.2s ease; margin: 0 5px; }");
-    document.write(".direction-label-vertical { width: 80px; text-align: center; }");
+    document.write(".direction-label { display: inline-block; padding: 6px 8px; background-color: #444; color: #fff; border-radius: 6px; cursor: pointer; user-select: none; transition: all 0.2s ease; margin: 0 1px; }");
+    document.write(".direction-label-vertical { width: 50px; text-align: center; }");
     document.write(".direction-label:hover { background-color: #555; }");
     document.write(".direction-radio:checked + .direction-label { background-color: #0066cc; font-weight: bold; }");
     document.write("</style>");
@@ -106,17 +106,23 @@ function writeStuffedAnimalWarForm(stuffedAnimalMediaObject){
     //ANIMAL CHOICES
     document.write("<tr>");
     document.write("<td colspan='4'>");
-    document.write("<div style=\"display: grid; grid-template-columns: auto auto 1fr auto; gap: 8px; align-items: center; width: 100%;\">");
-    // Dropdown
-    document.write("<select id=\"animals\" name=\"sawstyle\" size=1>");
-    document.write("<option value=\"dot\" selected>BULLET</option>");
+    document.write("<div style=\"display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; width: 100%;\">");
+    // Default selection - the endpoint's defaultanimal if it is one of its animals, otherwise BULLET
+    let defaultAnimal = "dot";
+    if(stuffedAnimalMediaObject && stuffedAnimalMediaObject.defaultanimal && stuffedAnimalMediaObject.animals &&
+        stuffedAnimalMediaObject.animals.some(function(animal){ return animal.file === stuffedAnimalMediaObject.defaultanimal; })){
+        defaultAnimal = stuffedAnimalMediaObject.defaultanimal;
+    }
+    // Hidden dropdown - still the source of truth for the selected animal; the scrollable picker below drives it
+    document.write("<select id=\"animals\" name=\"sawstyle\" size=1 style=\"display:none;\">");
+    document.write("<option value=\"dot\""+(defaultAnimal==="dot"?" selected":"")+">BULLET</option>");
     document.write("<option value=\"line\">LINE</option>");
     document.write("<option value=\"ninjastar\">NINJA STAR</option>");
     document.write("<option value=\"custom\">CUSTOM URL</option>");
     //SPECIFIED ANIMALS
     if(stuffedAnimalMediaObject && stuffedAnimalMediaObject.animals[0]){
         for (let i=0;i<stuffedAnimalMediaObject.animals.length;i++){
-            document.write("<option value=\""+stuffedAnimalMediaObject.animals[i].file+"\">"+stuffedAnimalMediaObject.animals[i].title+"</option>");
+            document.write("<option value=\""+stuffedAnimalMediaObject.animals[i].file+"\""+(stuffedAnimalMediaObject.animals[i].file===defaultAnimal?" selected":"")+">"+stuffedAnimalMediaObject.animals[i].title+"</option>");
         }
     }
     document.write("</select>");
@@ -133,11 +139,35 @@ function writeStuffedAnimalWarForm(stuffedAnimalMediaObject){
     document.write("</tr>");
     document.write("<tr>");
     document.write("<td colspan='4' style=\"overflow: hidden;\">");
-    // Two column layout: directional buttons on left, color picker on right
-    document.write("<div class=\"direction-color-container\" style=\"display: grid; grid-template-columns: 1fr 1fr; gap: 15px; align-items: center; width: 100%; box-sizing: border-box;\">");
+    // Three column layout: animal picker on left, directional buttons in the middle, narrow color swatch on right
+    document.write("<div class=\"direction-color-container\" style=\"display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center; width: 100%; box-sizing: border-box;\">");
 
-    // LEFT COLUMN - MOVEMENT DIRECTION - 3 ROW LAYOUT
-    document.write("<div class=\"direction-buttons-grid\" style=\"display: grid; grid-template-columns: auto 80px auto; grid-template-rows: auto auto auto; gap: 5px; justify-items: center; align-items: center; justify-content: center; width: 100%; max-width: 100%; box-sizing: border-box;\">");
+    // LEFT COLUMN - SCROLLABLE ANIMAL PICKER under the preview (name + lazy-loaded preview image)
+    document.write("<div id=\"animalPicker\">");
+    const builtInStyles = [
+        {value: "dot", title: "BULLET", symbol: "•"},
+        {value: "line", title: "LINE", symbol: "─"},
+        {value: "ninjastar", title: "NINJA STAR", symbol: "✦"},
+        {value: "custom", title: "CUSTOM URL", symbol: "?"}
+    ];
+    for (let i=0;i<builtInStyles.length;i++){
+        document.write("<div class=\"animal-option"+(builtInStyles[i].value===defaultAnimal?" selected":"")+"\" data-value=\""+builtInStyles[i].value+"\">");
+        document.write("<span class=\"animal-option-thumb\">"+builtInStyles[i].symbol+"</span>");
+        document.write("<span class=\"animal-option-name\">"+builtInStyles[i].title+"</span>");
+        document.write("</div>");
+    }
+    if(stuffedAnimalMediaObject && stuffedAnimalMediaObject.animals[0]){
+        for (let i=0;i<stuffedAnimalMediaObject.animals.length;i++){
+            document.write("<div class=\"animal-option"+(stuffedAnimalMediaObject.animals[i].file===defaultAnimal?" selected":"")+"\" data-value=\""+stuffedAnimalMediaObject.animals[i].file+"\">");
+            document.write("<span class=\"animal-option-thumb\"><img src=\""+stuffedAnimalMediaObject.animals[i].file+"\" loading=\"lazy\" decoding=\"async\" alt=\"\"></span>");
+            document.write("<span class=\"animal-option-name\">"+stuffedAnimalMediaObject.animals[i].title+"</span>");
+            document.write("</div>");
+        }
+    }
+    document.write("</div>");
+
+    // MIDDLE COLUMN - MOVEMENT DIRECTION - 3 ROW LAYOUT
+    document.write("<div class=\"direction-buttons-grid\" style=\"display: grid; grid-template-columns: auto auto auto; grid-template-rows: auto auto auto; gap: 2px; justify-items: center; align-items: center; justify-content: center; width: 100%; max-width: 100%; box-sizing: border-box;\">");
 
     // TOP ROW - UPLEFT (grid column 1, row 1)
     document.write("<div style=\"grid-column: 1; grid-row: 1;\">");
@@ -158,7 +188,7 @@ function writeStuffedAnimalWarForm(stuffedAnimalMediaObject){
     document.write("</div>");
 
     // MIDDLE ROW - L-SINE, LEFT (grid column 1)
-    document.write("<div style=\"grid-column: 1; grid-row: 2; display: flex; gap: 5px;\">");
+    document.write("<div style=\"grid-column: 1; grid-row: 2; display: flex; gap: 2px;\">");
     document.write("<input type=\"radio\" class=\"direction-radio\" id=\"movement-sineleft\" name=\"sawmove\" value=\"L-SINE\">");
     document.write("<label class=\"direction-label\" for=\"movement-sineleft\">🌊⬅️</label>");
     document.write("<input type=\"radio\" class=\"direction-radio\" id=\"movement-left\" name=\"sawmove\" value=\"LEFT\">");
@@ -172,7 +202,7 @@ function writeStuffedAnimalWarForm(stuffedAnimalMediaObject){
     document.write("</div>");
 
     // MIDDLE ROW - RIGHT, R-SINE (grid column 3)
-    document.write("<div style=\"grid-column: 3; grid-row: 2; display: flex; gap: 5px;\">");
+    document.write("<div style=\"grid-column: 3; grid-row: 2; display: flex; gap: 2px;\">");
     document.write("<input type=\"radio\" class=\"direction-radio\" id=\"movement-right\" name=\"sawmove\" value=\"RIGHT\">");
     document.write("<label class=\"direction-label\" for=\"movement-right\">➡️</label>");
     document.write("<input type=\"radio\" class=\"direction-radio\" id=\"movement-sineright\" name=\"sawmove\" value=\"R-SINE\">");
@@ -199,10 +229,9 @@ function writeStuffedAnimalWarForm(stuffedAnimalMediaObject){
 
     document.write("</div>"); // End of directional buttons grid
 
-    // RIGHT COLUMN - COLOR PREVIEW (compact)
+    // RIGHT COLUMN - COLOR PREVIEW (narrow)
     document.write("<div style=\"display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;\">");
-    document.write("<label style=\"color: #ccccff; font-weight: 600; font-size: 14px; letter-spacing: 0.5px;\">COLOR</label>");
-    document.write("<div id=\"colorPickerButton\" data-red=\"255\" data-green=\"255\" data-blue=\"255\" data-line-width=\"5\" style=\"width: 100%; height: 150px; padding: 0; border-radius: 8px; max-width: 250px; border: 2px solid #ccccff;\">");
+    document.write("<div id=\"colorPickerButton\" data-red=\"255\" data-green=\"255\" data-blue=\"255\" data-line-width=\"5\" style=\"width: 60px; height: 150px; padding: 0; border-radius: 8px; border: 2px solid #ccccff;\">");
     document.write("<span class=\"color-picker-button-sample\" style=\"width: 100%; height: 100%; margin: 0; border-radius: 6px; display: block; background-color: rgb(255, 255, 255);\"></span>");
     document.write("</div>");
     document.write("</div>");

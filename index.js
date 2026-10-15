@@ -1017,10 +1017,19 @@ function fillRoomName(html, name) {
     return html.replace(/{{ENDPOINT}}/g, name).replace('{{MASTER_ALIAS}}', name.toUpperCase());
 }
 
+// Pages use relative media paths (photos/paz/...), so /paz/ would resolve them under /paz/.
+// Redirect trailing-slash page URLs to the canonical form.
+function redirectTrailingSlash(req, res) {
+    if (!req.path.endsWith('/')) return false;
+    res.redirect(301, req.path.replace(/\/+$/, '') + req.url.slice(req.path.length));
+    return true;
+}
+
 // SERVE CANVAS PAGE: /:endpoint
 app.get('/:endpoint', ipBlockMiddleware, function(req, res, next){
     const endpoint = req.params.endpoint;
     if (!isValidEndpoint(endpoint)) return next();
+    if (redirectTrailingSlash(req, res)) return;
 
     // ── Serve from HTML cache if available (zero file I/O on repeat hits) ──
     if (endpointHtmlCache.has(endpoint)) {
@@ -1067,6 +1076,7 @@ app.get('/:endpointcamera', ipBlockMiddleware, function(req, res, next){
     if (!full.endsWith('camera')) return next();
     const endpoint = full.slice(0, -6); // strip 'camera'
     if (!isValidEndpoint(endpoint)) return next();
+    if (redirectTrailingSlash(req, res)) return;
     try {
         let html = templateCameraHtml;
         console.log(`Serving camera endpoint for ${endpoint}`);
@@ -2120,12 +2130,12 @@ io.on('connection', function(socket){
 
     socket.on(endpoint + 'camera' + 'voiceoffer', (offerMsgObject) => {
         statsLogger.recordEvent('cameraVoiceOffer', endpoint);
-        const msg = { offer: offerMsgObject.offer, from: socket.id, to: offerMsgObject.to || 'broadcast', cameraName: offerMsgObject.cameraName };
+        const msg = { offer: offerMsgObject.offer, from: socket.id, to: offerMsgObject.to || 'broadcast', cameraName: offerMsgObject.cameraName, cameraNames: offerMsgObject.cameraNames };
         if (offerMsgObject.to) { io.to(offerMsgObject.to).emit(endpoint + 'camera' + 'voiceoffer', msg); } else { io.emit(endpoint + 'camera' + 'voiceoffer', msg); }
     });
     socket.on(endpoint + 'camera' + 'voiceanswer', (answerMsgObject) => {
         statsLogger.recordEvent('cameraVoiceAnswer', endpoint);
-        const msg = { answer: answerMsgObject.answer, from: socket.id, to: answerMsgObject.to, cameraName: answerMsgObject.cameraName };
+        const msg = { answer: answerMsgObject.answer, from: socket.id, to: answerMsgObject.to, cameraName: answerMsgObject.cameraName, cameraNames: answerMsgObject.cameraNames };
         io.to(answerMsgObject.to).emit(endpoint + 'camera' + 'voiceanswer', msg);
     });
     socket.on(endpoint + 'camera' + 'voiceicecandidate', (iceMsgObject) => {
@@ -2135,15 +2145,16 @@ io.on('connection', function(socket){
     });
     socket.on(endpoint + 'camera' + 'nameupdate', (nameUpdateMsgObject) => {
         statsLogger.recordEvent('cameraNameUpdate', endpoint);
-        io.emit(endpoint + 'camera' + 'nameupdate', { cameraName: nameUpdateMsgObject.cameraName, userId: socket.id });
+        io.emit(endpoint + 'camera' + 'nameupdate', { cameraName: nameUpdateMsgObject.cameraName, cameraNames: nameUpdateMsgObject.cameraNames, userId: socket.id });
     });
-    socket.on(endpoint + 'camera' + 'reconnect', () => {
+    socket.on(endpoint + 'camera' + 'reconnect', (reconnectMsgObject) => {
         statsLogger.recordEvent('cameraReconnect', endpoint);
-        io.emit(endpoint + 'camera' + 'reconnect', { userId: socket.id });
+        const msg = { userId: socket.id, to: (reconnectMsgObject && reconnectMsgObject.to) || 'broadcast', force: !!(reconnectMsgObject && reconnectMsgObject.force) };
+        if (reconnectMsgObject && reconnectMsgObject.to) { io.to(reconnectMsgObject.to).emit(endpoint + 'camera' + 'reconnect', msg); } else { io.emit(endpoint + 'camera' + 'reconnect', msg); }
     });
-    socket.on(endpoint + 'camera' + 'requestroster', () => {
+    socket.on(endpoint + 'camera' + 'requestroster', (rosterRequestMsgObject) => {
         statsLogger.recordEvent('cameraRequestRoster', endpoint);
-        io.emit(endpoint + 'camera' + 'requestroster', { userId: socket.id });
+        io.emit(endpoint + 'camera' + 'requestroster', { userId: socket.id, reset: !!(rosterRequestMsgObject && rosterRequestMsgObject.reset) });
     });
     socket.on(endpoint + 'camera' + 'rosterresponse', (rosterResponseMsgObject) => {
         statsLogger.recordEvent('cameraRosterResponse', endpoint);

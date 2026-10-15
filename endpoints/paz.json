@@ -4,111 +4,1480 @@
     "masterAlias": "PAZ",
     "unspecifiedAlias": "lurker",
     "stuffedAnimalMediaObject": {
-        "backgroundimage": "photos/paz/gallerymuralprojectcover.png",
+        "backgroundimage": "photos/paz/gallerymermaid.jpeg",
+        "defaultanimal": "animals/paz/jamie01.png",
         "animals": [
             {
                 "file": "animals/paz/animalbluemouseheartsign.png",
-                "title": "Blue Mouse (paz)"
+                "title": "animalbluemouseheartsign"
             },
             {
                 "file": "animals/paz/animalgreenmouse.png",
-                "title": "Green Mouse (paz)"
+                "title": "animalgreenmouse"
             },
             {
                 "file": "animals/paz/animalhuggingbear.png",
-                "title": "Hugging Bear (paz)"
+                "title": "animalhuggingbear"
             },
             {
                 "file": "animals/paz/animalorangecroc.png",
-                "title": "Orange Croc (paz)"
+                "title": "animalorangecroc"
             },
             {
-                "file": "animals/badger.png",
-                "title": "Badger"
+                "file": "animals/paz/capsule_gem_r01_01.png",
+                "title": "capsule_gem_r01_01"
             },
             {
-                "file": "animals/bat.png",
-                "title": "Bat"
+                "file": "animals/paz/capsule_gem_r01_02.png",
+                "title": "capsule_gem_r01_02"
             },
             {
-                "file": "animals/bear.png",
-                "title": "Bear"
+                "file": "animals/paz/cones_r01_01.png",
+                "title": "cones_r01_01"
             },
             {
-                "file": "animals/birds.png",
-                "title": "Birds"
+                "file": "animals/paz/cones_r01_02.png",
+                "title": "cones_r01_02"
             },
             {
-                "file": "animals/bison.png",
-                "title": "Bison"
+                "file": "animals/paz/cones_r01_03.png",
+                "title": "cones_r01_03"
             },
             {
-                "file": "animals/boar.png",
-                "title": "Boar"
+                "file": "animals/paz/cones_r01_04.png",
+                "title": "cones_r01_04"
             },
             {
-                "file": "animals/deer.png",
-                "title": "Buck"
+                "file": "animals/paz/cult_r01_01.png",
+                "title": "cult_r01_01"
             },
             {
-                "file": "animals/cats.png",
-                "title": "Cats"
+                "file": "animals/paz/cult_r01_02.png",
+                "title": "cult_r01_02"
             },
             {
-                "file": "animals/cheetah.png",
-                "title": "Cheetah"
+                "file": "animals/paz/cult_r01_03.png",
+                "title": "cult_r01_03"
             },
             {
-                "file": "animals/chickens.png",
-                "title": "Chickens"
+                "file": "animals/paz/cult_r01_04.png",
+                "title": "cult_r01_04"
             },
             {
-                "file": "animals/crocodiles.png",
-                "title": "Crocodiles"
+                "file": "animals/paz/cult_r01_05.png",
+                "title": "cult_r01_05"
             },
             {
-                "file": "animals/crow.png",
-                "title": "Crow"
+                "file": "animals/paz/cult_r01_06.png",
+                "title": "cult_r01_06"
             },
             {
-                "file": "animals/dogs.png",
-                "title": "Dog"
+                "file": "animals/paz/cult_r01_07.png",
+                "title": "cult_r01_07"
             },
             {
-                "file": "animals/duck.png",
-                "title": "Duck"
+                "file": "animals/paz/cult_r01_08.png",
+                "title": "cult_r01_08"
             },
             {
-                "file": "animals/eagle.png",
-                "title": "Eagle"
+                "file": "animals/paz/cult_r01_09.png",
+                "title": "cult_r01_09"
             },
             {
-                "file": "animals/frog.png",
-                "title": "Frog"
+                "file": "animals/paz/cult_r01_10.png",
+                "title": "cult_r01_10"
             },
             {
-                "file": "animals/giraffe.png",
-                "title": "Giraffe"
+                "file": "animals/paz/cult_r01_11.png",
+                "title": "cult_r01_11"
             },
             {
-                "file": "animals/goldfish.png",
-                "title": "Goldfish"
+                "file": "animals/paz/cult_r02_01.png",
+                "title": "cult_r02_01"
             },
             {
-                "file": "animals/gorilla.png",
-                "title": "Gorilla"
+                "file": "animals/paz/cult_r03_01.png",
+                "title": "cult_r03_01"
             },
             {
-                "file": "animals/monkey.png",
-                "title": "Monkey"
+                "file": "animals/paz/cult_r03_02.png",
+                "title": "cult_r03_02"
             },
             {
-                "file": "animals/moose.png",
-                "title": "Moose"
+                "file": "animals/paz/cult_r03_03.png",
+                "title": "cult_r03_03"
             },
             {
-                "file": "animals/seagull.png",
-                "title": "Seagull"
+                "file": "animals/paz/cult_r03_04.png",
+                "title": "cult_r03_04"
+            },
+            {
+                "file": "animals/paz/cult_r03_05.png",
+                "title": "cult_r03_05"
+            },
+            {
+                "file": "animals/paz/cult_r03_06.png",
+                "title": "cult_r03_06"
+            },
+            {
+                "file": "animals/paz/cult_r03_07.png",
+                "title": "cult_r03_07"
+            },
+            {
+                "file": "animals/paz/cult_r03_08.png",
+                "title": "cult_r03_08"
+            },
+            {
+                "file": "animals/paz/cult_r04_01.png",
+                "title": "cult_r04_01"
+            },
+            {
+                "file": "animals/paz/cult_r04_02.png",
+                "title": "cult_r04_02"
+            },
+            {
+                "file": "animals/paz/cult_r04_03.png",
+                "title": "cult_r04_03"
+            },
+            {
+                "file": "animals/paz/cult_r04_04.png",
+                "title": "cult_r04_04"
+            },
+            {
+                "file": "animals/paz/cult_r04_05.png",
+                "title": "cult_r04_05"
+            },
+            {
+                "file": "animals/paz/cult_r04_06.png",
+                "title": "cult_r04_06"
+            },
+            {
+                "file": "animals/paz/cult_r04_07.png",
+                "title": "cult_r04_07"
+            },
+            {
+                "file": "animals/paz/cult_r04_08.png",
+                "title": "cult_r04_08"
+            },
+            {
+                "file": "animals/paz/cult_r04_09.png",
+                "title": "cult_r04_09"
+            },
+            {
+                "file": "animals/paz/cult_r05_01.png",
+                "title": "cult_r05_01"
+            },
+            {
+                "file": "animals/paz/cult_r05_02.png",
+                "title": "cult_r05_02"
+            },
+            {
+                "file": "animals/paz/cult_r05_03.png",
+                "title": "cult_r05_03"
+            },
+            {
+                "file": "animals/paz/cult_r05_04.png",
+                "title": "cult_r05_04"
+            },
+            {
+                "file": "animals/paz/cult_r05_05.png",
+                "title": "cult_r05_05"
+            },
+            {
+                "file": "animals/paz/cult_r05_06.png",
+                "title": "cult_r05_06"
+            },
+            {
+                "file": "animals/paz/cult_r05_07.png",
+                "title": "cult_r05_07"
+            },
+            {
+                "file": "animals/paz/cult_r05_08.png",
+                "title": "cult_r05_08"
+            },
+            {
+                "file": "animals/paz/cult_r05_09.png",
+                "title": "cult_r05_09"
+            },
+            {
+                "file": "animals/paz/cult_r06_01.png",
+                "title": "cult_r06_01"
+            },
+            {
+                "file": "animals/paz/cult_r06_02.png",
+                "title": "cult_r06_02"
+            },
+            {
+                "file": "animals/paz/cult_r06_03.png",
+                "title": "cult_r06_03"
+            },
+            {
+                "file": "animals/paz/cult_r06_04.png",
+                "title": "cult_r06_04"
+            },
+            {
+                "file": "animals/paz/cult_r06_05.png",
+                "title": "cult_r06_05"
+            },
+            {
+                "file": "animals/paz/cult_r06_06.png",
+                "title": "cult_r06_06"
+            },
+            {
+                "file": "animals/paz/cult_r06_07.png",
+                "title": "cult_r06_07"
+            },
+            {
+                "file": "animals/paz/cult_r06_08.png",
+                "title": "cult_r06_08"
+            },
+            {
+                "file": "animals/paz/cult_r06_09.png",
+                "title": "cult_r06_09"
+            },
+            {
+                "file": "animals/paz/cult_r06_10.png",
+                "title": "cult_r06_10"
+            },
+            {
+                "file": "animals/paz/cult_r06_11.png",
+                "title": "cult_r06_11"
+            },
+            {
+                "file": "animals/paz/cult_r06_12.png",
+                "title": "cult_r06_12"
+            },
+            {
+                "file": "animals/paz/cult_r07_01.png",
+                "title": "cult_r07_01"
+            },
+            {
+                "file": "animals/paz/cult_r08_01.png",
+                "title": "cult_r08_01"
+            },
+            {
+                "file": "animals/paz/cult_r08_02.png",
+                "title": "cult_r08_02"
+            },
+            {
+                "file": "animals/paz/cult_r08_03.png",
+                "title": "cult_r08_03"
+            },
+            {
+                "file": "animals/paz/cult_r08_04.png",
+                "title": "cult_r08_04"
+            },
+            {
+                "file": "animals/paz/cult_r08_05.png",
+                "title": "cult_r08_05"
+            },
+            {
+                "file": "animals/paz/cult_r08_06.png",
+                "title": "cult_r08_06"
+            },
+            {
+                "file": "animals/paz/cult_r08_07.png",
+                "title": "cult_r08_07"
+            },
+            {
+                "file": "animals/paz/cult_r08_08.png",
+                "title": "cult_r08_08"
+            },
+            {
+                "file": "animals/paz/egg_crack_r01_01.png",
+                "title": "egg_crack_r01_01"
+            },
+            {
+                "file": "animals/paz/egg_crack_r01_02.png",
+                "title": "egg_crack_r01_02"
+            },
+            {
+                "file": "animals/paz/egg_crack_r01_03.png",
+                "title": "egg_crack_r01_03"
+            },
+            {
+                "file": "animals/paz/egg_crack_r01_04.png",
+                "title": "egg_crack_r01_04"
+            },
+            {
+                "file": "animals/paz/egg_crack_r02_01.png",
+                "title": "egg_crack_r02_01"
+            },
+            {
+                "file": "animals/paz/egg_crack_r02_02.png",
+                "title": "egg_crack_r02_02"
+            },
+            {
+                "file": "animals/paz/egg_crack_r02_03.png",
+                "title": "egg_crack_r02_03"
+            },
+            {
+                "file": "animals/paz/fx_r01_01.png",
+                "title": "fx_r01_01"
+            },
+            {
+                "file": "animals/paz/fx_r01_02.png",
+                "title": "fx_r01_02"
+            },
+            {
+                "file": "animals/paz/fx_r01_03.png",
+                "title": "fx_r01_03"
+            },
+            {
+                "file": "animals/paz/fx_r01_04.png",
+                "title": "fx_r01_04"
+            },
+            {
+                "file": "animals/paz/fx_r02_01.png",
+                "title": "fx_r02_01"
+            },
+            {
+                "file": "animals/paz/fx_r02_02.png",
+                "title": "fx_r02_02"
+            },
+            {
+                "file": "animals/paz/fx_r02_03.png",
+                "title": "fx_r02_03"
+            },
+            {
+                "file": "animals/paz/fx_r02_04.png",
+                "title": "fx_r02_04"
+            },
+            {
+                "file": "animals/paz/fx_r02_05.png",
+                "title": "fx_r02_05"
+            },
+            {
+                "file": "animals/paz/fx_r02_06.png",
+                "title": "fx_r02_06"
+            },
+            {
+                "file": "animals/paz/fx_r02_07.png",
+                "title": "fx_r02_07"
+            },
+            {
+                "file": "animals/paz/fx_r02_08.png",
+                "title": "fx_r02_08"
+            },
+            {
+                "file": "animals/paz/fx_r02_09.png",
+                "title": "fx_r02_09"
+            },
+            {
+                "file": "animals/paz/fx_r02_10.png",
+                "title": "fx_r02_10"
+            },
+            {
+                "file": "animals/paz/fx_r02_11.png",
+                "title": "fx_r02_11"
+            },
+            {
+                "file": "animals/paz/fx_r03_01.png",
+                "title": "fx_r03_01"
+            },
+            {
+                "file": "animals/paz/fx_r03_02.png",
+                "title": "fx_r03_02"
+            },
+            {
+                "file": "animals/paz/fx_r04_01.png",
+                "title": "fx_r04_01"
+            },
+            {
+                "file": "animals/paz/fx_r04_02.png",
+                "title": "fx_r04_02"
+            },
+            {
+                "file": "animals/paz/fx_r05_01.png",
+                "title": "fx_r05_01"
+            },
+            {
+                "file": "animals/paz/fx_r05_02.png",
+                "title": "fx_r05_02"
+            },
+            {
+                "file": "animals/paz/fx_r06_01.png",
+                "title": "fx_r06_01"
+            },
+            {
+                "file": "animals/paz/fx_r06_02.png",
+                "title": "fx_r06_02"
+            },
+            {
+                "file": "animals/paz/fx_r06_03.png",
+                "title": "fx_r06_03"
+            },
+            {
+                "file": "animals/paz/fx_r06_04.png",
+                "title": "fx_r06_04"
+            },
+            {
+                "file": "animals/paz/fx_r07_01.png",
+                "title": "fx_r07_01"
+            },
+            {
+                "file": "animals/paz/fx_r08_01.png",
+                "title": "fx_r08_01"
+            },
+            {
+                "file": "animals/paz/fx_r09_01.png",
+                "title": "fx_r09_01"
+            },
+            {
+                "file": "animals/paz/fx_r09_02.png",
+                "title": "fx_r09_02"
+            },
+            {
+                "file": "animals/paz/fx_r09_03.png",
+                "title": "fx_r09_03"
+            },
+            {
+                "file": "animals/paz/fx_r09_04.png",
+                "title": "fx_r09_04"
+            },
+            {
+                "file": "animals/paz/fx_r09_05.png",
+                "title": "fx_r09_05"
+            },
+            {
+                "file": "animals/paz/fx_r09_06.png",
+                "title": "fx_r09_06"
+            },
+            {
+                "file": "animals/paz/fx_r09_07.png",
+                "title": "fx_r09_07"
+            },
+            {
+                "file": "animals/paz/fx_r10_01.png",
+                "title": "fx_r10_01"
+            },
+            {
+                "file": "animals/paz/fx_r11_01.png",
+                "title": "fx_r11_01"
+            },
+            {
+                "file": "animals/paz/fx_r11_02.png",
+                "title": "fx_r11_02"
+            },
+            {
+                "file": "animals/paz/fx_r11_03.png",
+                "title": "fx_r11_03"
+            },
+            {
+                "file": "animals/paz/fx_r11_04.png",
+                "title": "fx_r11_04"
+            },
+            {
+                "file": "animals/paz/fx_r11_05.png",
+                "title": "fx_r11_05"
+            },
+            {
+                "file": "animals/paz/fx_r11_06.png",
+                "title": "fx_r11_06"
+            },
+            {
+                "file": "animals/paz/fx_r11_07.png",
+                "title": "fx_r11_07"
+            },
+            {
+                "file": "animals/paz/happybag01.png",
+                "title": "happybag01"
+            },
+            {
+                "file": "animals/paz/happybag02.png",
+                "title": "happybag02"
+            },
+            {
+                "file": "animals/paz/hedgehog_r01_01.png",
+                "title": "hedgehog_r01_01"
+            },
+            {
+                "file": "animals/paz/hedgehog_r01_02.png",
+                "title": "hedgehog_r01_02"
+            },
+            {
+                "file": "animals/paz/hedgehog_r01_03.png",
+                "title": "hedgehog_r01_03"
+            },
+            {
+                "file": "animals/paz/hedgehog_r02_01.png",
+                "title": "hedgehog_r02_01"
+            },
+            {
+                "file": "animals/paz/hedgehog_r02_02.png",
+                "title": "hedgehog_r02_02"
+            },
+            {
+                "file": "animals/paz/hedgehog_r02_03.png",
+                "title": "hedgehog_r02_03"
+            },
+            {
+                "file": "animals/paz/jamie01.png",
+                "title": "jamie01"
+            },
+            {
+                "file": "animals/paz/jamie02.png",
+                "title": "jamie02"
+            },
+            {
+                "file": "animals/paz/jamie03.png",
+                "title": "jamie03"
+            },
+            {
+                "file": "animals/paz/jamie04.png",
+                "title": "jamie04"
+            },
+            {
+                "file": "animals/paz/jamie05.png",
+                "title": "jamie05"
+            },
+            {
+                "file": "animals/paz/jamie06.png",
+                "title": "jamie06"
+            },
+            {
+                "file": "animals/paz/jamie07.png",
+                "title": "jamie07"
+            },
+            {
+                "file": "animals/paz/jamie08.png",
+                "title": "jamie08"
+            },
+            {
+                "file": "animals/paz/jamie09.png",
+                "title": "jamie09"
+            },
+            {
+                "file": "animals/paz/jamie10.png",
+                "title": "jamie10"
+            },
+            {
+                "file": "animals/paz/jamie11.png",
+                "title": "jamie11"
+            },
+            {
+                "file": "animals/paz/jamie12.png",
+                "title": "jamie12"
+            },
+            {
+                "file": "animals/paz/jamie13.png",
+                "title": "jamie13"
+            },
+            {
+                "file": "animals/paz/jamie14.png",
+                "title": "jamie14"
+            },
+            {
+                "file": "animals/paz/jamie15.png",
+                "title": "jamie15"
+            },
+            {
+                "file": "animals/paz/jamie_egg_monster_r01_01.png",
+                "title": "jamie_egg_monster_r01_01"
+            },
+            {
+                "file": "animals/paz/jamie_egg_monster_r01_02.png",
+                "title": "jamie_egg_monster_r01_02"
+            },
+            {
+                "file": "animals/paz/jamie_egg_monster_r01_03.png",
+                "title": "jamie_egg_monster_r01_03"
+            },
+            {
+                "file": "animals/paz/jamie_egg_monster_r01_04.png",
+                "title": "jamie_egg_monster_r01_04"
+            },
+            {
+                "file": "animals/paz/jamie_egg_monster_r01_05.png",
+                "title": "jamie_egg_monster_r01_05"
+            },
+            {
+                "file": "animals/paz/jamie_egg_monster_r02_01.png",
+                "title": "jamie_egg_monster_r02_01"
+            },
+            {
+                "file": "animals/paz/jamie_egg_monster_r02_02.png",
+                "title": "jamie_egg_monster_r02_02"
+            },
+            {
+                "file": "animals/paz/jamie_egg_monster_r02_03.png",
+                "title": "jamie_egg_monster_r02_03"
+            },
+            {
+                "file": "animals/paz/jamie_egg_monster_r02_04.png",
+                "title": "jamie_egg_monster_r02_04"
+            },
+            {
+                "file": "animals/paz/jamie_egg_monster_r02_05.png",
+                "title": "jamie_egg_monster_r02_05"
+            },
+            {
+                "file": "animals/paz/jamie_egg_monster_r03_01.png",
+                "title": "jamie_egg_monster_r03_01"
+            },
+            {
+                "file": "animals/paz/jamie_egg_monster_r03_02.png",
+                "title": "jamie_egg_monster_r03_02"
+            },
+            {
+                "file": "animals/paz/jamie_egg_monster_r03_03.png",
+                "title": "jamie_egg_monster_r03_03"
+            },
+            {
+                "file": "animals/paz/jamie_egg_monster_r03_04.png",
+                "title": "jamie_egg_monster_r03_04"
+            },
+            {
+                "file": "animals/paz/jamie_egg_monster_r04_01.png",
+                "title": "jamie_egg_monster_r04_01"
+            },
+            {
+                "file": "animals/paz/jamie_egg_monster_r04_02.png",
+                "title": "jamie_egg_monster_r04_02"
+            },
+            {
+                "file": "animals/paz/jamie_egg_monster_r04_03.png",
+                "title": "jamie_egg_monster_r04_03"
+            },
+            {
+                "file": "animals/paz/jamie_egg_monster_r04_04.png",
+                "title": "jamie_egg_monster_r04_04"
+            },
+            {
+                "file": "animals/paz/jamie_egg_monster_r04_05.png",
+                "title": "jamie_egg_monster_r04_05"
+            },
+            {
+                "file": "animals/paz/jamie_egg_monster_r05_01.png",
+                "title": "jamie_egg_monster_r05_01"
+            },
+            {
+                "file": "animals/paz/jamie_egg_monster_r05_02.png",
+                "title": "jamie_egg_monster_r05_02"
+            },
+            {
+                "file": "animals/paz/jamie_egg_monster_r05_03.png",
+                "title": "jamie_egg_monster_r05_03"
+            },
+            {
+                "file": "animals/paz/jamie_egg_monster_r05_04.png",
+                "title": "jamie_egg_monster_r05_04"
+            },
+            {
+                "file": "animals/paz/jamie_scratch_r01_01.png",
+                "title": "jamie_scratch_r01_01"
+            },
+            {
+                "file": "animals/paz/jamie_scratch_r01_02.png",
+                "title": "jamie_scratch_r01_02"
+            },
+            {
+                "file": "animals/paz/jamie_scratch_r02_01.png",
+                "title": "jamie_scratch_r02_01"
+            },
+            {
+                "file": "animals/paz/jamie_scratch_r02_02.png",
+                "title": "jamie_scratch_r02_02"
+            },
+            {
+                "file": "animals/paz/jamie_scratch_r03_01.png",
+                "title": "jamie_scratch_r03_01"
+            },
+            {
+                "file": "animals/paz/jamie_scratch_r03_02.png",
+                "title": "jamie_scratch_r03_02"
+            },
+            {
+                "file": "animals/paz/jamie_store_r01_01.png",
+                "title": "jamie_store_r01_01"
+            },
+            {
+                "file": "animals/paz/jamie_store_r01_02.png",
+                "title": "jamie_store_r01_02"
+            },
+            {
+                "file": "animals/paz/jamie_store_r01_03.png",
+                "title": "jamie_store_r01_03"
+            },
+            {
+                "file": "animals/paz/jamie_store_r01_04.png",
+                "title": "jamie_store_r01_04"
+            },
+            {
+                "file": "animals/paz/jamie_store_r01_05.png",
+                "title": "jamie_store_r01_05"
+            },
+            {
+                "file": "animals/paz/jamie_store_r01_06.png",
+                "title": "jamie_store_r01_06"
+            },
+            {
+                "file": "animals/paz/jamie_store_r02_01.png",
+                "title": "jamie_store_r02_01"
+            },
+            {
+                "file": "animals/paz/jamie_store_r03_01.png",
+                "title": "jamie_store_r03_01"
+            },
+            {
+                "file": "animals/paz/jamie_store_r03_02.png",
+                "title": "jamie_store_r03_02"
+            },
+            {
+                "file": "animals/paz/jamie_store_r03_03.png",
+                "title": "jamie_store_r03_03"
+            },
+            {
+                "file": "animals/paz/jamie_store_r03_04.png",
+                "title": "jamie_store_r03_04"
+            },
+            {
+                "file": "animals/paz/jamie_store_r03_05.png",
+                "title": "jamie_store_r03_05"
+            },
+            {
+                "file": "animals/paz/jamie_store_r03_06.png",
+                "title": "jamie_store_r03_06"
+            },
+            {
+                "file": "animals/paz/jamie_store_r03_07.png",
+                "title": "jamie_store_r03_07"
+            },
+            {
+                "file": "animals/paz/jamie_store_r05_01.png",
+                "title": "jamie_store_r05_01"
+            },
+            {
+                "file": "animals/paz/jamie_store_r05_02.png",
+                "title": "jamie_store_r05_02"
+            },
+            {
+                "file": "animals/paz/jamie_store_r05_03.png",
+                "title": "jamie_store_r05_03"
+            },
+            {
+                "file": "animals/paz/jamie_store_r05_04.png",
+                "title": "jamie_store_r05_04"
+            },
+            {
+                "file": "animals/paz/jamie_store_r05_05.png",
+                "title": "jamie_store_r05_05"
+            },
+            {
+                "file": "animals/paz/jamie_store_r05_06.png",
+                "title": "jamie_store_r05_06"
+            },
+            {
+                "file": "animals/paz/jamie_store_r05_07.png",
+                "title": "jamie_store_r05_07"
+            },
+            {
+                "file": "animals/paz/lake_signs_r01_01.png",
+                "title": "lake_signs_r01_01"
+            },
+            {
+                "file": "animals/paz/lake_signs_r01_02.png",
+                "title": "lake_signs_r01_02"
+            },
+            {
+                "file": "animals/paz/lake_signs_r01_03.png",
+                "title": "lake_signs_r01_03"
+            },
+            {
+                "file": "animals/paz/lake_signs_r02_01.png",
+                "title": "lake_signs_r02_01"
+            },
+            {
+                "file": "animals/paz/lake_signs_r02_02.png",
+                "title": "lake_signs_r02_02"
+            },
+            {
+                "file": "animals/paz/lake_signs_r02_03.png",
+                "title": "lake_signs_r02_03"
+            },
+            {
+                "file": "animals/paz/lake_signs_r02_04.png",
+                "title": "lake_signs_r02_04"
+            },
+            {
+                "file": "animals/paz/lake_signs_r03_01.png",
+                "title": "lake_signs_r03_01"
+            },
+            {
+                "file": "animals/paz/lake_signs_r03_02.png",
+                "title": "lake_signs_r03_02"
+            },
+            {
+                "file": "animals/paz/lake_signs_r03_03.png",
+                "title": "lake_signs_r03_03"
+            },
+            {
+                "file": "animals/paz/lake_signs_r04_01.png",
+                "title": "lake_signs_r04_01"
+            },
+            {
+                "file": "animals/paz/lake_signs_r04_02.png",
+                "title": "lake_signs_r04_02"
+            },
+            {
+                "file": "animals/paz/lake_signs_r05_01.png",
+                "title": "lake_signs_r05_01"
+            },
+            {
+                "file": "animals/paz/lake_signs_r05_02.png",
+                "title": "lake_signs_r05_02"
+            },
+            {
+                "file": "animals/paz/lake_signs_r05_03.png",
+                "title": "lake_signs_r05_03"
+            },
+            {
+                "file": "animals/paz/lake_signs_r05_04.png",
+                "title": "lake_signs_r05_04"
+            },
+            {
+                "file": "animals/paz/lake_signs_r05_05.png",
+                "title": "lake_signs_r05_05"
+            },
+            {
+                "file": "animals/paz/lake_signs_r06_01.png",
+                "title": "lake_signs_r06_01"
+            },
+            {
+                "file": "animals/paz/lake_signs_r06_02.png",
+                "title": "lake_signs_r06_02"
+            },
+            {
+                "file": "animals/paz/lake_signs_r06_03.png",
+                "title": "lake_signs_r06_03"
+            },
+            {
+                "file": "animals/paz/lake_signs_r06_04.png",
+                "title": "lake_signs_r06_04"
+            },
+            {
+                "file": "animals/paz/office_props_r01_01.png",
+                "title": "office_props_r01_01"
+            },
+            {
+                "file": "animals/paz/office_props_r01_02.png",
+                "title": "office_props_r01_02"
+            },
+            {
+                "file": "animals/paz/office_props_r01_03.png",
+                "title": "office_props_r01_03"
+            },
+            {
+                "file": "animals/paz/office_props_r01_04.png",
+                "title": "office_props_r01_04"
+            },
+            {
+                "file": "animals/paz/office_props_r01_05.png",
+                "title": "office_props_r01_05"
+            },
+            {
+                "file": "animals/paz/office_props_r02_01.png",
+                "title": "office_props_r02_01"
+            },
+            {
+                "file": "animals/paz/office_props_r02_02.png",
+                "title": "office_props_r02_02"
+            },
+            {
+                "file": "animals/paz/office_props_r02_03.png",
+                "title": "office_props_r02_03"
+            },
+            {
+                "file": "animals/paz/office_props_r02_04.png",
+                "title": "office_props_r02_04"
+            },
+            {
+                "file": "animals/paz/office_props_r03_01.png",
+                "title": "office_props_r03_01"
+            },
+            {
+                "file": "animals/paz/office_props_r03_02.png",
+                "title": "office_props_r03_02"
+            },
+            {
+                "file": "animals/paz/office_props_r03_03.png",
+                "title": "office_props_r03_03"
+            },
+            {
+                "file": "animals/paz/office_props_r03_04.png",
+                "title": "office_props_r03_04"
+            },
+            {
+                "file": "animals/paz/office_props_r04_01.png",
+                "title": "office_props_r04_01"
+            },
+            {
+                "file": "animals/paz/office_props_r04_02.png",
+                "title": "office_props_r04_02"
+            },
+            {
+                "file": "animals/paz/office_props_r04_03.png",
+                "title": "office_props_r04_03"
+            },
+            {
+                "file": "animals/paz/office_props_r05_01.png",
+                "title": "office_props_r05_01"
+            },
+            {
+                "file": "animals/paz/office_props_r05_02.png",
+                "title": "office_props_r05_02"
+            },
+            {
+                "file": "animals/paz/office_props_r05_03.png",
+                "title": "office_props_r05_03"
+            },
+            {
+                "file": "animals/paz/office_props_r05_04.png",
+                "title": "office_props_r05_04"
+            },
+            {
+                "file": "animals/paz/office_props_r06_01.png",
+                "title": "office_props_r06_01"
+            },
+            {
+                "file": "animals/paz/office_props_r06_02.png",
+                "title": "office_props_r06_02"
+            },
+            {
+                "file": "animals/paz/office_props_r06_03.png",
+                "title": "office_props_r06_03"
+            },
+            {
+                "file": "animals/paz/park_gore_r01_01.png",
+                "title": "park_gore_r01_01"
+            },
+            {
+                "file": "animals/paz/park_gore_r01_02.png",
+                "title": "park_gore_r01_02"
+            },
+            {
+                "file": "animals/paz/park_gore_r01_03.png",
+                "title": "park_gore_r01_03"
+            },
+            {
+                "file": "animals/paz/park_gore_r01_04.png",
+                "title": "park_gore_r01_04"
+            },
+            {
+                "file": "animals/paz/park_gore_r01_05.png",
+                "title": "park_gore_r01_05"
+            },
+            {
+                "file": "animals/paz/park_gore_r01_06.png",
+                "title": "park_gore_r01_06"
+            },
+            {
+                "file": "animals/paz/park_gore_r01_07.png",
+                "title": "park_gore_r01_07"
+            },
+            {
+                "file": "animals/paz/park_gore_r01_08.png",
+                "title": "park_gore_r01_08"
+            },
+            {
+                "file": "animals/paz/park_gore_r02_01.png",
+                "title": "park_gore_r02_01"
+            },
+            {
+                "file": "animals/paz/park_gore_r03_01.png",
+                "title": "park_gore_r03_01"
+            },
+            {
+                "file": "animals/paz/park_gore_r03_02.png",
+                "title": "park_gore_r03_02"
+            },
+            {
+                "file": "animals/paz/park_gore_r03_03.png",
+                "title": "park_gore_r03_03"
+            },
+            {
+                "file": "animals/paz/park_gore_r04_01.png",
+                "title": "park_gore_r04_01"
+            },
+            {
+                "file": "animals/paz/park_gore_r04_02.png",
+                "title": "park_gore_r04_02"
+            },
+            {
+                "file": "animals/paz/park_gore_r04_03.png",
+                "title": "park_gore_r04_03"
+            },
+            {
+                "file": "animals/paz/park_gore_r05_01.png",
+                "title": "park_gore_r05_01"
+            },
+            {
+                "file": "animals/paz/park_gore_r05_02.png",
+                "title": "park_gore_r05_02"
+            },
+            {
+                "file": "animals/paz/park_gore_r05_03.png",
+                "title": "park_gore_r05_03"
+            },
+            {
+                "file": "animals/paz/park_gore_r05_04.png",
+                "title": "park_gore_r05_04"
+            },
+            {
+                "file": "animals/paz/park_gore_r06_01.png",
+                "title": "park_gore_r06_01"
+            },
+            {
+                "file": "animals/paz/park_gore_r06_02.png",
+                "title": "park_gore_r06_02"
+            },
+            {
+                "file": "animals/paz/park_gore_r06_03.png",
+                "title": "park_gore_r06_03"
+            },
+            {
+                "file": "animals/paz/park_gore_r06_04.png",
+                "title": "park_gore_r06_04"
+            },
+            {
+                "file": "animals/paz/park_gore_r06_05.png",
+                "title": "park_gore_r06_05"
+            },
+            {
+                "file": "animals/paz/park_gore_r07_01.png",
+                "title": "park_gore_r07_01"
+            },
+            {
+                "file": "animals/paz/park_gore_r07_02.png",
+                "title": "park_gore_r07_02"
+            },
+            {
+                "file": "animals/paz/park_gore_r07_03.png",
+                "title": "park_gore_r07_03"
+            },
+            {
+                "file": "animals/paz/park_gore_r08_01.png",
+                "title": "park_gore_r08_01"
+            },
+            {
+                "file": "animals/paz/park_gore_r08_02.png",
+                "title": "park_gore_r08_02"
+            },
+            {
+                "file": "animals/paz/park_gore_r08_03.png",
+                "title": "park_gore_r08_03"
+            },
+            {
+                "file": "animals/paz/park_gore_r09_01.png",
+                "title": "park_gore_r09_01"
+            },
+            {
+                "file": "animals/paz/park_gore_r09_02.png",
+                "title": "park_gore_r09_02"
+            },
+            {
+                "file": "animals/paz/park_gore_r09_03.png",
+                "title": "park_gore_r09_03"
+            },
+            {
+                "file": "animals/paz/park_gore_r09_04.png",
+                "title": "park_gore_r09_04"
+            },
+            {
+                "file": "animals/paz/park_gore_r09_05.png",
+                "title": "park_gore_r09_05"
+            },
+            {
+                "file": "animals/paz/park_gore_r09_06.png",
+                "title": "park_gore_r09_06"
+            },
+            {
+                "file": "animals/paz/park_gore_r09_07.png",
+                "title": "park_gore_r09_07"
+            },
+            {
+                "file": "animals/paz/park_props_r01_01.png",
+                "title": "park_props_r01_01"
+            },
+            {
+                "file": "animals/paz/park_props_r01_02.png",
+                "title": "park_props_r01_02"
+            },
+            {
+                "file": "animals/paz/park_props_r02_01.png",
+                "title": "park_props_r02_01"
+            },
+            {
+                "file": "animals/paz/park_props_r03_01.png",
+                "title": "park_props_r03_01"
+            },
+            {
+                "file": "animals/paz/park_props_r04_01.png",
+                "title": "park_props_r04_01"
+            },
+            {
+                "file": "animals/paz/park_props_r04_02.png",
+                "title": "park_props_r04_02"
+            },
+            {
+                "file": "animals/paz/park_props_r04_03.png",
+                "title": "park_props_r04_03"
+            },
+            {
+                "file": "animals/paz/prop_05.png",
+                "title": "prop_05"
+            },
+            {
+                "file": "animals/paz/questionmark01.png",
+                "title": "questionmark01"
+            },
+            {
+                "file": "animals/paz/red_trees_r01_01.png",
+                "title": "red_trees_r01_01"
+            },
+            {
+                "file": "animals/paz/red_trees_r01_02.png",
+                "title": "red_trees_r01_02"
+            },
+            {
+                "file": "animals/paz/red_trees_r01_05.png",
+                "title": "red_trees_r01_05"
+            },
+            {
+                "file": "animals/paz/red_trees_r01_07.png",
+                "title": "red_trees_r01_07"
+            },
+            {
+                "file": "animals/paz/red_trees_r01_08.png",
+                "title": "red_trees_r01_08"
+            },
+            {
+                "file": "animals/paz/red_trees_r02_01.png",
+                "title": "red_trees_r02_01"
+            },
+            {
+                "file": "animals/paz/red_trees_r02_02.png",
+                "title": "red_trees_r02_02"
+            },
+            {
+                "file": "animals/paz/red_trees_r02_03.png",
+                "title": "red_trees_r02_03"
+            },
+            {
+                "file": "animals/paz/robot_crouch_r01_01.png",
+                "title": "robot_crouch_r01_01"
+            },
+            {
+                "file": "animals/paz/robot_crouch_r01_02.png",
+                "title": "robot_crouch_r01_02"
+            },
+            {
+                "file": "animals/paz/robot_crouch_r01_03.png",
+                "title": "robot_crouch_r01_03"
+            },
+            {
+                "file": "animals/paz/robot_crouch_r02_01.png",
+                "title": "robot_crouch_r02_01"
+            },
+            {
+                "file": "animals/paz/robot_crouch_r02_02.png",
+                "title": "robot_crouch_r02_02"
+            },
+            {
+                "file": "animals/paz/robot_crouch_r02_03.png",
+                "title": "robot_crouch_r02_03"
+            },
+            {
+                "file": "animals/paz/robot_r01_01.png",
+                "title": "robot_r01_01"
+            },
+            {
+                "file": "animals/paz/robot_r01_02.png",
+                "title": "robot_r01_02"
+            },
+            {
+                "file": "animals/paz/robot_r01_03.png",
+                "title": "robot_r01_03"
+            },
+            {
+                "file": "animals/paz/robot_r01_04.png",
+                "title": "robot_r01_04"
+            },
+            {
+                "file": "animals/paz/robot_r01_05.png",
+                "title": "robot_r01_05"
+            },
+            {
+                "file": "animals/paz/robot_r01_06.png",
+                "title": "robot_r01_06"
+            },
+            {
+                "file": "animals/paz/robot_r01_07.png",
+                "title": "robot_r01_07"
+            },
+            {
+                "file": "animals/paz/robot_r01_08.png",
+                "title": "robot_r01_08"
+            },
+            {
+                "file": "animals/paz/robot_r01_09.png",
+                "title": "robot_r01_09"
+            },
+            {
+                "file": "animals/paz/robot_r01_10.png",
+                "title": "robot_r01_10"
+            },
+            {
+                "file": "animals/paz/robot_r01_11.png",
+                "title": "robot_r01_11"
+            },
+            {
+                "file": "animals/paz/robot_r02_01.png",
+                "title": "robot_r02_01"
+            },
+            {
+                "file": "animals/paz/robot_r03_01.png",
+                "title": "robot_r03_01"
+            },
+            {
+                "file": "animals/paz/robot_r03_02.png",
+                "title": "robot_r03_02"
+            },
+            {
+                "file": "animals/paz/robot_r03_03.png",
+                "title": "robot_r03_03"
+            },
+            {
+                "file": "animals/paz/robot_r03_04.png",
+                "title": "robot_r03_04"
+            },
+            {
+                "file": "animals/paz/robot_r03_05.png",
+                "title": "robot_r03_05"
+            },
+            {
+                "file": "animals/paz/robot_r04_01.png",
+                "title": "robot_r04_01"
+            },
+            {
+                "file": "animals/paz/robot_r04_02.png",
+                "title": "robot_r04_02"
+            },
+            {
+                "file": "animals/paz/robot_r04_03.png",
+                "title": "robot_r04_03"
+            },
+            {
+                "file": "animals/paz/robot_r04_04.png",
+                "title": "robot_r04_04"
+            },
+            {
+                "file": "animals/paz/robot_r04_05.png",
+                "title": "robot_r04_05"
+            },
+            {
+                "file": "animals/paz/robot_r05_01.png",
+                "title": "robot_r05_01"
+            },
+            {
+                "file": "animals/paz/robot_r05_02.png",
+                "title": "robot_r05_02"
+            },
+            {
+                "file": "animals/paz/robot_r05_03.png",
+                "title": "robot_r05_03"
+            },
+            {
+                "file": "animals/paz/robot_r06_01.png",
+                "title": "robot_r06_01"
+            },
+            {
+                "file": "animals/paz/robot_r06_02.png",
+                "title": "robot_r06_02"
+            },
+            {
+                "file": "animals/paz/robot_r06_03.png",
+                "title": "robot_r06_03"
+            },
+            {
+                "file": "animals/paz/robot_r07_01.png",
+                "title": "robot_r07_01"
+            },
+            {
+                "file": "animals/paz/robot_r07_02.png",
+                "title": "robot_r07_02"
+            },
+            {
+                "file": "animals/paz/robot_r08_01.png",
+                "title": "robot_r08_01"
+            },
+            {
+                "file": "animals/paz/robot_r08_02.png",
+                "title": "robot_r08_02"
+            },
+            {
+                "file": "animals/paz/robot_r09_01.png",
+                "title": "robot_r09_01"
+            },
+            {
+                "file": "animals/paz/robot_r10_01.png",
+                "title": "robot_r10_01"
+            },
+            {
+                "file": "animals/paz/robot_r10_02.png",
+                "title": "robot_r10_02"
+            },
+            {
+                "file": "animals/paz/robot_r10_03.png",
+                "title": "robot_r10_03"
+            },
+            {
+                "file": "animals/paz/robot_r10_04.png",
+                "title": "robot_r10_04"
+            },
+            {
+                "file": "animals/paz/robot_r11_01.png",
+                "title": "robot_r11_01"
+            },
+            {
+                "file": "animals/paz/robot_r11_02.png",
+                "title": "robot_r11_02"
+            },
+            {
+                "file": "animals/paz/robot_r11_03.png",
+                "title": "robot_r11_03"
+            },
+            {
+                "file": "animals/paz/robot_r12_01.png",
+                "title": "robot_r12_01"
+            },
+            {
+                "file": "animals/paz/robot_r12_02.png",
+                "title": "robot_r12_02"
+            },
+            {
+                "file": "animals/paz/robot_r12_03.png",
+                "title": "robot_r12_03"
+            },
+            {
+                "file": "animals/paz/scaffold_r01_01.png",
+                "title": "scaffold_r01_01"
+            },
+            {
+                "file": "animals/paz/scaffold_r01_02.png",
+                "title": "scaffold_r01_02"
+            },
+            {
+                "file": "animals/paz/store_signs_r01_01.png",
+                "title": "store_signs_r01_01"
+            },
+            {
+                "file": "animals/paz/store_signs_r02_01.png",
+                "title": "store_signs_r02_01"
+            },
+            {
+                "file": "animals/paz/store_signs_r02_02.png",
+                "title": "store_signs_r02_02"
+            },
+            {
+                "file": "animals/paz/store_signs_r02_03.png",
+                "title": "store_signs_r02_03"
+            },
+            {
+                "file": "animals/paz/store_signs_r02_04.png",
+                "title": "store_signs_r02_04"
+            },
+            {
+                "file": "animals/paz/store_signs_r02_05.png",
+                "title": "store_signs_r02_05"
+            },
+            {
+                "file": "animals/paz/store_signs_r03_01.png",
+                "title": "store_signs_r03_01"
+            },
+            {
+                "file": "animals/paz/store_signs_r04_01.png",
+                "title": "store_signs_r04_01"
+            },
+            {
+                "file": "animals/paz/store_signs_r04_02.png",
+                "title": "store_signs_r04_02"
+            },
+            {
+                "file": "animals/paz/store_signs_r04_03.png",
+                "title": "store_signs_r04_03"
+            },
+            {
+                "file": "animals/paz/store_signs_r05_01.png",
+                "title": "store_signs_r05_01"
+            },
+            {
+                "file": "animals/paz/store_signs_r05_02.png",
+                "title": "store_signs_r05_02"
+            },
+            {
+                "file": "animals/paz/store_signs_r05_03.png",
+                "title": "store_signs_r05_03"
+            },
+            {
+                "file": "animals/paz/store_signs_r05_04.png",
+                "title": "store_signs_r05_04"
+            },
+            {
+                "file": "animals/paz/store_signs_r06_01.png",
+                "title": "store_signs_r06_01"
+            },
+            {
+                "file": "animals/paz/store_signs_r06_02.png",
+                "title": "store_signs_r06_02"
+            },
+            {
+                "file": "animals/paz/store_signs_r06_03.png",
+                "title": "store_signs_r06_03"
+            },
+            {
+                "file": "animals/paz/store_signs_r06_04.png",
+                "title": "store_signs_r06_04"
+            },
+            {
+                "file": "animals/paz/store_signs_r06_05.png",
+                "title": "store_signs_r06_05"
+            },
+            {
+                "file": "animals/paz/store_signs_r07_01.png",
+                "title": "store_signs_r07_01"
+            },
+            {
+                "file": "animals/paz/store_signs_r07_02.png",
+                "title": "store_signs_r07_02"
+            },
+            {
+                "file": "animals/paz/store_signs_r07_03.png",
+                "title": "store_signs_r07_03"
+            },
+            {
+                "file": "animals/paz/store_signs_r07_04.png",
+                "title": "store_signs_r07_04"
+            },
+            {
+                "file": "animals/paz/store_signs_r07_05.png",
+                "title": "store_signs_r07_05"
+            },
+            {
+                "file": "animals/paz/store_signs_r07_06.png",
+                "title": "store_signs_r07_06"
+            },
+            {
+                "file": "animals/paz/store_signs_r08_01.png",
+                "title": "store_signs_r08_01"
+            },
+            {
+                "file": "animals/paz/store_signs_r08_02.png",
+                "title": "store_signs_r08_02"
+            },
+            {
+                "file": "animals/paz/store_signs_r09_01.png",
+                "title": "store_signs_r09_01"
             }
         ]
     },
@@ -132,26 +1501,29 @@
         ],
         "photos": [
             {
-                "file": "gallerysummary.png",
-                "title": "Mural Summary"
-            },{
-                "file": "gallerymuralprojectcover.png",
+                "file": "gallerymuralprojectcover.jpeg",
                 "title": "Mural Project Cover"
             },{
-                "file": "galleryorangecroc.png",
+                "file": "galleryorangecroc.jpeg",
                 "title": "Orange Croc"
             },{
-                "file": "gallerymermaid.png",
+                "file": "gallerymermaid.jpeg",
                 "title": "Mermaid"
             },{
-                "file": "galleryhuggingbear.png",
+                "file": "galleryhuggingbear.jpeg",
                 "title": "Hugging Bear"
             },{
-                "file": "gallerygirl.png",
+                "file": "gallerygirl.jpeg",
                 "title": "Girl"
             },{
-                "file": "gallerybluemouseheartsign.png",
-                "title": "Blue Mouse with Heart Sign"
+                "file": "#1_adorable_chinchilla.jpeg",
+                "title": "Chinchilla"
+            },{
+                "file": "possum.jpeg",
+                "title": "Possum"
+            },{
+                "file": "spray_paint_buddy_dude.jpeg",
+                "title": "Spray paint buddy dude"
             }
         ],
         "videos": [
