@@ -4,7 +4,8 @@
     "masterAlias": "PAZ",
     "unspecifiedAlias": "lurker",
     "stuffedAnimalMediaObject": {
-        "backgroundimage": "photos/paz/gallerymuralprojectcover.jpeg",
+        "backgroundimage": "photos/paz/gallerymermaid.jpeg",
+        "defaultanimal": "animals/paz/jamie01.png",
         "animals": [
             {
                 "file": "animals/paz/animalbluemouseheartsign.png",

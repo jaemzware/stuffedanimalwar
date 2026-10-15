@@ -1024,6 +1024,7 @@ body:has(.readonly) #audioform {
 
 /* Scrollable animal picker (replaces the visible dropdown) */
 #animalPicker {
+    position: relative; /* so option offsets are measured from the picker when scrolling to the default */
     height: 150px;
     min-width: 0;
     overflow-y: auto;

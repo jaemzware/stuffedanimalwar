@@ -199,6 +199,7 @@ function populateForm(data) {
 
     // Stuffed animal media
     document.getElementById('backgroundimage').value = data.stuffedAnimalMediaObject?.backgroundimage || '';
+    document.getElementById('defaultanimal').value = data.stuffedAnimalMediaObject?.defaultanimal || '';
     populateAnimals(data.stuffedAnimalMediaObject?.animals || []);
 
     // Media object
@@ -731,6 +732,11 @@ function collectFormData() {
         backgroundimage: document.getElementById('backgroundimage').value,
         animals: []
     };
+    // Add default animal only if set (otherwise the canvas defaults to BULLET)
+    const defaultAnimal = document.getElementById('defaultanimal').value.trim();
+    if (defaultAnimal) {
+        data.stuffedAnimalMediaObject.defaultanimal = defaultAnimal;
+    }
 
     const animalFiles = document.querySelectorAll('.animal-file');
     const animalTitles = document.querySelectorAll('.animal-title');

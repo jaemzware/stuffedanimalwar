@@ -737,6 +737,12 @@ document.addEventListener('DOMContentLoaded', function() {
     if ($('#animals').length > 0) {
         updateAnimalPreview($('#animals').val());
     }
+    // Scroll the picker so the default selection is visible
+    const selectedAnimalOption = $('#animalPicker .animal-option.selected');
+    if (selectedAnimalOption.length > 0) {
+        const picker = $('#animalPicker');
+        picker.scrollTop(picker.scrollTop() + selectedAnimalOption.position().top);
+    }
 });
 
 // CANVAS DRAWING EVENTS

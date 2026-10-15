@@ -107,16 +107,22 @@ function writeStuffedAnimalWarForm(stuffedAnimalMediaObject){
     document.write("<tr>");
     document.write("<td colspan='4'>");
     document.write("<div style=\"display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; width: 100%;\">");
+    // Default selection - the endpoint's defaultanimal if it is one of its animals, otherwise BULLET
+    let defaultAnimal = "dot";
+    if(stuffedAnimalMediaObject && stuffedAnimalMediaObject.defaultanimal && stuffedAnimalMediaObject.animals &&
+        stuffedAnimalMediaObject.animals.some(function(animal){ return animal.file === stuffedAnimalMediaObject.defaultanimal; })){
+        defaultAnimal = stuffedAnimalMediaObject.defaultanimal;
+    }
     // Hidden dropdown - still the source of truth for the selected animal; the scrollable picker below drives it
     document.write("<select id=\"animals\" name=\"sawstyle\" size=1 style=\"display:none;\">");
-    document.write("<option value=\"dot\" selected>BULLET</option>");
+    document.write("<option value=\"dot\""+(defaultAnimal==="dot"?" selected":"")+">BULLET</option>");
     document.write("<option value=\"line\">LINE</option>");
     document.write("<option value=\"ninjastar\">NINJA STAR</option>");
     document.write("<option value=\"custom\">CUSTOM URL</option>");
     //SPECIFIED ANIMALS
     if(stuffedAnimalMediaObject && stuffedAnimalMediaObject.animals[0]){
         for (let i=0;i<stuffedAnimalMediaObject.animals.length;i++){
-            document.write("<option value=\""+stuffedAnimalMediaObject.animals[i].file+"\">"+stuffedAnimalMediaObject.animals[i].title+"</option>");
+            document.write("<option value=\""+stuffedAnimalMediaObject.animals[i].file+"\""+(stuffedAnimalMediaObject.animals[i].file===defaultAnimal?" selected":"")+">"+stuffedAnimalMediaObject.animals[i].title+"</option>");
         }
     }
     document.write("</select>");
@@ -145,14 +151,14 @@ function writeStuffedAnimalWarForm(stuffedAnimalMediaObject){
         {value: "custom", title: "CUSTOM URL", symbol: "?"}
     ];
     for (let i=0;i<builtInStyles.length;i++){
-        document.write("<div class=\"animal-option"+(i===0?" selected":"")+"\" data-value=\""+builtInStyles[i].value+"\">");
+        document.write("<div class=\"animal-option"+(builtInStyles[i].value===defaultAnimal?" selected":"")+"\" data-value=\""+builtInStyles[i].value+"\">");
         document.write("<span class=\"animal-option-thumb\">"+builtInStyles[i].symbol+"</span>");
         document.write("<span class=\"animal-option-name\">"+builtInStyles[i].title+"</span>");
         document.write("</div>");
     }
     if(stuffedAnimalMediaObject && stuffedAnimalMediaObject.animals[0]){
         for (let i=0;i<stuffedAnimalMediaObject.animals.length;i++){
-            document.write("<div class=\"animal-option\" data-value=\""+stuffedAnimalMediaObject.animals[i].file+"\">");
+            document.write("<div class=\"animal-option"+(stuffedAnimalMediaObject.animals[i].file===defaultAnimal?" selected":"")+"\" data-value=\""+stuffedAnimalMediaObject.animals[i].file+"\">");
             document.write("<span class=\"animal-option-thumb\"><img src=\""+stuffedAnimalMediaObject.animals[i].file+"\" loading=\"lazy\" decoding=\"async\" alt=\"\"></span>");
             document.write("<span class=\"animal-option-name\">"+stuffedAnimalMediaObject.animals[i].title+"</span>");
             document.write("</div>");
