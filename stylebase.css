@@ -1022,6 +1022,62 @@ body:has(.readonly) #audioform {
     transition: transform 0.2s ease;
 }
 
+/* Scrollable animal picker (replaces the visible dropdown) */
+#animalPicker {
+    height: 150px;
+    min-width: 0;
+    overflow-y: auto;
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid #ccccff;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(204, 204, 255, 0.3);
+    -webkit-overflow-scrolling: touch;
+}
+
+#animalPicker .animal-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px;
+    cursor: pointer;
+    color: #1a1a2e;
+    font-size: 14px;
+    border-bottom: 1px solid rgba(26, 26, 46, 0.1);
+    user-select: none;
+}
+
+#animalPicker .animal-option:hover {
+    background: rgba(153, 153, 255, 0.2);
+}
+
+#animalPicker .animal-option.selected {
+    background: #0066cc;
+    color: #fff;
+    font-weight: bold;
+}
+
+#animalPicker .animal-option-thumb {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+}
+
+#animalPicker .animal-option-thumb img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+#animalPicker .animal-option-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 /* Color Picker Button - compact style */
 #colorPickerButton {
     border: 2px solid #ccccff !important;
@@ -1369,6 +1425,9 @@ a.jaemzwarelogo:active, .skateparkdetail a:active {
     #stuffedanimalwarformtable .direction-color-container {
         grid-template-columns: 1fr !important;
         gap: 10px !important;
+    }
+    #animalPicker {
+        height: 200px;
     }
     /* Make color picker smaller on mobile */
     #colorPickerButton {

@@ -1288,6 +1288,12 @@ $('#animals').on('change', function() {
     }
     // Update preview image
     updateAnimalPreview($(this).val());
+    // Keep the scrollable picker highlight in sync
+    $('#animalPicker .animal-option').removeClass('selected')
+        .filter(function() { return $(this).attr('data-value') === $('#animals').val(); }).addClass('selected');
+});
+$('#animalPicker').on('click', '.animal-option', function() {
+    $('#animals').val($(this).attr('data-value')).trigger('change');
 });
 $('#clearchatbutton').on("click", function() {
     clearChat();
