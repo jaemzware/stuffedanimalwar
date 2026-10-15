@@ -1850,9 +1850,87 @@
                 console.log('📹 Show Remote Cameras changed to:', isChecked, '- Section display:', remoteCameraSection.style.display);
             }
 
+            // Background audio keepalive: Android treats a WebRTC srcObject as a call,
+            // not media, so it can be silenced when the screen locks. Looping a silent
+            // file-backed <audio> (like the canvas music player) plus a Media Session
+            // makes the tab count as playing media and keeps remote audio going.
+            let backgroundAudioKeepalive = null;
+
+            function makeSilentWavUrl(seconds) {
+                const sampleRate = 8000;
+                const numSamples = sampleRate * seconds;
+                const buffer = new ArrayBuffer(44 + numSamples);
+                const view = new DataView(buffer);
+                const writeString = (offset, str) => { for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i)); };
+                writeString(0, 'RIFF');
+                view.setUint32(4, 36 + numSamples, true);
+                writeString(8, 'WAVE');
+                writeString(12, 'fmt ');
+                view.setUint32(16, 16, true);
+                view.setUint16(20, 1, true); // PCM
+                view.setUint16(22, 1, true); // mono
+                view.setUint32(24, sampleRate, true);
+                view.setUint32(28, sampleRate, true); // byte rate
+                view.setUint16(32, 1, true); // block align
+                view.setUint16(34, 8, true); // 8-bit
+                writeString(36, 'data');
+                view.setUint32(40, numSamples, true);
+                for (let i = 0; i < numSamples; i++) view.setUint8(44 + i, 128); // 8-bit silence
+                return URL.createObjectURL(new Blob([buffer], { type: 'audio/wav' }));
+            }
+
+            function startBackgroundAudioKeepalive() {
+                if (!backgroundAudioKeepalive) {
+                    backgroundAudioKeepalive = document.createElement('audio');
+                    backgroundAudioKeepalive.id = 'backgroundAudioKeepalive';
+                    backgroundAudioKeepalive.loop = true;
+                    // Chrome only shows the media notification for clips of 5s or more
+                    backgroundAudioKeepalive.src = makeSilentWavUrl(10);
+                    backgroundAudioKeepalive.style.display = 'none';
+                    document.body.appendChild(backgroundAudioKeepalive);
+                }
+                backgroundAudioKeepalive.play().then(() => {
+                    console.log('🔒 Background audio keepalive playing');
+                }).catch(err => {
+                    console.warn('⚠️ Background audio keepalive blocked:', err.message);
+                });
+
+                if ('mediaSession' in navigator) {
+                    navigator.mediaSession.metadata = new MediaMetadata({
+                        title: 'Camera audio',
+                        artist: endpoint
+                    });
+                    navigator.mediaSession.playbackState = 'playing';
+                    // Lock-screen play/pause toggles Accept Remote Audio
+                    const setAccept = function(checked) {
+                        const checkbox = document.getElementById('acceptMicCheckbox');
+                        if (checkbox.checked !== checked) {
+                            checkbox.checked = checked;
+                            handleAcceptMicChange({ target: checkbox });
+                        }
+                    };
+                    navigator.mediaSession.setActionHandler('play', function() { setAccept(true); });
+                    navigator.mediaSession.setActionHandler('pause', function() { setAccept(false); });
+                }
+            }
+
+            function stopBackgroundAudioKeepalive() {
+                if (backgroundAudioKeepalive) {
+                    backgroundAudioKeepalive.pause();
+                }
+                if ('mediaSession' in navigator) {
+                    navigator.mediaSession.playbackState = 'paused';
+                }
+            }
+
             function handleAcceptMicChange(event) {
                 const isChecked = event.target.checked;
                 isRemoteAudioMuted = !isChecked;
+                if (isChecked) {
+                    startBackgroundAudioKeepalive();
+                } else {
+                    stopBackgroundAudioKeepalive();
+                }
                 console.log('🔊 Accept Remote Audio changed to:', isChecked, '→ isRemoteAudioMuted:', isRemoteAudioMuted);
 
                 // Mute/unmute all existing remote audio elements
