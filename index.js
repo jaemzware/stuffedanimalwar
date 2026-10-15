@@ -1017,10 +1017,19 @@ function fillRoomName(html, name) {
     return html.replace(/{{ENDPOINT}}/g, name).replace('{{MASTER_ALIAS}}', name.toUpperCase());
 }
 
+// Pages use relative media paths (photos/paz/...), so /paz/ would resolve them under /paz/.
+// Redirect trailing-slash page URLs to the canonical form.
+function redirectTrailingSlash(req, res) {
+    if (!req.path.endsWith('/')) return false;
+    res.redirect(301, req.path.replace(/\/+$/, '') + req.url.slice(req.path.length));
+    return true;
+}
+
 // SERVE CANVAS PAGE: /:endpoint
 app.get('/:endpoint', ipBlockMiddleware, function(req, res, next){
     const endpoint = req.params.endpoint;
     if (!isValidEndpoint(endpoint)) return next();
+    if (redirectTrailingSlash(req, res)) return;
 
     // ── Serve from HTML cache if available (zero file I/O on repeat hits) ──
     if (endpointHtmlCache.has(endpoint)) {
@@ -1067,6 +1076,7 @@ app.get('/:endpointcamera', ipBlockMiddleware, function(req, res, next){
     if (!full.endsWith('camera')) return next();
     const endpoint = full.slice(0, -6); // strip 'camera'
     if (!isValidEndpoint(endpoint)) return next();
+    if (redirectTrailingSlash(req, res)) return;
     try {
         let html = templateCameraHtml;
         console.log(`Serving camera endpoint for ${endpoint}`);
