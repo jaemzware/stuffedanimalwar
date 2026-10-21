@@ -1086,14 +1086,6 @@ $('#jaemzwaredynamicvideoplayer').bind("ended", function(){
 $('#jaemzwaredynamicaudioplayer').bind("ended", function(){
     let currentFile = $(this).children(":first").attr('src');
 
-    // If audio sync is enabled, don't auto-advance for ANYONE (including master)
-    // Master should manually control when to play next song for better sync
-    if (audioSyncEnabled) {
-        updateAudioSyncStatus('ENDED: select next track');
-        console.log('Audio sync enabled - waiting for manual track selection');
-        return;
-    }
-
     PlayNextTrack(currentFile);
 });
 $('#nextaudiotrack').click(function(){
