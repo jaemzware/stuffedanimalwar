@@ -37,8 +37,8 @@ let isApplyingRemoteAudioControl=false; // Prevent feedback loop when applying r
 let videoSyncEnabled=false; // Track if video sync is enabled (non-master should not auto-advance)
 let isApplyingRemoteVideoControl=false; // Prevent feedback loop when applying received video commands
 let videoControlSocketEvent = null;
-let suppressAudioPauseEmit=false; // Prevent broadcasting a pause while master silently reverts local playback to await the play broadcast echo
-let suppressVideoPauseEmit=false; // Prevent broadcasting a pause while master silently reverts local playback to await the play broadcast echo
+// Unique id for this page so we can recognize our own audio/video control broadcasts when the server echoes them back
+const mediaControlSenderId = Date.now().toString(36) + Math.random().toString(36).slice(2);
 //free form path drawing vars
 let isDrawing = false;
 let points = [];
@@ -250,6 +250,10 @@ function initializeSocketHandlers(){
         updateAudioSyncStatus('RX ' + action.toUpperCase() + ' from:' + senderUser);
 
         let audioPlayer = document.getElementById('jaemzwaredynamicaudioplayer');
+        if(audioControlMsgObject.AUDIOCONTROLSENDERID === mediaControlSenderId) {
+            // Our own broadcast echoed back by the server - we already applied it locally.
+            return;
+        }
         if(audioPlayer) {
             // Set flag to prevent feedback loop (e.g., seek triggers seeked event which would re-broadcast)
             isApplyingRemoteAudioControl = true;
@@ -308,6 +312,10 @@ function initializeSocketHandlers(){
         updateVideoSyncStatus('RX ' + action.toUpperCase() + ' from:' + senderUser);
 
         let videoPlayer = document.getElementById('jaemzwaredynamicvideoplayer');
+        if(videoControlMsgObject.VIDEOCONTROLSENDERID === mediaControlSenderId) {
+            // Our own broadcast echoed back by the server - we already applied it locally.
+            return;
+        }
         if(videoPlayer) {
             // Set flag to prevent feedback loop (e.g., seek triggers seeked event which would re-broadcast)
             isApplyingRemoteVideoControl = true;
@@ -1124,31 +1132,10 @@ $('#enableaudiosync').click(function(){
 });
 // AUDIO CONTROL SYNC - broadcast masteralias audio controls to all clients
 $('#jaemzwaredynamicaudioplayer').on('play', function(){
-    let chatClientUser = $('#chatClientUser').val();
-    let isMaster = masterAlias && chatClientUser && chatClientUser.toLowerCase() === masterAlias.toLowerCase();
-
-    // If master just pressed play, don't let it become audible yet - master would
-    // always be ahead of everyone else by however long the broadcast takes to
-    // arrive. Instead silently revert to paused, broadcast the play command, and
-    // let the server's echo of that same message (sent back to master too) start
-    // playback below, exactly like it does for every other client.
-    // Only do this once audio sync has been enabled - the later programmatic
-    // play() happens outside a user gesture, so it needs autoplay already
-    // unlocked (same reason every other synced client needs that button too).
-    if(isMaster && audioSyncEnabled && !isApplyingRemoteAudioControl) {
-        suppressAudioPauseEmit = true;
-        this.pause();
-        setTimeout(function() {
-            suppressAudioPauseEmit = false;
-        }, 100);
-    }
-
+    // Presentation alias plays immediately and broadcasts; other clients follow.
     emitAudioControl('play', {});
 });
 $('#jaemzwaredynamicaudioplayer').on('pause', function(){
-    if(suppressAudioPauseEmit) {
-        return;
-    }
     emitAudioControl('pause', {});
 });
 $('#jaemzwaredynamicaudioplayer').on('seeked', function(){
@@ -1183,28 +1170,10 @@ $('#enablevideosync').click(function(){
 });
 // VIDEO CONTROL SYNC - broadcast masteralias video controls to all clients
 $('#jaemzwaredynamicvideoplayer').on('play', function(){
-    let chatClientUser = $('#chatClientUser').val();
-    let isMaster = masterAlias && chatClientUser && chatClientUser.toLowerCase() === masterAlias.toLowerCase();
-
-    // Same reasoning as the audio player above: don't let master's video become
-    // visible/audible immediately - revert to paused, broadcast the play command,
-    // and let the echoed broadcast (which master also receives) start it in sync
-    // with everyone else. Gated on video sync already being enabled so the later
-    // programmatic play() isn't silently blocked by autoplay policy.
-    if(isMaster && videoSyncEnabled && !isApplyingRemoteVideoControl) {
-        suppressVideoPauseEmit = true;
-        this.pause();
-        setTimeout(function() {
-            suppressVideoPauseEmit = false;
-        }, 100);
-    }
-
+    // Presentation alias plays immediately and broadcasts; other clients follow.
     emitVideoControl('play', {});
 });
 $('#jaemzwaredynamicvideoplayer').on('pause', function(){
-    if(suppressVideoPauseEmit) {
-        return;
-    }
     emitVideoControl('pause', {});
 });
 $('#jaemzwaredynamicvideoplayer').on('seeked', function(){
@@ -1437,6 +1406,7 @@ function emitAudioControl(action, data) {
     let audioControlObject = {
         AUDIOCONTROLACTION: action,
         AUDIOCONTROLCLIENTUSER: chatClientUser,
+        AUDIOCONTROLSENDERID: mediaControlSenderId,
         ...data
     };
 
@@ -1465,6 +1435,7 @@ function emitVideoControl(action, data) {
     let videoControlObject = {
         VIDEOCONTROLACTION: action,
         VIDEOCONTROLCLIENTUSER: chatClientUser,
+        VIDEOCONTROLSENDERID: mediaControlSenderId,
         ...data
     };
 
