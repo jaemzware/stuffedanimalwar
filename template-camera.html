@@ -603,6 +603,14 @@
                     sessionStorage.setItem(storageKey, 'true');
                     document.getElementById('passwordModal').style.display = 'none';
                     if (typeof socket !== 'undefined' && !socket.connected) socket.connect();
+                    // Let the user go straight from the password to typing their name
+                    const nameInput = document.getElementById('cameraNameInput');
+                    if (nameInput) {
+                        nameInput.focus();
+                        // If a saved name was restored, put the cursor at the end of it
+                        const len = nameInput.value.length;
+                        nameInput.setSelectionRange(len, len);
+                    }
                 } else {
                     document.getElementById('passwordError').style.display = 'block';
                     document.getElementById('passwordInput').value = '';
