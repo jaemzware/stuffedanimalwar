@@ -2019,6 +2019,23 @@
                     }
                 } else {
                     console.log('Disabling all cameras...');
+                    // Take our video off every peer connection. Just stopping the
+                    // tracks sends nothing to peers, so they kept showing our last
+                    // frame. removeTrack triggers a renegotiation; on their side the
+                    // stream fires 'removetrack' and the card is removed.
+                    Object.keys(peerConnections).forEach(function(peerId) {
+                        const pc = peerConnections[peerId];
+                        if (!pc || pc.signalingState === 'closed') return;
+                        pc.getSenders().forEach(function(sender) {
+                            if (sender.track && sender.track.kind === 'video') {
+                                try {
+                                    pc.removeTrack(sender);
+                                } catch (err) {
+                                    console.warn('removeTrack failed for peer:', peerId, err.message);
+                                }
+                            }
+                        });
+                    });
                     // Stop all camera streams
                     localCameraStreams.forEach(function(camInfo, deviceId) {
                         camInfo.stream.getTracks().forEach(function(track) {
