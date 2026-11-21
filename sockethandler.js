@@ -39,6 +39,10 @@ let isApplyingRemoteVideoControl=false; // Prevent feedback loop when applying r
 let videoControlSocketEvent = null;
 let suppressAudioPauseEmit=false; // Prevent broadcasting a pause while master silently reverts local playback to await the play broadcast echo
 let suppressVideoPauseEmit=false; // Prevent broadcasting a pause while master silently reverts local playback to await the play broadcast echo
+// Unique id for this page so we can recognize our own audio/video control broadcasts when the server echoes them back
+const mediaControlSenderId = Date.now().toString(36) + Math.random().toString(36).slice(2);
+let applyingOwnAudioPlayEcho=false; // One-shot: the next 'play' event is master starting playback from its own echoed play broadcast
+let applyingOwnVideoPlayEcho=false; // One-shot: the next 'play' event is master starting playback from its own echoed play broadcast
 //free form path drawing vars
 let isDrawing = false;
 let points = [];
@@ -250,6 +254,29 @@ function initializeSocketHandlers(){
         updateAudioSyncStatus('RX ' + action.toUpperCase() + ' from:' + senderUser);
 
         let audioPlayer = document.getElementById('jaemzwaredynamicaudioplayer');
+        if(audioPlayer && audioControlMsgObject.AUDIOCONTROLSENDERID === mediaControlSenderId) {
+            // Our own broadcast echoed back. We already did pause/seek/speed/volume
+            // locally, so re-applying them is pointless - and on a LAN the echo lands
+            // within milliseconds, so the 100ms isApplyingRemoteAudioControl window it
+            // used to open would swallow our very next local action (e.g. the 'play'
+            // right after a track ends and auto-advances). Only 'play' matters: master
+            // reverted itself to paused and is waiting for this echo to start.
+            if(action === 'play') {
+                let echoedSongUrl = audioControlMsgObject.AUDIOCONTROLSONGURL;
+                let currentSongUrl = $('#jaemzwaredynamicaudiosource').attr('src');
+                // Stale echo (song changed since) or already playing - nothing to do
+                if(audioPlayer.paused && (!echoedSongUrl || echoedSongUrl === currentSongUrl)) {
+                    updateAudioSyncStatus('PLAYING: Presentation Alias started');
+                    applyingOwnAudioPlayEcho = true;
+                    audioPlayer.play().catch(function(err) {
+                        applyingOwnAudioPlayEcho = false;
+                        updateAudioSyncStatus('BLOCKED: needs interaction');
+                        console.log('Master play from echo failed:', err.message);
+                    });
+                }
+            }
+            return;
+        }
         if(audioPlayer) {
             // Set flag to prevent feedback loop (e.g., seek triggers seeked event which would re-broadcast)
             isApplyingRemoteAudioControl = true;
@@ -308,6 +335,24 @@ function initializeSocketHandlers(){
         updateVideoSyncStatus('RX ' + action.toUpperCase() + ' from:' + senderUser);
 
         let videoPlayer = document.getElementById('jaemzwaredynamicvideoplayer');
+        if(videoPlayer && videoControlMsgObject.VIDEOCONTROLSENDERID === mediaControlSenderId) {
+            // Our own broadcast echoed back - see the audio handler above for why
+            // only 'play' is applied and the remote-control flag is left alone.
+            if(action === 'play') {
+                let echoedVideoUrl = videoControlMsgObject.VIDEOCONTROLVIDEOURL;
+                let currentVideoUrl = $('#jaemzwaredynamicvideosource').attr('src');
+                if(videoPlayer.paused && (!echoedVideoUrl || echoedVideoUrl === currentVideoUrl)) {
+                    updateVideoSyncStatus('PLAYING: Presentation Alias started');
+                    applyingOwnVideoPlayEcho = true;
+                    videoPlayer.play().catch(function(err) {
+                        applyingOwnVideoPlayEcho = false;
+                        updateVideoSyncStatus('BLOCKED: needs interaction');
+                        console.log('Master play from echo failed:', err.message);
+                    });
+                }
+            }
+            return;
+        }
         if(videoPlayer) {
             // Set flag to prevent feedback loop (e.g., seek triggers seeked event which would re-broadcast)
             isApplyingRemoteVideoControl = true;
@@ -1135,18 +1180,22 @@ $('#jaemzwaredynamicaudioplayer').on('play', function(){
     // Only do this once audio sync has been enabled - the later programmatic
     // play() happens outside a user gesture, so it needs autoplay already
     // unlocked (same reason every other synced client needs that button too).
-    if(isMaster && audioSyncEnabled && !isApplyingRemoteAudioControl) {
+    // This 'play' is the echo of our own broadcast starting playback - let it play.
+    if(applyingOwnAudioPlayEcho) {
+        applyingOwnAudioPlayEcho = false;
+        return;
+    }
+    if(isMaster && audioSyncEnabled && !isApplyingRemoteAudioControl && !this.paused) {
+        // One-shot: consumed by the 'pause' event this pause() is guaranteed to fire
         suppressAudioPauseEmit = true;
         this.pause();
-        setTimeout(function() {
-            suppressAudioPauseEmit = false;
-        }, 100);
     }
 
     emitAudioControl('play', {});
 });
 $('#jaemzwaredynamicaudioplayer').on('pause', function(){
     if(suppressAudioPauseEmit) {
+        suppressAudioPauseEmit = false;
         return;
     }
     emitAudioControl('pause', {});
@@ -1191,18 +1240,22 @@ $('#jaemzwaredynamicvideoplayer').on('play', function(){
     // and let the echoed broadcast (which master also receives) start it in sync
     // with everyone else. Gated on video sync already being enabled so the later
     // programmatic play() isn't silently blocked by autoplay policy.
-    if(isMaster && videoSyncEnabled && !isApplyingRemoteVideoControl) {
+    // This 'play' is the echo of our own broadcast starting playback - let it play.
+    if(applyingOwnVideoPlayEcho) {
+        applyingOwnVideoPlayEcho = false;
+        return;
+    }
+    if(isMaster && videoSyncEnabled && !isApplyingRemoteVideoControl && !this.paused) {
+        // One-shot: consumed by the 'pause' event this pause() is guaranteed to fire
         suppressVideoPauseEmit = true;
         this.pause();
-        setTimeout(function() {
-            suppressVideoPauseEmit = false;
-        }, 100);
     }
 
     emitVideoControl('play', {});
 });
 $('#jaemzwaredynamicvideoplayer').on('pause', function(){
     if(suppressVideoPauseEmit) {
+        suppressVideoPauseEmit = false;
         return;
     }
     emitVideoControl('pause', {});
@@ -1437,6 +1490,7 @@ function emitAudioControl(action, data) {
     let audioControlObject = {
         AUDIOCONTROLACTION: action,
         AUDIOCONTROLCLIENTUSER: chatClientUser,
+        AUDIOCONTROLSENDERID: mediaControlSenderId,
         ...data
     };
 
@@ -1465,6 +1519,7 @@ function emitVideoControl(action, data) {
     let videoControlObject = {
         VIDEOCONTROLACTION: action,
         VIDEOCONTROLCLIENTUSER: chatClientUser,
+        VIDEOCONTROLSENDERID: mediaControlSenderId,
         ...data
     };
 
