@@ -2374,7 +2374,12 @@
 
                 try {
                     // Create new offer with iceRestart option
+                    pc._makingOffer = true;
                     const offer = await pc.createOffer({ iceRestart: true });
+                    if (pc.signalingState !== 'stable') {
+                        console.log('⏸️ ICE restart superseded by incoming offer for peer:', peerId);
+                        return;
+                    }
                     await pc.setLocalDescription(offer);
 
                     socket.emit(voiceOfferSocketEvent, {
@@ -2387,6 +2392,8 @@
                     console.log('✅ ICE restart offer sent to peer:', peerId);
                 } catch (err) {
                     console.error('❌ ICE restart failed for peer:', peerId, err);
+                } finally {
+                    pc._makingOffer = false;
                 }
             }
 
@@ -2765,6 +2772,7 @@
             // Send the first offer on a brand-new connection
             function sendInitialOffer(pc, peerId) {
                 pc._offerStarted = true;
+                pc._makingOffer = true;
                 pc.createOffer().then(offer => pc.setLocalDescription(offer))
                     .then(() => {
                         socket.emit(voiceOfferSocketEvent, {
@@ -2777,6 +2785,9 @@
                     })
                     .catch(err => {
                         console.error('❌ Error creating offer for:', peerId, err);
+                    })
+                    .finally(() => {
+                        pc._makingOffer = false;
                     });
             }
 
@@ -3358,23 +3369,38 @@
                 // Monitor negotiation needed
                 pc.onnegotiationneeded = async function() {
                     console.log('🔄 Negotiation needed for peer:', peerId);
-                    // Only handle if we're stable and this is a renegotiation.
-                    // Use connectionState as fallback for _isEstablished (iOS Safari
-                    // may not reliably fire onconnectionstatechange).
-                    if (pc.signalingState === 'stable' && (pc._isEstablished || pc.connectionState === 'connected')) {
-                        try {
-                            const offer = await pc.createOffer();
-                            await pc.setLocalDescription(offer);
-                            socket.emit(voiceOfferSocketEvent, {
-                                offer: pc.localDescription,
-                                to: peerId,
-                                cameraName: myCameraName,
-                                        cameraNames: getCameraNames()
-                            });
-                            console.log('📤 Sent renegotiation offer to peer:', peerId);
-                        } catch (err) {
-                            console.error('❌ Renegotiation failed for peer:', peerId, err);
-                        }
+                    // Only renegotiate once the first offer/answer has completed
+                    // (remoteDescription set). Before that, the initial offer from
+                    // the lower id (sendInitialOffer) carries everything.
+                    // This used to also wait for the connection to be 'connected',
+                    // which dropped the event for good when several people pressed
+                    // Camera while connections were still coming up - their video
+                    // was then never offered to those peers until a page refresh.
+                    // If the state isn't stable now, the browser fires this event
+                    // again once it returns to stable, so it isn't lost.
+                    if (pc.signalingState !== 'stable' || !pc.remoteDescription) {
+                        console.log('⏸️ Deferring renegotiation for peer:', peerId, '(signalingState:', pc.signalingState + ', remoteDescription:', !!pc.remoteDescription + ')');
+                        return;
+                    }
+                    pc._makingOffer = true;
+                    try {
+                        const offer = await pc.createOffer();
+                        // A peer's offer may have landed while we were creating ours
+                        // (both pressed Camera at once). handleOffer resolves that
+                        // collision; ours is retried after it via negotiationneeded.
+                        if (pc.signalingState !== 'stable') return;
+                        await pc.setLocalDescription(offer);
+                        socket.emit(voiceOfferSocketEvent, {
+                            offer: pc.localDescription,
+                            to: peerId,
+                            cameraName: myCameraName,
+                            cameraNames: getCameraNames()
+                        });
+                        console.log('📤 Sent renegotiation offer to peer:', peerId);
+                    } catch (err) {
+                        console.warn('⚠️ Renegotiation offer superseded/failed for peer:', peerId, err.message);
+                    } finally {
+                        pc._makingOffer = false;
                     }
                 };
 
@@ -3394,7 +3420,10 @@
                     // it with the incoming one — resolve the collision deterministically
                     // (same lower-ID-offers convention used elsewhere) so crossed offers
                     // (e.g. simultaneous ICE restarts) can't corrupt the DTLS transport.
-                    const offerCollision = pc.signalingState === 'have-local-offer';
+                    // _makingOffer covers the window where our createOffer() is still
+                    // pending and signalingState hasn't left 'stable' yet - on a LAN
+                    // the peer's offer easily arrives inside that window.
+                    const offerCollision = pc._makingOffer || pc.signalingState !== 'stable';
                     const polite = socket.id > data.from;
 
                     if (offerCollision) {
@@ -3402,8 +3431,10 @@
                             console.log('⏸️ Ignoring colliding offer from (impolite, keeping our own offer):', data.from);
                             return;
                         }
-                        console.log('↩️ Rolling back our pending offer to accept incoming offer (polite) from:', data.from);
-                        await pc.setLocalDescription({ type: 'rollback' });
+                        console.log('↩️ Yielding our pending offer to accept incoming offer (polite) from:', data.from);
+                        if (pc.signalingState === 'have-local-offer') {
+                            await pc.setLocalDescription({ type: 'rollback' });
+                        }
                     }
 
                     await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
@@ -3448,7 +3479,10 @@
                 applyPeerNames(data.from, data.cameraName, data.cameraNames);
 
                 const pc = peerConnections[data.from];
-                if (pc) {
+                if (pc && pc.signalingState !== 'have-local-offer') {
+                    // Answer to an offer we already rolled back (glare) - nothing to apply
+                    console.log('ℹ️ Ignoring stale answer from:', data.from, '(signalingState:', pc.signalingState + ')');
+                } else if (pc) {
                     try {
                         await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
                         console.log('✅ Set remote description for answer from:', data.from);
